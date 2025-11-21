@@ -2,6 +2,9 @@ import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import LoginForm from '@/components/auth/LoginForm'
 
+// Force dynamic rendering for authentication
+export const dynamic = 'force-dynamic'
+
 export default async function LoginPage() {
   // Check if user is already authenticated
   const user = await getCurrentUser()

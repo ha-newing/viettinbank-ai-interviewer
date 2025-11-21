@@ -272,3 +272,10 @@ export async function logout(): Promise<void> {
 
   redirect('/auth/login')
 }
+
+/**
+ * Handle logout form submission
+ */
+export async function logoutAction(): Promise<void> {
+  await logout()
+}

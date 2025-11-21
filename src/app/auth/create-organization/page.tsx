@@ -1,6 +1,9 @@
 import { redirect } from 'next/navigation'
 import CreateOrganizationForm from '@/components/auth/CreateOrganizationForm'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 interface CreateOrganizationPageProps {
   searchParams: Promise<{ token?: string; email?: string }>
 }
