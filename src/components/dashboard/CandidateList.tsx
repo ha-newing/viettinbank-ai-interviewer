@@ -12,7 +12,8 @@ interface Interview {
   candidateName: string
   candidateEmail: string
   candidatePhone?: string
-  status: 'pending' | 'in_progress' | 'completed' | 'expired'
+  interviewStatus: 'pending' | 'in_progress' | 'completed' | 'expired'
+  candidateStatus: 'all' | 'screened' | 'selected' | 'rejected' | 'waiting'
   overallScore?: number
   recommendation?: 'RECOMMEND' | 'CONSIDER' | 'NOT_RECOMMEND'
   createdAt: Date
@@ -24,11 +25,19 @@ interface CandidateListProps {
 }
 
 // Vietnamese status labels
-const statusLabels = {
+const interviewStatusLabels = {
   pending: 'Chờ thực hiện',
   in_progress: 'Đang tiến hành',
   completed: 'Hoàn thành',
   expired: 'Đã hết hạn',
+} as const
+
+const candidateStatusLabels = {
+  all: 'Tất cả',
+  screened: 'Đã sàng lọc',
+  selected: 'Đã chọn',
+  rejected: 'Đã từ chối',
+  waiting: 'Danh sách chờ',
 } as const
 
 const recommendationLabels = {
@@ -37,13 +46,13 @@ const recommendationLabels = {
   NOT_RECOMMEND: 'Không khuyến nghị',
 } as const
 
-// Status filter tabs
+// Candidate status tabs (PRD-compliant pipeline)
 const statusTabs = [
-  { key: 'all', label: 'Tất cả', count: 0 },
-  { key: 'pending', label: 'Chờ thực hiện', count: 0 },
-  { key: 'in_progress', label: 'Đang tiến hành', count: 0 },
-  { key: 'completed', label: 'Hoàn thành', count: 0 },
-  { key: 'expired', label: 'Đã hết hạn', count: 0 },
+  { key: 'all', label: 'TẤT CẢ', count: 0, icon: '📋' },
+  { key: 'screened', label: 'SÀNG LỌC', count: 0, icon: '✅' },
+  { key: 'selected', label: 'ĐÃ CHỌN', count: 0, icon: '💼' },
+  { key: 'rejected', label: 'ĐÃ TỪ CHỐI', count: 0, icon: '❌' },
+  { key: 'waiting', label: 'DANH SÁCH CHỜ', count: 0, icon: '⏳' },
 ]
 
 export default function CandidateList({ organizationId }: CandidateListProps) {
@@ -62,7 +71,8 @@ export default function CandidateList({ organizationId }: CandidateListProps) {
         candidateName: 'Nguyễn Văn An',
         candidateEmail: 'an.nguyen@example.com',
         candidatePhone: '0901234567',
-        status: 'pending',
+        interviewStatus: 'pending',
+        candidateStatus: 'screened',
         createdAt: new Date('2024-11-20'),
       },
       {
@@ -70,7 +80,8 @@ export default function CandidateList({ organizationId }: CandidateListProps) {
         candidateName: 'Trần Thị Bình',
         candidateEmail: 'binh.tran@example.com',
         candidatePhone: '0912345678',
-        status: 'completed',
+        interviewStatus: 'completed',
+        candidateStatus: 'selected',
         overallScore: 85,
         recommendation: 'RECOMMEND',
         createdAt: new Date('2024-11-19'),
@@ -80,7 +91,8 @@ export default function CandidateList({ organizationId }: CandidateListProps) {
         id: '3',
         candidateName: 'Lê Hoàng Cường',
         candidateEmail: 'cuong.le@example.com',
-        status: 'in_progress',
+        interviewStatus: 'in_progress',
+        candidateStatus: 'screened',
         createdAt: new Date('2024-11-21'),
       },
       {
@@ -88,7 +100,8 @@ export default function CandidateList({ organizationId }: CandidateListProps) {
         candidateName: 'Phạm Thị Dung',
         candidateEmail: 'dung.pham@example.com',
         candidatePhone: '0923456789',
-        status: 'completed',
+        interviewStatus: 'completed',
+        candidateStatus: 'waiting',
         overallScore: 72,
         recommendation: 'CONSIDER',
         createdAt: new Date('2024-11-18'),
@@ -98,7 +111,8 @@ export default function CandidateList({ organizationId }: CandidateListProps) {
         id: '5',
         candidateName: 'Võ Minh Em',
         candidateEmail: 'em.vo@example.com',
-        status: 'expired',
+        interviewStatus: 'expired',
+        candidateStatus: 'rejected',
         createdAt: new Date('2024-11-15'),
       },
     ]
@@ -111,7 +125,7 @@ export default function CandidateList({ organizationId }: CandidateListProps) {
       count:
         tab.key === 'all'
           ? mockInterviews.length
-          : mockInterviews.filter((interview) => interview.status === tab.key).length,
+          : mockInterviews.filter((interview) => interview.candidateStatus === tab.key).length,
     }))
     setTabs(updatedTabs)
 
@@ -120,7 +134,7 @@ export default function CandidateList({ organizationId }: CandidateListProps) {
 
   // Filter interviews based on selected tab and search query
   const filteredInterviews = interviews.filter((interview) => {
-    const matchesTab = selectedTab === 'all' || interview.status === selectedTab
+    const matchesTab = selectedTab === 'all' || interview.candidateStatus === selectedTab
     const matchesSearch =
       !searchQuery ||
       interview.candidateName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -128,7 +142,7 @@ export default function CandidateList({ organizationId }: CandidateListProps) {
     return matchesTab && matchesSearch
   })
 
-  const getStatusBadgeColor = (status: string) => {
+  const getInterviewStatusBadgeColor = (status: string) => {
     switch (status) {
       case 'pending':
         return 'bg-yellow-100 text-yellow-800'
@@ -138,6 +152,21 @@ export default function CandidateList({ organizationId }: CandidateListProps) {
         return 'bg-green-100 text-green-800'
       case 'expired':
         return 'bg-gray-100 text-gray-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  const getCandidateStatusBadgeColor = (status: string) => {
+    switch (status) {
+      case 'screened':
+        return 'bg-blue-100 text-blue-800'
+      case 'selected':
+        return 'bg-green-100 text-green-800'
+      case 'rejected':
+        return 'bg-red-100 text-red-800'
+      case 'waiting':
+        return 'bg-orange-100 text-orange-800'
       default:
         return 'bg-gray-100 text-gray-800'
     }
@@ -210,25 +239,26 @@ export default function CandidateList({ organizationId }: CandidateListProps) {
           </Button>
         </div>
 
-        {/* Status Tabs */}
+        {/* Status Tabs - PRD Compliant Format */}
         <div className="mt-6">
-          <nav className="flex space-x-8 overflow-x-auto">
+          <nav className="flex space-x-4 overflow-x-auto scrollbar-hide">
             {tabs.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setSelectedTab(tab.key)}
-                className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${
+                className={`whitespace-nowrap py-3 px-4 border-b-2 font-semibold text-sm min-h-[44px] flex items-center space-x-2 transition-colors ${
                   selectedTab === tab.key
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-blue-500 text-blue-600 bg-blue-50'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:bg-gray-50'
                 }`}
               >
-                {tab.label}
+                <span className="text-lg">{tab.icon}</span>
+                <span>{tab.label}</span>
                 <span
-                  className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                  className={`py-0.5 px-2 rounded-full text-xs font-medium ${
                     selectedTab === tab.key
-                      ? 'bg-blue-100 text-blue-600'
-                      : 'bg-gray-100 text-gray-900'
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'bg-gray-100 text-gray-600'
                   }`}
                 >
                   {tab.count}
@@ -282,8 +312,12 @@ export default function CandidateList({ organizationId }: CandidateListProps) {
                     </div>
 
                     <div className="flex items-center space-x-2">
-                      <Badge className={getStatusBadgeColor(interview.status)}>
-                        {statusLabels[interview.status]}
+                      <Badge className={getInterviewStatusBadgeColor(interview.interviewStatus)}>
+                        {interviewStatusLabels[interview.interviewStatus]}
+                      </Badge>
+
+                      <Badge className={getCandidateStatusBadgeColor(interview.candidateStatus)}>
+                        {candidateStatusLabels[interview.candidateStatus]}
                       </Badge>
 
                       {interview.recommendation && (
@@ -313,7 +347,7 @@ export default function CandidateList({ organizationId }: CandidateListProps) {
                 </div>
 
                 <div className="flex items-center space-x-2 ml-4">
-                  {interview.status === 'completed' ? (
+                  {interview.interviewStatus === 'completed' ? (
                     <Button variant="ghost" size="sm" asChild>
                       <Link href={`/dashboard/reports/${interview.id}`} title="Xem báo cáo chi tiết">
                         <FileText className="h-4 w-4" />
