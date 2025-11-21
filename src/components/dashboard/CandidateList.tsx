@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, Plus, Filter, Eye, Edit, Trash2, Mail } from 'lucide-react'
+import { Search, Plus, Filter, Eye, Edit, Trash2, Mail, FileText } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import Link from 'next/link'
 
 interface Interview {
   id: string
@@ -13,7 +14,7 @@ interface Interview {
   candidatePhone?: string
   status: 'pending' | 'in_progress' | 'completed' | 'expired'
   overallScore?: number
-  recommendation?: 'PROCEED' | 'REJECT' | 'REVIEW'
+  recommendation?: 'RECOMMEND' | 'CONSIDER' | 'NOT_RECOMMEND'
   createdAt: Date
   completedAt?: Date
 }
@@ -31,9 +32,9 @@ const statusLabels = {
 } as const
 
 const recommendationLabels = {
-  PROCEED: 'Tiếp tục',
-  REJECT: 'Từ chối',
-  REVIEW: 'Xem xét',
+  RECOMMEND: 'Khuyến nghị tuyển dụng',
+  CONSIDER: 'Cân nhắc',
+  NOT_RECOMMEND: 'Không khuyến nghị',
 } as const
 
 // Status filter tabs
@@ -71,7 +72,7 @@ export default function CandidateList({ organizationId }: CandidateListProps) {
         candidatePhone: '0912345678',
         status: 'completed',
         overallScore: 85,
-        recommendation: 'PROCEED',
+        recommendation: 'RECOMMEND',
         createdAt: new Date('2024-11-19'),
         completedAt: new Date('2024-11-19'),
       },
@@ -89,7 +90,7 @@ export default function CandidateList({ organizationId }: CandidateListProps) {
         candidatePhone: '0923456789',
         status: 'completed',
         overallScore: 72,
-        recommendation: 'REVIEW',
+        recommendation: 'CONSIDER',
         createdAt: new Date('2024-11-18'),
         completedAt: new Date('2024-11-18'),
       },
@@ -144,11 +145,11 @@ export default function CandidateList({ organizationId }: CandidateListProps) {
 
   const getRecommendationBadgeColor = (recommendation?: string) => {
     switch (recommendation) {
-      case 'PROCEED':
+      case 'RECOMMEND':
         return 'bg-green-100 text-green-800'
-      case 'REJECT':
+      case 'NOT_RECOMMEND':
         return 'bg-red-100 text-red-800'
-      case 'REVIEW':
+      case 'CONSIDER':
         return 'bg-orange-100 text-orange-800'
       default:
         return 'bg-gray-100 text-gray-800'
@@ -312,13 +313,21 @@ export default function CandidateList({ organizationId }: CandidateListProps) {
                 </div>
 
                 <div className="flex items-center space-x-2 ml-4">
-                  <Button variant="ghost" size="sm">
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm">
+                  {interview.status === 'completed' ? (
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link href={`/dashboard/reports/${interview.id}`} title="Xem báo cáo chi tiết">
+                        <FileText className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                  ) : (
+                    <Button variant="ghost" size="sm" title="Xem chi tiết">
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <Button variant="ghost" size="sm" title="Chỉnh sửa">
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" title="Xóa">
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
