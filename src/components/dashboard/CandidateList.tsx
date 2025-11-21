@@ -183,9 +183,11 @@ export default function CandidateList({ organizationId }: CandidateListProps) {
             </p>
           </div>
           <div className="flex space-x-3">
-            <Button className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="h-4 w-4 mr-2" />
-              Tạo phỏng vấn mới
+            <Button asChild className="bg-blue-600 hover:bg-blue-700">
+              <a href="/dashboard/interviews/create">
+                <Plus className="h-4 w-4 mr-2" />
+                Tạo phỏng vấn mới
+              </a>
             </Button>
           </div>
         </div>
@@ -244,9 +246,11 @@ export default function CandidateList({ organizationId }: CandidateListProps) {
               {searchQuery ? 'Không tìm thấy ứng viên phù hợp' : 'Chưa có ứng viên nào'}
             </div>
             {!searchQuery && (
-              <Button className="mt-4 bg-blue-600 hover:bg-blue-700">
-                <Plus className="h-4 w-4 mr-2" />
-                Tạo phỏng vấn đầu tiên
+              <Button asChild className="mt-4 bg-blue-600 hover:bg-blue-700">
+                <a href="/dashboard/interviews/create">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Tạo phỏng vấn đầu tiên
+                </a>
               </Button>
             )}
           </div>
