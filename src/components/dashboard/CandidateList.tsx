@@ -6,19 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
-
-interface Interview {
-  id: string
-  candidateName: string
-  candidateEmail: string
-  candidatePhone?: string
-  interviewStatus: 'pending' | 'in_progress' | 'completed' | 'expired'
-  candidateStatus: 'all' | 'screened' | 'selected' | 'rejected' | 'waiting'
-  overallScore?: number
-  recommendation?: 'RECOMMEND' | 'CONSIDER' | 'NOT_RECOMMEND'
-  createdAt: Date
-  completedAt?: Date
-}
+import { getDashboardInterviews, getCandidateStatusCounts, type DashboardInterview } from '@/app/dashboard/actions'
 
 interface CandidateListProps {
   organizationId: string
@@ -58,89 +46,64 @@ const statusTabs = [
 export default function CandidateList({ organizationId }: CandidateListProps) {
   const [selectedTab, setSelectedTab] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
-  const [interviews, setInterviews] = useState<Interview[]>([])
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
+  const [interviews, setInterviews] = useState<DashboardInterview[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [tabs, setTabs] = useState(statusTabs)
 
-  // Mock data for now - will be replaced with actual API calls
+  // Debounce search query
   useEffect(() => {
-    // Simulate API call
-    const mockInterviews: Interview[] = [
-      {
-        id: '1',
-        candidateName: 'Nguyễn Văn An',
-        candidateEmail: 'an.nguyen@example.com',
-        candidatePhone: '0901234567',
-        interviewStatus: 'pending',
-        candidateStatus: 'screened',
-        createdAt: new Date('2024-11-20'),
-      },
-      {
-        id: '2',
-        candidateName: 'Trần Thị Bình',
-        candidateEmail: 'binh.tran@example.com',
-        candidatePhone: '0912345678',
-        interviewStatus: 'completed',
-        candidateStatus: 'selected',
-        overallScore: 85,
-        recommendation: 'RECOMMEND',
-        createdAt: new Date('2024-11-19'),
-        completedAt: new Date('2024-11-19'),
-      },
-      {
-        id: '3',
-        candidateName: 'Lê Hoàng Cường',
-        candidateEmail: 'cuong.le@example.com',
-        interviewStatus: 'in_progress',
-        candidateStatus: 'screened',
-        createdAt: new Date('2024-11-21'),
-      },
-      {
-        id: '4',
-        candidateName: 'Phạm Thị Dung',
-        candidateEmail: 'dung.pham@example.com',
-        candidatePhone: '0923456789',
-        interviewStatus: 'completed',
-        candidateStatus: 'waiting',
-        overallScore: 72,
-        recommendation: 'CONSIDER',
-        createdAt: new Date('2024-11-18'),
-        completedAt: new Date('2024-11-18'),
-      },
-      {
-        id: '5',
-        candidateName: 'Võ Minh Em',
-        candidateEmail: 'em.vo@example.com',
-        interviewStatus: 'expired',
-        candidateStatus: 'rejected',
-        createdAt: new Date('2024-11-15'),
-      },
-    ]
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery)
+    }, 300) // 300ms debounce
 
-    setInterviews(mockInterviews)
+    return () => clearTimeout(timer)
+  }, [searchQuery])
 
-    // Calculate tab counts
-    const updatedTabs = tabs.map((tab) => ({
-      ...tab,
-      count:
-        tab.key === 'all'
-          ? mockInterviews.length
-          : mockInterviews.filter((interview) => interview.candidateStatus === tab.key).length,
-    }))
-    setTabs(updatedTabs)
+  // Fetch real interview data from database
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true)
+        setError(null)
 
-    setLoading(false)
-  }, [])
+        // Fetch interviews and status counts in parallel
+        const [interviewsResult, countsResult] = await Promise.all([
+          getDashboardInterviews({
+            candidateStatus: selectedTab,
+            searchQuery: debouncedSearchQuery || undefined,
+          }),
+          getCandidateStatusCounts()
+        ])
 
-  // Filter interviews based on selected tab and search query
-  const filteredInterviews = interviews.filter((interview) => {
-    const matchesTab = selectedTab === 'all' || interview.candidateStatus === selectedTab
-    const matchesSearch =
-      !searchQuery ||
-      interview.candidateName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      interview.candidateEmail.toLowerCase().includes(searchQuery.toLowerCase())
-    return matchesTab && matchesSearch
-  })
+        if (interviewsResult.success && interviewsResult.data) {
+          setInterviews(interviewsResult.data)
+        } else {
+          setError(interviewsResult.error || 'Failed to fetch interviews')
+        }
+
+        if (countsResult.success && countsResult.data) {
+          const updatedTabs = tabs.map((tab) => ({
+            ...tab,
+            count: countsResult.data![tab.key] || 0,
+          }))
+          setTabs(updatedTabs)
+        }
+
+      } catch (error) {
+        console.error('Failed to fetch dashboard data:', error)
+        setError('Failed to load data')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [selectedTab, debouncedSearchQuery])
+
+  // Interviews are already filtered on the server side
+  const filteredInterviews = interviews
 
   const getInterviewStatusBadgeColor = (status: string) => {
     switch (status) {
@@ -196,6 +159,23 @@ export default function CandidateList({ organizationId }: CandidateListProps) {
               <div key={i} className="h-16 bg-gray-200 rounded"></div>
             ))}
           </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+        <div className="text-center">
+          <div className="text-red-600 text-sm mb-4">{error}</div>
+          <Button
+            onClick={() => window.location.reload()}
+            variant="outline"
+            className="text-sm"
+          >
+            Tải lại
+          </Button>
         </div>
       </div>
     )

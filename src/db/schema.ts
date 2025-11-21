@@ -99,6 +99,7 @@ export const interviews = sqliteTable('interviews', {
 
   // Interview status and metadata
   status: text('status').$type<InterviewStatus>().notNull().default('pending'),
+  candidateStatus: text('candidate_status').$type<CandidateStatus>().notNull().default('screened'),
   interviewLinkToken: text('interview_link_token').notNull().unique(), // UUID for candidate access
   interviewLinkExpiresAt: integer('interview_link_expires_at', { mode: 'timestamp' }).notNull(),
 
