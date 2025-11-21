@@ -260,17 +260,52 @@ export default function InterviewConduct({
     setIsSubmitting(true)
 
     try {
-      // In a real implementation, you would upload videos and submit interview
-      // For now, we'll just simulate submission
-      console.log('Submitting interview with responses:', responses)
+      console.log('Submitting interview with responses:', responses.length)
 
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      // Submit each video response
+      for (const response of responses) {
+        if (response.videoBlob) {
+          const formData = new FormData()
+          formData.append('interviewId', interview.id)
+          formData.append('questionId', response.questionId)
+          formData.append('questionOrder', questions.findIndex(q => q.id === response.questionId).toString())
+          formData.append('videoFile', response.videoBlob, `response_${response.questionId}.webm`)
+
+          // Submit video response for processing
+          const submitResponse = await fetch('/api/interview/submit-response', {
+            method: 'POST',
+            body: formData
+          })
+
+          if (!submitResponse.ok) {
+            throw new Error(`Failed to submit response for question ${response.questionId}`)
+          }
+
+          console.log(`✅ Submitted response for question ${response.questionId}`)
+        }
+      }
+
+      // Mark interview as completed
+      const completeFormData = new FormData()
+      completeFormData.append('interviewId', interview.id)
+      completeFormData.append('token', token)
+
+      const completeResponse = await fetch('/api/interview/complete', {
+        method: 'POST',
+        body: completeFormData
+      })
+
+      if (!completeResponse.ok) {
+        throw new Error('Failed to complete interview')
+      }
+
+      console.log('✅ Interview completed successfully')
 
       // Redirect to completion page
       window.location.href = `/interview/${token}/complete`
 
     } catch (err) {
+      console.error('Interview submission error:', err)
       setError('Lỗi khi nộp phỏng vấn. Vui lòng thử lại.')
       setIsSubmitting(false)
     }
