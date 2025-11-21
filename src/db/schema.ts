@@ -1,5 +1,5 @@
 import { sqliteTable, text, integer, real, blob } from 'drizzle-orm/sqlite-core'
-import { createId } from '@paralleldrive/cuid2'
+import { nanoid } from 'nanoid'
 
 // Enums for type safety as specified in CLAUDE.md
 export const interviewStatusEnum = ['pending', 'in_progress', 'completed', 'expired'] as const
@@ -14,7 +14,7 @@ export type CandidateStatus = typeof candidateStatusEnum[number]
 
 // Organizations Table - Based on PRD specifications
 export const organizations = sqliteTable('organizations', {
-  id: text('id').primaryKey().$defaultFn(() => createId()),
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
   domain: text('domain').notNull().unique(), // Company domain for email validation
   name: text('name').notNull(),
   packageTier: text('package_tier').$type<PackageTier>().notNull().default('startup'),
@@ -31,7 +31,7 @@ export const organizations = sqliteTable('organizations', {
 
 // Users Table - Authentication and role management
 export const users = sqliteTable('users', {
-  id: text('id').primaryKey().$defaultFn(() => createId()),
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
   email: text('email').notNull().unique(),
   organizationId: text('organization_id')
     .notNull()
@@ -45,7 +45,7 @@ export const users = sqliteTable('users', {
 
 // Job Templates - Interview job configurations
 export const jobTemplates = sqliteTable('job_templates', {
-  id: text('id').primaryKey().$defaultFn(() => createId()),
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
   organizationId: text('organization_id')
     .notNull()
     .references(() => organizations.id, { onDelete: 'cascade' }),
@@ -69,7 +69,7 @@ export const jobTemplates = sqliteTable('job_templates', {
 
 // Interview Questions - Predefined questions for job templates
 export const interviewQuestions = sqliteTable('interview_questions', {
-  id: text('id').primaryKey().$defaultFn(() => createId()),
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
   jobTemplateId: text('job_template_id')
     .references(() => jobTemplates.id, { onDelete: 'cascade' }),
   questionText: text('question_text').notNull(), // Vietnamese question
@@ -85,7 +85,7 @@ export const interviewQuestions = sqliteTable('interview_questions', {
 
 // Interviews Table - Main interview sessions
 export const interviews = sqliteTable('interviews', {
-  id: text('id').primaryKey().$defaultFn(() => createId()),
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
   organizationId: text('organization_id')
     .notNull()
     .references(() => organizations.id, { onDelete: 'cascade' }),
@@ -133,7 +133,7 @@ export const interviews = sqliteTable('interviews', {
 
 // Interview Responses - Individual question responses with video/audio
 export const interviewResponses = sqliteTable('interview_responses', {
-  id: text('id').primaryKey().$defaultFn(() => createId()),
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
   interviewId: text('interview_id')
     .notNull()
     .references(() => interviews.id, { onDelete: 'cascade' }),
@@ -166,7 +166,7 @@ export const interviewResponses = sqliteTable('interview_responses', {
 
 // Email Verification - For authentication flow
 export const emailVerifications = sqliteTable('email_verifications', {
-  id: text('id').primaryKey().$defaultFn(() => createId()),
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
   email: text('email').notNull(),
   token: text('token').notNull().unique(),
   organizationId: text('organization_id')
@@ -181,7 +181,7 @@ export const emailVerifications = sqliteTable('email_verifications', {
 
 // User Sessions - Session management
 export const userSessions = sqliteTable('user_sessions', {
-  id: text('id').primaryKey().$defaultFn(() => createId()),
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
   userId: text('user_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
@@ -194,7 +194,7 @@ export const userSessions = sqliteTable('user_sessions', {
 
 // Candidate Status Tracking - For dashboard organization
 export const candidateStatuses = sqliteTable('candidate_statuses', {
-  id: text('id').primaryKey().$defaultFn(() => createId()),
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
   interviewId: text('interview_id')
     .notNull()
     .references(() => interviews.id, { onDelete: 'cascade' }),
