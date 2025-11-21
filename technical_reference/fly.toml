@@ -1,0 +1,26 @@
+app = 'strategy-agi'
+primary_region = 'sin'
+
+[build]
+
+[env]
+  NODE_ENV = 'production'
+  PORT = '3000'
+  NEXT_PUBLIC_APP_URL = 'https://strategy.newing.vn'
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
+
+[mounts]
+  source = 'strategy_data'
+  destination = '/data'
