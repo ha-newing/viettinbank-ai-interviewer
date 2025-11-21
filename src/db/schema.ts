@@ -3,7 +3,7 @@ import { nanoid } from 'nanoid'
 
 // Enums for type safety as specified in CLAUDE.md
 export const interviewStatusEnum = ['pending', 'in_progress', 'completed', 'expired'] as const
-export const recommendationEnum = ['PROCEED', 'REJECT', 'REVIEW'] as const
+export const recommendationEnum = ['RECOMMEND', 'CONSIDER', 'NOT_RECOMMEND'] as const
 export const packageTierEnum = ['startup', 'growth', 'enterprise'] as const
 export const candidateStatusEnum = ['all', 'screened', 'selected', 'rejected', 'waiting'] as const
 
@@ -106,14 +106,8 @@ export const interviews = sqliteTable('interviews', {
   overallScore: integer('overall_score'), // 0-100 percentage
   recommendation: text('recommendation').$type<Recommendation>(),
 
-  // AI Analysis Results - stored as JSON
-  aiScores: text('ai_scores', { mode: 'json' }).$type<{
-    impression: { score: number; percentage: number; notes: string }
-    taskPerformance: { score: number; percentage: number; notes: string }
-    logicalThinking: { score: number; percentage: number; notes: string }
-    researchAbility: { score: number; percentage: number; notes: string }
-    communication: { score: number; percentage: number; notes: string }
-  }>(),
+  // AI Analysis Results - stored as JSON (flexible structure to accommodate different evaluation frameworks)
+  aiScores: text('ai_scores', { mode: 'json' }).$type<any>(),
 
   // Processing metadata
   transcript: text('transcript'), // Full interview transcript

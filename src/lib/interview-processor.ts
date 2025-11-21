@@ -4,9 +4,10 @@
  */
 
 import { db } from '@/lib/db'
-import { interviews, interviewResponses } from '@/db/schema'
+import { interviews, interviewResponses, interviewQuestions, type Recommendation } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { createSonioxClient, extractAudioFromVideo, convertToWav, estimateTranscriptionCost } from '@/lib/soniox'
+import { createAIScoringEngine, formatScoresForStorage, type QuestionResponse } from '@/lib/ai-scoring-engine'
 import { nanoid } from 'nanoid'
 
 export interface ProcessVideoRequest {
@@ -43,10 +44,12 @@ export interface TranscriptionJob {
  */
 export class InterviewProcessor {
   private sonioxClient
+  private aiScoringEngine
   private processingQueue: Map<string, TranscriptionJob> = new Map()
 
   constructor() {
     this.sonioxClient = createSonioxClient()
+    this.aiScoringEngine = createAIScoringEngine()
   }
 
   /**
@@ -241,18 +244,35 @@ export class InterviewProcessor {
 
       console.log(`📊 Interview completion rate: ${Math.round(completionRate * 100)}% (${transcribedResponses.length}/${responses.length} responses transcribed)`)
 
-      // Update interview status
+      // Create full transcript by combining all responses
+      const fullTranscript = transcribedResponses
+        .sort((a, b) => a.questionOrder - b.questionOrder)
+        .map(r => `Q${r.questionOrder}: ${r.responseTranscript}`)
+        .join('\n\n')
+
+      // Update interview status with transcript
       await db
         .update(interviews)
         .set({
           status: 'completed',
           completedAt: new Date(),
+          transcript: fullTranscript
+        })
+        .where(eq(interviews.id, interviewId))
+
+      // Trigger AI evaluation if transcription is complete
+      if (completionRate >= 0.8) { // Allow evaluation even if some responses failed
+        console.log(`🧠 Starting AI evaluation for interview ${interviewId}...`)
+        await this.performAIEvaluation(interviewId)
+      } else {
+        console.log(`⚠️ Skipping AI evaluation - insufficient transcription completion (${Math.round(completionRate * 100)}%)`)
+      }
+
+      // Mark processing as completed
+      await db
+        .update(interviews)
+        .set({
           processingCompletedAt: new Date(),
-          // Create full transcript by combining all responses
-          transcript: transcribedResponses
-            .sort((a, b) => a.questionOrder - b.questionOrder)
-            .map(r => `Q${r.questionOrder}: ${r.responseTranscript}`)
-            .join('\n\n')
         })
         .where(eq(interviews.id, interviewId))
 
@@ -260,6 +280,86 @@ export class InterviewProcessor {
 
     } catch (error) {
       console.error('❌ Failed to finalize interview:', error)
+      return false
+    }
+  }
+
+  /**
+   * Perform AI evaluation on completed interview
+   */
+  async performAIEvaluation(interviewId: string): Promise<boolean> {
+    try {
+      console.log(`🧠 Starting AI evaluation for interview ${interviewId}`)
+
+      // Get interview responses and questions
+      const responsesWithQuestions = await db
+        .select({
+          response: interviewResponses,
+          question: interviewQuestions
+        })
+        .from(interviewResponses)
+        .leftJoin(interviewQuestions, eq(interviewResponses.questionId, interviewQuestions.id))
+        .where(eq(interviewResponses.interviewId, interviewId))
+        .orderBy(interviewResponses.questionOrder)
+
+      // Filter only responses with transcripts
+      const validResponses = responsesWithQuestions.filter(r =>
+        r.response.responseTranscript &&
+        r.response.responseTranscript.trim().length > 0 &&
+        r.question?.questionText
+      )
+
+      if (validResponses.length === 0) {
+        console.log(`⚠️ No valid responses found for AI evaluation`)
+        return false
+      }
+
+      // Convert to QuestionResponse format
+      const questionResponses: QuestionResponse[] = validResponses.map(r => ({
+        question_text: r.question!.questionText,
+        response_transcript: r.response.responseTranscript!,
+        question_order: r.response.questionOrder,
+        response_duration: r.response.responseDuration || undefined
+      }))
+
+      console.log(`📝 Evaluating ${questionResponses.length} responses...`)
+
+      // Perform AI evaluation
+      const evaluation = await this.aiScoringEngine.evaluateInterview(interviewId, questionResponses)
+
+      // Format scores for database storage
+      const formattedScores = formatScoresForStorage(evaluation)
+
+      // Update interview with AI scores
+      await db
+        .update(interviews)
+        .set({
+          overallScore: formattedScores.overall_score,
+          recommendation: formattedScores.recommendation as Recommendation,
+          aiScores: formattedScores.ai_scores,
+        })
+        .where(eq(interviews.id, interviewId))
+
+      console.log(`✅ AI evaluation completed: ${evaluation.overall_score}/100 (${evaluation.recommendation})`)
+
+      return true
+
+    } catch (error) {
+      console.error('❌ AI evaluation failed:', error)
+
+      // Update interview to indicate AI evaluation failed
+      await db
+        .update(interviews)
+        .set({
+          recommendation: 'CONSIDER' as Recommendation,
+          aiScores: JSON.stringify({
+            error: 'AI evaluation failed',
+            error_message: error instanceof Error ? error.message : 'Unknown error',
+            timestamp: new Date()
+          })
+        })
+        .where(eq(interviews.id, interviewId))
+
       return false
     }
   }
@@ -362,4 +462,81 @@ export async function processInterviewCompletion(interviewId: string): Promise<b
     console.error('❌ Interview completion processing failed:', error)
     return false
   }
+}
+
+/**
+ * Manually trigger AI evaluation for an existing interview
+ */
+export async function triggerAIEvaluation(interviewId: string): Promise<boolean> {
+  try {
+    console.log(`🧠 Manually triggering AI evaluation for interview: ${interviewId}`)
+
+    // Check if interview exists and is completed
+    const interview = await db
+      .select()
+      .from(interviews)
+      .where(eq(interviews.id, interviewId))
+      .limit(1)
+
+    if (!interview[0]) {
+      console.error(`❌ Interview ${interviewId} not found`)
+      return false
+    }
+
+    if (interview[0].status !== 'completed') {
+      console.error(`❌ Interview ${interviewId} is not completed (status: ${interview[0].status})`)
+      return false
+    }
+
+    // Perform AI evaluation
+    const success = await interviewProcessor.performAIEvaluation(interviewId)
+
+    if (success) {
+      console.log(`✅ AI evaluation completed for interview ${interviewId}`)
+    } else {
+      console.log(`❌ AI evaluation failed for interview ${interviewId}`)
+    }
+
+    return success
+
+  } catch (error) {
+    console.error('❌ Manual AI evaluation failed:', error)
+    return false
+  }
+}
+
+/**
+ * Batch process AI evaluation for multiple interviews
+ */
+export async function batchProcessAIEvaluation(interviewIds: string[]): Promise<{
+  successful: string[]
+  failed: string[]
+}> {
+  const results = {
+    successful: [] as string[],
+    failed: [] as string[]
+  }
+
+  console.log(`📦 Starting batch AI evaluation for ${interviewIds.length} interviews`)
+
+  for (const interviewId of interviewIds) {
+    try {
+      const success = await triggerAIEvaluation(interviewId)
+      if (success) {
+        results.successful.push(interviewId)
+      } else {
+        results.failed.push(interviewId)
+      }
+
+      // Add delay between evaluations to avoid overwhelming OpenAI API
+      await new Promise(resolve => setTimeout(resolve, 2000))
+
+    } catch (error) {
+      console.error(`❌ Batch evaluation failed for interview ${interviewId}:`, error)
+      results.failed.push(interviewId)
+    }
+  }
+
+  console.log(`✅ Batch evaluation completed: ${results.successful.length} successful, ${results.failed.length} failed`)
+  return results
 }

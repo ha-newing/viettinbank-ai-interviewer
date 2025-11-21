@@ -1,0 +1,500 @@
+# VietinBank AI Interviewer - Vietnamese Evaluation Framework
+# Khung đánh giá phỏng vấn AI cho ứng viên Việt Nam
+
+version: "1.0"
+language: "vi"
+created_date: "2024-11-21"
+description: "Khung đánh giá 5 chiều đo cho hệ thống phỏng vấn AI VietinBank"
+
+# Cấu hình tổng quan
+evaluation_config:
+  total_score: 100
+  min_pass_score: 60
+  recommendation_thresholds:
+    proceed: 75    # Tiếp tục
+    review: 60     # Xem xét
+    reject: 59     # Từ chối (dưới ngưỡng này)
+
+  # Trọng số mặc định (có thể được ghi đè bởi job template)
+  default_weights:
+    impression: 20           # Tạo Ấn Tượng
+    task_performance: 25     # Hiệu Suất Nhiệm Vụ
+    logical_thinking: 20     # Tư Duy Logic
+    research_ability: 15     # Khả Năng Nghiên Cứu
+    communication: 20        # Giao Tiếp
+
+# Khung đánh giá 5 chiều đo
+evaluation_dimensions:
+
+  # 1. TẠO ẤN TƯỢNG (20% trọng số mặc định)
+  impression:
+    name: "Tạo Ấn Tượng"
+    name_en: "First Impression"
+    description: "Khả năng tạo ấn tượng tích cực, thể hiện sự tự tin và chuyên nghiệp"
+
+    # Tiêu chí đánh giá
+    criteria:
+      - "Sự tự tin và thoải mái trong giao tiếp"
+      - "Trang phục và hình thức chuyên nghiệp"
+      - "Ngôn ngữ cơ thể tích cực"
+      - "Khả năng giới thiệu bản thân hấp dẫn"
+      - "Thái độ nhiệt tình và tích cực"
+
+    # Thang điểm chi tiết
+    scoring_rubric:
+      excellent: # 90-100 điểm
+        score_range: [90, 100]
+        description: "Xuất sắc - Ấn tượng rất mạnh mẽ"
+        indicators:
+          - "Rất tự tin, thoải mái và tự nhiên"
+          - "Giọng nói rõ ràng, có sức thuyết phục"
+          - "Ngôn ngữ cơ thể tích cực, nhìn thẳng camera"
+          - "Giới thiệu bản thân súc tích và ấn tượng"
+          - "Thể hiện đam mê và nhiệt tình cao"
+
+      good: # 75-89 điểm
+        score_range: [75, 89]
+        description: "Tốt - Ấn tượng tích cực"
+        indicators:
+          - "Tự tin và thoải mái trong phần lớn thời gian"
+          - "Giao tiếp rõ ràng và dễ hiểu"
+          - "Thái độ tích cực và chuyên nghiệp"
+          - "Giới thiệu bản thân có cấu trúc"
+          - "Thể hiện sự quan tâm đến vị trí"
+
+      satisfactory: # 60-74 điểm
+        score_range: [60, 74]
+        description: "Đạt yêu cầu - Ấn tượng bình thường"
+        indicators:
+          - "Tự tin ở mức độ cơ bản"
+          - "Giao tiếp đủ rõ ràng"
+          - "Thái độ chuyên nghiệp cơ bản"
+          - "Giới thiệu bản thân đầy đủ thông tin"
+          - "Thể hiện sự nghiêm túc"
+
+      needs_improvement: # 40-59 điểm
+        score_range: [40, 59]
+        description: "Cần cải thiện - Ấn tượng chưa tốt"
+        indicators:
+          - "Còn e dè, chưa tự tin"
+          - "Giao tiếp chưa rõ ràng hoặc khó hiểu"
+          - "Thái độ chưa đủ chuyên nghiệp"
+          - "Giới thiệu bản thân thiếu cấu trúc"
+          - "Thiếu nhiệt tình"
+
+      poor: # 0-39 điểm
+        score_range: [0, 39]
+        description: "Yếu - Ấn tượng tiêu cực"
+        indicators:
+          - "Rất thiếu tự tin, lo lắng"
+          - "Giao tiếp khó hiểu hoặc không rõ ràng"
+          - "Thái độ không phù hợp"
+          - "Không thể giới thiệu bản thân hiệu quả"
+          - "Thiếu quan tâm hoặc nhiệt tình"
+
+  # 2. HIỆU SUẤT NHIỆM VỤ (25% trọng số mặc định)
+  task_performance:
+    name: "Hiệu Suất Nhiệm Vụ"
+    name_en: "Task Performance"
+    description: "Khả năng thực hiện nhiệm vụ, kinh nghiệm và kỹ năng chuyên môn"
+
+    criteria:
+      - "Kinh nghiệm làm việc liên quan"
+      - "Kỹ năng chuyên môn phù hợp"
+      - "Khả năng áp dụng kiến thức vào thực tế"
+      - "Hiệu quả trong công việc trước đây"
+      - "Khả năng học hỏi và phát triển"
+
+    scoring_rubric:
+      excellent:
+        score_range: [90, 100]
+        description: "Xuất sắc - Rất có kinh nghiệm và kỹ năng"
+        indicators:
+          - "Kinh nghiệm phong phú và trực tiếp liên quan"
+          - "Kỹ năng chuyên môn vượt trội"
+          - "Nhiều ví dụ thành công cụ thể"
+          - "Hiểu sâu về lĩnh vực làm việc"
+          - "Chủ động học hỏi và phát triển"
+
+      good:
+        score_range: [75, 89]
+        description: "Tốt - Có kinh nghiệm và kỹ năng phù hợp"
+        indicators:
+          - "Kinh nghiệm tốt và phù hợp"
+          - "Kỹ năng chuyên môn đầy đủ"
+          - "Có ví dụ thành công rõ ràng"
+          - "Hiểu biết tốt về công việc"
+          - "Sẵn sàng học hỏi"
+
+      satisfactory:
+        score_range: [60, 74]
+        description: "Đạt yêu cầu - Kinh nghiệm cơ bản"
+        indicators:
+          - "Kinh nghiệm cơ bản đủ yêu cầu"
+          - "Kỹ năng chuyên môn ở mức căn bản"
+          - "Có thể đưa ra ví dụ công việc"
+          - "Hiểu biết cơ bản về lĩnh vực"
+          - "Có thái độ học hỏi"
+
+      needs_improvement:
+        score_range: [40, 59]
+        description: "Cần cải thiện - Kinh nghiệm hạn chế"
+        indicators:
+          - "Kinh nghiệm hạn chế hoặc không liên quan"
+          - "Kỹ năng chuyên môn chưa đủ"
+          - "Ít ví dụ thực tế"
+          - "Hiểu biết còn hạn chế"
+          - "Chưa thể hiện rõ khả năng học"
+
+      poor:
+        score_range: [0, 39]
+        description: "Yếu - Không đủ kinh nghiệm"
+        indicators:
+          - "Không có kinh nghiệm liên quan"
+          - "Thiếu kỹ năng chuyên môn cần thiết"
+          - "Không thể đưa ra ví dụ thuyết phục"
+          - "Thiếu hiểu biết về công việc"
+          - "Không có động lực học hỏi"
+
+  # 3. TƯ DUY LOGIC (20% trọng số mặc định)
+  logical_thinking:
+    name: "Tư Duy Logic"
+    name_en: "Logical Thinking"
+    description: "Khả năng phân tích, lý luận và giải quyết vấn đề một cách logic"
+
+    criteria:
+      - "Khả năng phân tích vấn đề"
+      - "Tư duy có hệ thống và logic"
+      - "Khả năng đưa ra giải pháp"
+      - "Lý luận rõ ràng và thuyết phục"
+      - "Khả năng tổng hợp thông tin"
+
+    scoring_rubric:
+      excellent:
+        score_range: [90, 100]
+        description: "Xuất sắc - Tư duy logic rất mạnh"
+        indicators:
+          - "Phân tích vấn đề rất chi tiết và chính xác"
+          - "Lý luận có hệ thống và logic chặt chẽ"
+          - "Đưa ra nhiều giải pháp sáng tạo"
+          - "Giải thích rõ ràng từng bước suy nghĩ"
+          - "Kết nối thông tin một cách hiệu quả"
+
+      good:
+        score_range: [75, 89]
+        description: "Tốt - Tư duy logic tốt"
+        indicators:
+          - "Phân tích vấn đề đúng hướng"
+          - "Lý luận có cấu trúc và logic"
+          - "Đưa ra giải pháp phù hợp"
+          - "Giải thích tương đối rõ ràng"
+          - "Hiểu và xử lý thông tin tốt"
+
+      satisfactory:
+        score_range: [60, 74]
+        description: "Đạt yêu cầu - Tư duy logic cơ bản"
+        indicators:
+          - "Phân tích vấn đề ở mức cơ bản"
+          - "Lý luận đơn giản nhưng đúng"
+          - "Đưa ra giải pháp cơ bản"
+          - "Giải thích đủ hiểu"
+          - "Xử lý thông tin đơn giản"
+
+      needs_improvement:
+        score_range: [40, 59]
+        description: "Cần cải thiện - Tư duy chưa logic"
+        indicators:
+          - "Phân tích vấn đề chưa đúng hướng"
+          - "Lý luận thiếu logic hoặc rời rạc"
+          - "Giải pháp chưa phù hợp"
+          - "Giải thích khó hiểu"
+          - "Khó xử lý thông tin phức tạp"
+
+      poor:
+        score_range: [0, 39]
+        description: "Yếu - Thiếu tư duy logic"
+        indicators:
+          - "Không thể phân tích vấn đề"
+          - "Lý luận không logic"
+          - "Không đưa ra được giải pháp"
+          - "Giải thích rất khó hiểu"
+          - "Không xử lý được thông tin"
+
+  # 4. KHẢ NĂNG NGHIÊN CỨU (15% trọng số mặc định)
+  research_ability:
+    name: "Khả Năng Nghiên Cứu"
+    name_en: "Research Ability"
+    description: "Khả năng tìm hiểu, học hỏi và cập nhật kiến thức mới"
+
+    criteria:
+      - "Sự hiểu biết về công ty và vị trí"
+      - "Khả năng tự học và nghiên cứu"
+      - "Cập nhật xu hướng ngành"
+      - "Tìm hiểu thông tin trước phỏng vấn"
+      - "Đam mê học hỏi kiến thức mới"
+
+    scoring_rubric:
+      excellent:
+        score_range: [90, 100]
+        description: "Xuất sắc - Rất chủ động nghiên cứu"
+        indicators:
+          - "Hiểu rất rõ về công ty và vị trí"
+          - "Tự học liên tục và hiệu quả"
+          - "Cập nhật tốt xu hướng ngành"
+          - "Chuẩn bị kỹ lưỡng cho phỏng vấn"
+          - "Thể hiện đam mê học hỏi mạnh mẽ"
+
+      good:
+        score_range: [75, 89]
+        description: "Tốt - Có thói quen nghiên cứu"
+        indicators:
+          - "Hiểu khá rõ về công ty và vị trí"
+          - "Có khả năng tự học tốt"
+          - "Biết một số xu hướng ngành"
+          - "Chuẩn bị tốt cho phỏng vấn"
+          - "Có sự quan tâm học hỏi"
+
+      satisfactory:
+        score_range: [60, 74]
+        description: "Đạt yêu cầu - Nghiên cứu cơ bản"
+        indicators:
+          - "Hiểu biết cơ bản về công ty"
+          - "Có thể tự học khi cần"
+          - "Biết thông tin cơ bản về ngành"
+          - "Có chuẩn bị cho phỏng vấn"
+          - "Sẵn sàng học hỏi"
+
+      needs_improvement:
+        score_range: [40, 59]
+        description: "Cần cải thiện - Nghiên cứu hạn chế"
+        indicators:
+          - "Hiểu biết hạn chế về công ty"
+          - "Ít chủ động tự học"
+          - "Không cập nhật xu hướng"
+          - "Chuẩn bị chưa kỹ"
+          - "Thiếu động lực học hỏi"
+
+      poor:
+        score_range: [0, 39]
+        description: "Yếu - Không nghiên cứu"
+        indicators:
+          - "Không hiểu biết gì về công ty"
+          - "Không có khả năng tự học"
+          - "Hoàn toàn không biết về ngành"
+          - "Không chuẩn bị gì cho phỏng vấn"
+          - "Không quan tâm học hỏi"
+
+  # 5. GIAO TIẾP (20% trọng số mặc định)
+  communication:
+    name: "Giao Tiếp"
+    name_en: "Communication"
+    description: "Khả năng giao tiếp hiệu quả bằng lời nói và ngôn ngữ cơ thể"
+
+    criteria:
+      - "Khả năng diễn đạt ý tưởng rõ ràng"
+      - "Ngôn ngữ cơ thể phù hợp"
+      - "Khả năng lắng nghe và phản hồi"
+      - "Sử dụng ngôn ngữ phù hợp"
+      - "Khả năng thuyết phục"
+
+    scoring_rubric:
+      excellent:
+        score_range: [90, 100]
+        description: "Xuất sắc - Giao tiếp rất hiệu quả"
+        indicators:
+          - "Diễn đạt rất rõ ràng và súc tích"
+          - "Ngôn ngữ cơ thể tự nhiên và tích cực"
+          - "Lắng nghe tốt và phản hồi phù hợp"
+          - "Sử dụng ngôn từ chuyên nghiệp"
+          - "Có sức thuyết phục cao"
+
+      good:
+        score_range: [75, 89]
+        description: "Tốt - Giao tiếp hiệu quả"
+        indicators:
+          - "Diễn đạt rõ ràng và dễ hiểu"
+          - "Ngôn ngữ cơ thể phù hợp"
+          - "Phản hồi tốt trong giao tiếp"
+          - "Sử dụng ngôn từ phù hợp"
+          - "Có khả năng thuyết phục"
+
+      satisfactory:
+        score_range: [60, 74]
+        description: "Đạt yêu cầu - Giao tiếp cơ bản"
+        indicators:
+          - "Diễn đạt đủ rõ để hiểu"
+          - "Ngôn ngữ cơ thể bình thường"
+          - "Phản hồi cơ bản"
+          - "Sử dụng ngôn từ đơn giản"
+          - "Thuyết phục ở mức cơ bản"
+
+      needs_improvement:
+        score_range: [40, 59]
+        description: "Cần cải thiện - Giao tiếp chưa tốt"
+        indicators:
+          - "Diễn đạt chưa rõ ràng"
+          - "Ngôn ngữ cơ thể chưa tự nhiên"
+          - "Phản hồi chậm hoặc không phù hợp"
+          - "Sử dụng ngôn từ chưa phù hợp"
+          - "Thiếu khả năng thuyết phục"
+
+      poor:
+        score_range: [0, 39]
+        description: "Yếu - Giao tiếp kém"
+        indicators:
+          - "Diễn đạt khó hiểu hoặc rối rắm"
+          - "Ngôn ngữ cơ thể tiêu cực"
+          - "Không phản hồi hiệu quả"
+          - "Sử dụng ngôn từ không phù hợp"
+          - "Không có khả năng thuyết phục"
+
+# Hướng dẫn đánh giá cho AI
+ai_evaluation_guidelines:
+
+  # Nguyên tắc chung
+  general_principles:
+    - "Đánh giá dựa trên nội dung transcript và không có thành kiến"
+    - "Xem xét bối cảnh văn hóa Việt Nam"
+    - "Chú ý đến việc ứng viên có thể hồi hộp trong phỏng vấn"
+    - "Đánh giá công bằng cho tất cả ứng viên"
+    - "Tập trung vào năng lực thực tế, không phải giọng nói hay vùng miền"
+
+  # Phương pháp đánh giá
+  evaluation_method:
+    steps:
+      1. "Đọc và phân tích toàn bộ transcript"
+      2. "Xác định các yếu tố liên quan đến từng chiều đo"
+      3. "So sánh với tiêu chí trong scoring_rubric"
+      4. "Xác định mức điểm phù hợp cho mỗi chiều đo"
+      5. "Tính điểm tổng theo trọng số"
+      6. "Đưa ra khuyến nghị cuối cùng"
+
+  # Các yếu tố cần chú ý
+  special_considerations:
+    cultural_factors:
+      - "Người Việt có thể khiêm tốn khi nói về thành tích"
+      - "Thể hiện sự tôn trọng có thể được hiểu nhầm là thiếu tự tin"
+      - "Cách diễn đạt có thể khác biệt giữa các vùng miền"
+      - "Sử dụng tiếng Anh lẫn tiếng Việt là bình thường"
+
+    interview_stress:
+      - "Cho phép sai sót nhỏ do căng thẳng"
+      - "Tập trung vào nội dung hơn là cách diễn đạt"
+      - "Chú ý đến việc ứng viên có thể cần thời gian suy nghĩ"
+
+    technical_factors:
+      - "Chất lượng âm thanh có thể ảnh hưởng transcript"
+      - "Từ khóa chuyên ngành có thể bị nhận dạng sai"
+      - "Ngắt quãng hoặc lặp từ có thể do kỹ thuật"
+
+# Mẫu prompt cho AI
+ai_prompts:
+
+  # Prompt chính cho đánh giá tổng thể
+  main_evaluation_prompt: |
+    Bạn là chuyên gia đánh giá phỏng vấn tuyển dụng tại Việt Nam. Hãy phân tích transcript phỏng vấn sau và đánh giá ứng viên theo 5 chiều đo:
+
+    1. TẠO ẤN TƯỢNG (Trọng số: {impression_weight}%)
+    2. HIỆU SUẤT NHIỆM VỤ (Trọng số: {task_performance_weight}%)
+    3. TƯ DUY LOGIC (Trọng số: {logical_thinking_weight}%)
+    4. KHẢ NĂNG NGHIÊN CỨU (Trọng số: {research_ability_weight}%)
+    5. GIAO TIẾP (Trọng số: {communication_weight}%)
+
+    Vị trí ứng tuyển: {job_title}
+    Transcript phỏng vấn: {transcript}
+
+    Hãy đánh giá từng chiều đo theo thang điểm 0-100 và đưa ra:
+    - Điểm số cho từng chiều đo
+    - Nhận xét chi tiết cho từng chiều đo
+    - Điểm tổng (tính theo trọng số)
+    - Khuyến nghị: PROCEED/REVIEW/REJECT
+    - Lý do cho khuyến nghị
+
+  # Prompt cho từng chiều đo riêng lẻ
+  dimension_prompts:
+    impression: |
+      Đánh giá chiều đo TẠO ẤN TƯỢNG của ứng viên dựa trên transcript:
+      - Sự tự tin trong cách nói
+      - Thái độ tích cực và nhiệt tình
+      - Cách giới thiệu bản thân
+      - Mức độ chuyên nghiệp
+      Cho điểm từ 0-100 và giải thích lý do.
+
+    task_performance: |
+      Đánh giá chiều đo HIỆU SUẤT NHIỆM VỤ của ứng viên:
+      - Kinh nghiệm làm việc liên quan
+      - Kỹ năng chuyên môn
+      - Khả năng thực hiện công việc
+      - Ví dụ thành công cụ thể
+      Cho điểm từ 0-100 và giải thích lý do.
+
+    logical_thinking: |
+      Đánh giá chiều đo TƯ DUY LOGIC của ứng viên:
+      - Khả năng phân tích vấn đề
+      - Lý luận logic và có hệ thống
+      - Đưa ra giải pháp
+      - Cách giải thích suy nghĩ
+      Cho điểm từ 0-100 và giải thích lý do.
+
+    research_ability: |
+      Đánh giá chiều đo KHẢ NĂNG NGHIÊN CỨU của ứng viên:
+      - Hiểu biết về công ty và vị trí
+      - Thái độ học hỏi
+      - Cập nhật kiến thức ngành
+      - Chuẩn bị cho phỏng vấn
+      Cho điểm từ 0-100 và giải thích lý do.
+
+    communication: |
+      Đánh giá chiều đo GIAO TIẾP của ứng viên:
+      - Khả năng diễn đạt rõ ràng
+      - Sử dụng ngôn ngữ phù hợp
+      - Khả năng thuyết phục
+      - Phong cách giao tiếp
+      Cho điểm từ 0-100 và giải thích lý do.
+
+# Cấu hình output
+output_format:
+  language: "vi"
+  include_confidence_score: true
+  include_detailed_feedback: true
+  include_improvement_suggestions: true
+
+  # Định dạng JSON output
+  json_schema:
+    type: "object"
+    properties:
+      overall_score:
+        type: "number"
+        description: "Điểm tổng từ 0-100"
+      recommendation:
+        type: "string"
+        enum: ["PROCEED", "REVIEW", "REJECT"]
+        description: "Khuyến nghị cuối cùng"
+      dimensions:
+        type: "object"
+        properties:
+          impression:
+            score: "number (0-100)"
+            feedback: "string"
+            confidence: "number (0-1)"
+          task_performance:
+            score: "number (0-100)"
+            feedback: "string"
+            confidence: "number (0-1)"
+          logical_thinking:
+            score: "number (0-100)"
+            feedback: "string"
+            confidence: "number (0-1)"
+          research_ability:
+            score: "number (0-100)"
+            feedback: "string"
+            confidence: "number (0-1)"
+          communication:
+            score: "number (0-100)"
+            feedback: "string"
+            confidence: "number (0-1)"
+      summary:
+        strengths: "array of strings"
+        weaknesses: "array of strings"
+        overall_feedback: "string"
+        next_steps: "string"
