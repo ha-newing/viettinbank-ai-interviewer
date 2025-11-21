@@ -5,6 +5,208 @@ A Vietnamese-first AI-powered video interview platform for automated candidate s
 
 ---
 
+## User Stories & Acceptance Criteria
+
+### Persona Definitions
+
+**👤 HR Manager (Primary User)**
+- Conducts 50-200 interviews per recruitment cycle
+- Needs quick candidate assessment and ranking
+- Values detailed reports for decision making
+- Vietnamese-speaking, mobile-heavy usage
+
+**👤 HR Admin (Organization Setup)**
+- First user from company domain
+- Manages organization settings and user access
+- Configures interview templates and scoring weights
+- Controls package usage and billing
+
+**👤 Candidate (Interviewee)**
+- Job applicant taking AI interview
+- May use mobile device exclusively
+- Needs clear instructions in Vietnamese
+- Prefers simple, intuitive interface
+
+**👤 Executive/Hiring Manager (Report Consumer)**
+- Reviews final reports and recommendations
+- Needs executive summaries for quick decisions
+- Values data-driven hiring insights
+- Limited time for detailed analysis
+
+### Core User Stories
+
+#### 🔐 Authentication & Organization Setup
+
+**US-001: Corporate Domain Authentication**
+```
+As an HR professional
+I want to log in using my corporate email
+So that I can access interview management for my organization
+
+Acceptance Criteria:
+✅ GIVEN I have a corporate email address (not gmail/yahoo)
+✅ WHEN I enter my email for login
+✅ THEN I receive a verification code via email
+✅ AND I can complete login with the verification code
+✅ AND my session lasts 8 hours (remember-me: 7 days)
+
+✅ GIVEN I'm the first user from my company domain
+✅ WHEN I complete email verification
+✅ THEN I automatically become organization admin
+✅ AND an organization is created using my email domain
+```
+
+**US-002: Organization Management**
+```
+As an HR Admin
+I want to manage organization settings and users
+So that I can control access and configure interview processes
+
+Acceptance Criteria:
+✅ GIVEN I am an organization admin
+✅ WHEN I access organization settings
+✅ THEN I can edit organization name and details
+✅ AND I can view package usage and limits
+✅ AND I can manage user access levels
+✅ AND I can configure default interview templates
+```
+
+#### 📋 Interview Management
+
+**US-003: Bulk Interview Creation**
+```
+As an HR Manager
+I want to create interviews for multiple candidates at once
+So that I can efficiently handle mass recruitment
+
+Acceptance Criteria:
+✅ GIVEN I have a CSV file with candidate information
+✅ WHEN I upload the file with columns: Email, Họ và Tên, Điện Thoại
+✅ THEN the system validates all email addresses
+✅ AND creates individual interview sessions for each candidate
+✅ AND sends Vietnamese email invitations with 7-day expiry links
+✅ AND I can track invitation status for each candidate
+```
+
+**US-004: Interview Configuration**
+```
+As an HR Admin
+I want to configure interview templates and scoring weights
+So that interviews align with job requirements
+
+Acceptance Criteria:
+✅ GIVEN I'm setting up a new interview template
+✅ WHEN I configure evaluation criteria weights
+✅ THEN the total must equal exactly 100%
+✅ AND I can set weights for: Tạo Ấn Tượng, Hiệu Suất Nhiệm Vụ,
+    Tư Duy Logic, Khả Năng Nghiên Cứu, Giao Tiếp
+✅ AND I can select interview duration (10, 15, 20, 30 minutes)
+✅ AND I can choose question sets appropriate for the role
+```
+
+#### 🎥 Candidate Interview Experience
+
+**US-005: Mobile Interview Completion**
+```
+As a Candidate
+I want to complete my interview on my mobile phone
+So that I can interview anywhere with convenience
+
+Acceptance Criteria:
+✅ GIVEN I receive an interview link on my mobile device
+✅ WHEN I access the interview URL
+✅ THEN I see Vietnamese instructions with English option
+✅ AND the interface is optimized for touch interaction
+✅ AND I can complete system compatibility tests (camera, mic)
+✅ AND I can practice recording before the real interview
+✅ AND I can re-record responses up to 2 times per question
+```
+
+**US-006: Interview Technical Reliability**
+```
+As a Candidate
+I want the interview system to handle technical issues gracefully
+So that technical problems don't affect my interview performance
+
+Acceptance Criteria:
+✅ GIVEN technical issues occur during my interview
+✅ WHEN my internet connection is slow or unstable
+✅ THEN my responses are auto-saved every 30 seconds
+✅ AND I can resume from where I left off
+✅ AND I see clear error messages in Vietnamese
+✅ AND I have access to technical support chat
+```
+
+#### 📊 AI Assessment & Reporting
+
+**US-007: Executive Summary Generation**
+```
+As an HR Manager
+I want AI-generated executive summaries for each candidate
+So that I can make quick hiring decisions with confidence
+
+Acceptance Criteria:
+✅ GIVEN a candidate completes their interview
+✅ WHEN the AI assessment is complete
+✅ THEN I receive an executive summary with:
+✅ - Clear hiring recommendation (RECOMMEND/CONSIDER/NOT_RECOMMEND)
+✅ - Top 3 strengths with supporting evidence
+✅ - Top 3 concerns with improvement suggestions
+✅ - Best-fit role recommendations
+✅ - Cultural fit assessment for Vietnamese workplace
+```
+
+**US-008: Detailed Assessment Reports**
+```
+As an HR Manager
+I want detailed scoring breakdowns for each candidate
+So that I can understand the reasoning behind AI recommendations
+
+Acceptance Criteria:
+✅ GIVEN I'm viewing a candidate report
+✅ WHEN I access the detailed assessment
+✅ THEN I can see scores for all 5 evaluation dimensions
+✅ AND transcript excerpts supporting each score
+✅ AND specific behavioral indicators observed
+✅ AND next steps recommendations for round 2 interviews
+✅ AND the report is available in PDF format with company branding
+```
+
+#### 📈 Dashboard & Analytics
+
+**US-009: Candidate Management Dashboard**
+```
+As an HR Manager
+I want to manage all candidates in a central dashboard
+So that I can efficiently track and organize the recruitment process
+
+Acceptance Criteria:
+✅ GIVEN I have multiple interview candidates
+✅ WHEN I access the dashboard
+✅ THEN I see candidates organized by status tabs:
+    TẤT CẢ, SÀNG LỌC, ĐÃ CHỌN, ĐÃ TỪ CHỐI, ĐÁNH SÁCH CHỜ
+✅ AND I can filter by score range (0-100%)
+✅ AND I can search by name, email, phone in real-time
+✅ AND I can perform bulk status updates
+✅ AND I can export filtered lists to Excel
+```
+
+**US-010: Mobile Dashboard Access**
+```
+As an HR Manager
+I want to access candidate information on my mobile device
+So that I can review candidates and make decisions on the go
+
+Acceptance Criteria:
+✅ GIVEN I'm using a mobile device
+✅ WHEN I access the dashboard
+✅ THEN I see a mobile-optimized interface
+✅ AND I can swipe between candidate status tabs
+✅ AND I can tap to view candidate details
+✅ AND I can approve/reject candidates with large touch targets
+✅ AND the interface works smoothly in portrait orientation
+```
+
 ## Authentication & Organization Setup
 
 ### Login
@@ -174,23 +376,40 @@ Each dimension scored 0-10, then converted to 0-100% scale:
 URL: `/candidate/{id}/report`
 
 **Report Structure:**
-1. **Executive Summary** (Missing from current system - major gap identified)
-   - **Overall recommendation**: Strongly Recommend / Recommend / Consider / Do Not Recommend
-   - **Key strengths** (top 3)
-   - **Key concerns** (top 3)
-   - **Best fit roles** based on scoring profile
 
-2. **Detailed Assessment**
-   - **Score breakdown** with visual charts
-   - **Transcript excerpts** supporting each score
+1. **✅ IMPLEMENTED - AI-Generated Executive Summary**
+
+   **Addresses Demo Gap**: *"Có một cái trang tổng quan kết luận không?"* (Customer request for executive summary)
+
+   **Recommendation Engine Logic:**
+   - **RECOMMEND**: 75%+ overall score + no critical red flags
+   - **CONSIDER**: 50-74% overall score + manageable concerns
+   - **NOT_RECOMMEND**: <50% overall score OR major red flags detected
+
+   **Executive Summary Components:**
+   - **One-sentence hiring recommendation** with confidence level
+   - **Key strengths** (top 3) with supporting evidence from transcript
+   - **Key concerns** (top 3) with specific improvement suggestions
+   - **Best fit roles** based on scoring profile and strengths
+   - **Cultural fit assessment** for Vietnamese business environment
+
+2. **✅ IMPLEMENTED - Detailed Assessment**
+   - **5-Dimensional scoring breakdown** with visual charts
+   - **Transcript excerpts** supporting each score with timestamps
    - **Behavioral indicators** observed during interview
-   - **Industry-specific evaluation** (banking sector keywords for VietinBank)
+   - **Industry-specific evaluation** using banking sector keywords
+   - **Response quality analysis** per question with reasoning
+   - **Communication effectiveness** in Vietnamese and English
 
-3. **Next Steps Recommendations** (Missing from current system)
-   - **Interview focus areas** for round 2
-   - **Specific questions to ask** based on gaps identified
-   - **Reference check priorities**
-   - **Skills assessment recommendations**
+3. **✅ IMPLEMENTED - Next Steps Recommendations**
+
+   **Addresses Demo Gap**: *"Nó không có recommend đúng không?"* (Customer request for recommendations)
+
+   - **Interview focus areas** for round 2 based on weak dimensions
+   - **Specific questions to ask** targeting identified skill gaps
+   - **Reference check priorities** based on claims made in interview
+   - **Skills assessment recommendations** for technical validation
+   - **Onboarding considerations** if candidate is hired
 
 **Export Options:**
 - **PDF with VietinBank branding** (whitelabeled)
@@ -243,53 +462,69 @@ const videoConfig = {
 
 ### Database Schema
 
-**Organizations Table:**
-```sql
-CREATE TABLE organizations (
-  id UUID PRIMARY KEY,
-  domain VARCHAR(255) UNIQUE NOT NULL,
-  name VARCHAR(255) NOT NULL,
-  package_tier VARCHAR(20) NOT NULL, -- 'startup', 'growth', 'enterprise'
-  interview_quota INTEGER NOT NULL,
-  interviews_used INTEGER DEFAULT 0,
-  created_at TIMESTAMP DEFAULT NOW(),
-  subscription_expires_at TIMESTAMP
-);
+**✅ IMPLEMENTED - Drizzle ORM with SQLite**
+
+The system uses **SQLite with Drizzle ORM** for simple deployment and follows type-safe patterns:
+
+```typescript
+// Enums for type safety (CLAUDE.md Rule #5)
+export const interviewStatusEnum = ['pending', 'in_progress', 'completed', 'expired'] as const
+export const recommendationEnum = ['RECOMMEND', 'CONSIDER', 'NOT_RECOMMEND'] as const
+export const packageTierEnum = ['startup', 'growth', 'enterprise'] as const
+export const candidateStatusEnum = ['all', 'screened', 'selected', 'rejected', 'waiting'] as const
+
+// Organizations Table - Drizzle Schema
+export const organizations = sqliteTable('organizations', {
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
+  domain: text('domain').notNull().unique(),
+  name: text('name').notNull(),
+  packageTier: text('package_tier').$type<PackageTier>().notNull().default('startup'),
+  interviewQuota: integer('interview_quota').notNull().default(100),
+  interviewsUsed: integer('interviews_used').notNull().default(0),
+  subscriptionExpiresAt: integer('subscription_expires_at'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+})
+
+// Interviews Table - Full implementation with AI scoring
+export const interviews = sqliteTable('interviews', {
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
+  organizationId: text('organization_id').notNull().references(() => organizations.id),
+  jobTemplateId: text('job_template_id').references(() => jobTemplates.id),
+  candidateEmail: text('candidate_email').notNull(),
+  candidateName: text('candidate_name').notNull(),
+  candidatePhone: text('candidate_phone'),
+  status: text('status').$type<InterviewStatus>().notNull().default('pending'),
+  interviewLinkToken: text('interview_link_token').notNull().unique(),
+  interviewLinkExpiresAt: integer('interview_link_expires_at', { mode: 'timestamp' }).notNull(),
+  overallScore: integer('overall_score'), // 0-100
+  recommendation: text('recommendation').$type<Recommendation>(),
+  aiScores: text('ai_scores', { mode: 'json' }).$type<any>(), // Flexible JSON structure
+  transcript: text('transcript'),
+  processingCompletedAt: integer('processing_completed_at', { mode: 'timestamp' }),
+  completedAt: integer('completed_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+})
+
+// Interview Responses - Individual question responses with video/scoring
+export const interviewResponses = sqliteTable('interview_responses', {
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
+  interviewId: text('interview_id').notNull().references(() => interviews.id),
+  questionId: text('question_id').references(() => interviewQuestions.id),
+  questionOrder: integer('question_order').notNull(),
+  responseVideoUrl: text('response_video_url'), // Storage URL
+  responseTranscript: text('response_transcript'),
+  responseDuration: integer('response_duration'), // seconds
+  responseScores: text('response_scores', { mode: 'json' }).$type<DimensionScores>(),
+  attemptNumber: integer('attempt_number').notNull().default(1), // max 2 retries
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+})
 ```
 
-**Interviews Table:**
-```sql
-CREATE TABLE interviews (
-  id UUID PRIMARY KEY,
-  organization_id UUID REFERENCES organizations(id),
-  candidate_email VARCHAR(255) NOT NULL,
-  candidate_name VARCHAR(255) NOT NULL,
-  candidate_phone VARCHAR(20),
-  job_title VARCHAR(255) NOT NULL,
-  status VARCHAR(20) DEFAULT 'pending', -- 'pending', 'completed', 'expired'
-  video_url VARCHAR(500),
-  transcript TEXT,
-  ai_scores JSONB, -- scores for each dimension
-  overall_score INTEGER, -- 0-100
-  recommendation VARCHAR(20), -- 'PROCEED', 'REJECT', 'REVIEW'
-  interview_link_expires_at TIMESTAMP,
-  completed_at TIMESTAMP,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-```
-
-**Interview_Questions Table:**
-```sql
-CREATE TABLE interview_questions (
-  id UUID PRIMARY KEY,
-  interview_id UUID REFERENCES interviews(id),
-  question_text TEXT NOT NULL,
-  question_order INTEGER NOT NULL,
-  response_video_url VARCHAR(500),
-  response_transcript TEXT,
-  response_score JSONB -- per-dimension scores for this question
-);
-```
+**Key Implementation Details:**
+- **No Raw SQL** - All database operations use Drizzle ORM (CLAUDE.md Rule #4)
+- **Type-Safe Enums** - Status fields use const assertions, not string literals (CLAUDE.md Rule #5)
+- **Auto-migrations** - Schema changes generate migration files automatically
+- **Single File Deployment** - SQLite database file for easy deployment
 
 ### API Endpoints
 
@@ -375,12 +610,28 @@ const sonioxConfig = {
 
 ## UI/UX Specification
 
+### Mobile-First Design Requirements
+
+**🚨 CRITICAL: Mobile-First Approach (CLAUDE.md Rule #12)**
+
+The system is designed **mobile-first** for the Vietnamese market where mobile usage dominates:
+
+#### Mobile Design Principles
+- **Touch-optimized interfaces** - Minimum 44px touch targets
+- **Portrait orientation primary** - Optimized for vertical mobile screens
+- **Gesture navigation** - Swipe, tap, long-press interactions
+- **Thumb-friendly controls** - Key actions within thumb reach zones
+- **Progressive enhancement** - Core functionality works on mobile, enhanced on desktop
+
 ### Design System
 - **Primary colors**: VietinBank brand colors (red #DA291C, blue #004B9C)
 - **Fonts**: Inter for English, Source Sans Pro for Vietnamese
 - **Icons**: Heroicons for consistency
-- **Spacing**: 4px grid system
-- **Breakpoints**: Mobile <768px, Desktop ≥768px
+- **Spacing**: 4px grid system (optimized for mobile touch)
+- **Breakpoints**:
+  - **Mobile**: <768px (PRIMARY)
+  - **Tablet**: 768px-1024px
+  - **Desktop**: ≥1024px (enhanced experience)
 
 ### Page Layouts
 
@@ -428,54 +679,92 @@ const sonioxConfig = {
 ```
 
 #### Mobile Candidate Interview Interface
+
+**✅ IMPLEMENTED - Touch-Optimized Mobile Experience**
+
 ```
-┌─────────────────────────┐
-│ [≡] VietinBank Interview│
-├─────────────────────────┤
-│ Question 3/5 - 10:30 left│
-├─────────────────────────┤
-│ "Hãy kể về một dự án    │
-│ thành công mà bạn đã    │
-│ tham gia. Vai trò của   │
-│ bạn là gì?"             │
-├─────────────────────────┤
-│ ┌───────────────────────┐ │
-│ │   [Video Preview]     │ │
-│ │     [●] 00:45        │ │
-│ │  [⏹ Stop] [⏸ Pause]   │ │
-│ └───────────────────────┘ │
-├─────────────────────────┤
-│ [🎤 Re-record] [➡ Next] │
-│ Tries left: 1/2         │
-└─────────────────────────┘
+┌─────────────────────────────┐
+│ [≡] VietinBank AI Interview │ ← Touch menu
+├─────────────────────────────┤
+│ Câu hỏi 3/5 • 10:30 còn lại │ ← Progress indicator
+├─────────────────────────────┤
+│ "Hãy kể về một dự án thành  │
+│ công mà bạn đã tham gia.    │ ← Large, readable text
+│ Vai trò của bạn là gì?"     │
+│                             │
+│ 🎯 Tập trung vào: Kỹ năng  │ ← Hint for candidate
+│    lãnh đạo và teamwork     │
+├─────────────────────────────┤
+│ ┌─────────────────────────┐ │
+│ │    📹 Video Preview     │ │ ← Full-width video
+│ │       [●] 00:45        │ │
+│ │                        │ │
+│ │   👤 Face detection ✓   │ │ ← AI feedback
+│ │   🎤 Audio clear ✓      │ │
+│ └─────────────────────────┘ │
+├─────────────────────────────┤
+│ ┌─────────┐  ┌─────────────┐│
+│ │🎤 Thu lại│  │  ➡ Tiếp    ││ ← Large touch targets
+│ │   1/2   │  │   theo      ││
+│ └─────────┘  └─────────────┘│
+├─────────────────────────────┤
+│ 💡 Mẹo: Nhìn vào camera và │ ← Helpful tips
+│ nói rõ ràng trong 2 phút   │
+└─────────────────────────────┘
 ```
+
+**Mobile-Specific Features:**
+- **Large touch targets** (minimum 44px) for all interactive elements
+- **Swipe gestures** - Swipe left/right between questions
+- **Voice feedback** - Audio cues for recording status
+- **Auto-rotation lock** - Portrait mode enforced during recording
+- **Battery optimization** - Efficient video encoding for mobile devices
+- **Offline handling** - Queue responses when connection is poor
 
 ---
 
 ## Business Logic & Rules
 
 ### Package Management
+
+**🆕 Small Business Package** (≤50 interviews/month):
+
+**Addresses Demo Gap**: *"60-70 người... có thể sẽ tăng lên 100 người"* (Small company cost concerns)
+
+- Interview quota: 50
+- Essential AI scoring (all 5 dimensions)
+- Basic executive summary reports
+- Standard email templates (Vietnamese/English)
+- Email support (48-hour response)
+- **Price**: $150/month
+- **Target**: Companies 50-100 employees with moderate hiring needs
+
 **Startup Package** (≤100 interviews/month):
 - Interview quota: 100
-- Basic AI scoring (all 5 dimensions)
+- Full AI scoring with detailed analysis
+- Executive summary + recommendations
 - Standard report templates
-- Email support
+- Email support (24-hour response)
 - **Price**: $300/month
+- **Target**: Growing companies 100-250 employees
 
 **Growth Package** (≤500 interviews/month):
 - Interview quota: 500
 - Advanced analytics dashboard
-- Custom scoring weights
-- White-label PDF reports
-- Priority support + training
+- Custom scoring weights configuration
+- White-label PDF reports with company branding
+- Priority support + training sessions
 - **Price**: $800/month
+- **Target**: Medium enterprises 250-1000 employees
 
 **Enterprise Package** (unlimited):
 - Unlimited interviews
-- Custom AI model training
+- Custom AI model training for industry-specific terms
 - API access for ATS integration
 - Dedicated account manager
+- Custom reporting and analytics
 - **Price**: Custom (starts $2000/month)
+- **Target**: Large enterprises 1000+ employees
 
 ### Interview Limits & Validation
 - **Maximum interview duration**: 30 minutes

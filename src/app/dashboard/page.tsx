@@ -1,7 +1,7 @@
 import { requireAuth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { interviews, candidateStatuses } from '@/db/schema'
-import { eq, sql, count, and } from 'drizzle-orm'
+import { eq, count, and, gte } from 'drizzle-orm'
 import { logoutAction } from '@/app/auth/actions'
 import DashboardStats from '@/components/dashboard/DashboardStats'
 import CandidateList from '@/components/dashboard/CandidateList'
@@ -61,7 +61,7 @@ export default async function DashboardPage() {
       .where(
         and(
           eq(interviews.organizationId, user.organizationId),
-          sql`${interviews.createdAt} >= datetime('now', '-7 days')`
+          gte(interviews.createdAt, new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
         )
       ),
   ])
