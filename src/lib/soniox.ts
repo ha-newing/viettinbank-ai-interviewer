@@ -76,10 +76,6 @@ export class SonioxClient {
    */
   async transcribeAudio(audioBuffer: Buffer, options?: Partial<SonioxConfig>): Promise<SonioxResult> {
     try {
-      // Validate API key at runtime
-      if (!this.apiKey || this.apiKey === 'dummy-key-for-build') {
-        throw new Error('SONIOX_API_KEY environment variable is required for transcription')
-      }
 
       const config = { ...this.config, ...options }
 
@@ -221,16 +217,7 @@ export function createSonioxClient(): SonioxClient {
   const apiKey = process.env.SONIOX_API_KEY
 
   if (!apiKey) {
-    // During build time, environment variables might not be available
-    // Create a dummy client that will throw only when actually used
-    return new SonioxClient({
-      apiKey: 'dummy-key-for-build',
-      model: 'vi_v1',
-      language: ['vi', 'en'],
-      enableSpeakerDiarization: true,
-      enablePunctuation: true,
-      includeNonSpeech: false,
-    })
+    throw new Error('SONIOX_API_KEY environment variable is required')
   }
 
   return new SonioxClient({

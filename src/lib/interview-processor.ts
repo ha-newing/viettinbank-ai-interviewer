@@ -421,15 +421,22 @@ export class InterviewProcessor {
 }
 
 /**
- * Global processor instance
+ * Lazy-initialized global processor instance
  */
-export const interviewProcessor = new InterviewProcessor()
+let interviewProcessorInstance: InterviewProcessor | null = null
+
+export function getInterviewProcessor(): InterviewProcessor {
+  if (!interviewProcessorInstance) {
+    interviewProcessorInstance = new InterviewProcessor()
+  }
+  return interviewProcessorInstance
+}
 
 /**
  * Convenience function to process a single video response
  */
 export async function processVideoResponse(request: ProcessVideoRequest): Promise<ProcessingResult> {
-  return await interviewProcessor.processVideoResponse(request)
+  return await getInterviewProcessor().processVideoResponse(request)
 }
 
 /**
@@ -448,7 +455,7 @@ export async function processInterviewCompletion(interviewId: string): Promise<b
       .where(eq(interviews.id, interviewId))
 
     // Finalize and create transcript
-    const success = await interviewProcessor.finalizeInterview(interviewId)
+    const success = await getInterviewProcessor().finalizeInterview(interviewId)
 
     if (success) {
       console.log(`✅ Interview ${interviewId} processing completed successfully`)
@@ -489,7 +496,7 @@ export async function triggerAIEvaluation(interviewId: string): Promise<boolean>
     }
 
     // Perform AI evaluation
-    const success = await interviewProcessor.performAIEvaluation(interviewId)
+    const success = await getInterviewProcessor().performAIEvaluation(interviewId)
 
     if (success) {
       console.log(`✅ AI evaluation completed for interview ${interviewId}`)

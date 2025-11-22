@@ -1,0 +1,9 @@
+User-agent: *
+Disallow: /dashboard
+Disallow: /api
+Disallow: /interview/*/conduct
+Disallow: /auth
+
+Allow: /
+
+Sitemap: https://viettinbank-ai-interviewer.fly.dev/sitemap.xml
