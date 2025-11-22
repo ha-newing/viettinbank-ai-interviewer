@@ -89,29 +89,53 @@ export class SonioxClient {
         audio_format: 'wav', // We'll convert to WAV format
       }
 
-      const formData = new FormData()
-
-      // Add configuration
-      formData.append('config', JSON.stringify(requestPayload))
-
-      // Add audio file
+      // Step 1: Upload audio file to Soniox
       const audioArrayBuffer = audioBuffer.buffer.slice(audioBuffer.byteOffset, audioBuffer.byteOffset + audioBuffer.byteLength) as ArrayBuffer
       const audioBlob = new Blob([audioArrayBuffer], { type: 'audio/wav' })
-      formData.append('audio', audioBlob, 'interview_audio.wav')
 
-      console.log('📤 Sending audio to Soniox API for Vietnamese transcription...')
+      const uploadFormData = new FormData()
+      uploadFormData.append('audio', audioBlob, 'interview_audio.wav')
 
-      const response = await fetch('https://api.soniox.com/transcribe-async', {
+      console.log('📤 Uploading audio file to Soniox...')
+
+      const uploadResponse = await fetch('https://api.soniox.com/v1/files', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${this.apiKey}`,
         },
-        body: formData,
+        body: uploadFormData,
+      })
+
+      if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text()
+        throw new Error(`Soniox file upload error: ${uploadResponse.status} - ${errorText}`)
+      }
+
+      const uploadResult = await uploadResponse.json()
+      const fileId = uploadResult.id
+
+      console.log(`📁 File uploaded successfully: ${fileId}`)
+
+      // Step 2: Create transcription job
+      const transcriptionConfig = {
+        file_id: fileId,
+        ...requestPayload
+      }
+
+      console.log('🎯 Creating transcription job...')
+
+      const response = await fetch('https://api.soniox.com/v1/transcriptions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(transcriptionConfig),
       })
 
       if (!response.ok) {
         const errorText = await response.text()
-        throw new Error(`Soniox API error: ${response.status} - ${errorText}`)
+        throw new Error(`Soniox transcription error: ${response.status} - ${errorText}`)
       }
 
       const result: SonioxTranscribeResponse = await response.json()
@@ -192,7 +216,7 @@ export class SonioxClient {
    */
   async getTranscriptionStatus(jobId: string): Promise<any> {
     try {
-      const response = await fetch(`https://api.soniox.com/transcribe-async/${jobId}`, {
+      const response = await fetch(`https://api.soniox.com/v1/transcriptions/${jobId}`, {
         headers: {
           'Authorization': `Bearer ${this.apiKey}`,
         },

@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import { db } from '@/lib/db'
 import { interviews, organizations, jobTemplates } from '@/db/schema'
 import { eq } from 'drizzle-orm'
-import { Button } from '@/components/ui/button'
+import CloseButton from '@/components/interview/CloseButton'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { CheckCircle, Clock, Mail, Calendar } from 'lucide-react'
 
@@ -202,13 +202,7 @@ export default async function InterviewCompletePage({ params }: InterviewComplet
 
         {/* Action Buttons */}
         <div className="mt-12 text-center space-y-4">
-          <Button
-            onClick={() => window.close()}
-            size="lg"
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            Đóng trang
-          </Button>
+          <CloseButton />
 
           <p className="text-sm text-gray-500">
             Bạn có thể đóng tab này một cách an toàn. Cảm ơn bạn đã tham gia phỏng vấn!
