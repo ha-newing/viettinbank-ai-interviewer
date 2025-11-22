@@ -7,7 +7,7 @@ import { requireAuth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { interviews, jobTemplates, organizations } from '@/db/schema'
 import { eq, and, count } from 'drizzle-orm'
-import { sendVerificationEmail } from '@/lib/email'
+import { sendEmail } from '@/lib/email'
 
 // Validation schemas
 const singleInterviewSchema = z.object({
@@ -196,11 +196,11 @@ export async function createSingleInterview(formData: FormData): Promise<Intervi
       `
     }
 
-    const emailSent = await sendVerificationEmail({
-      email: candidateEmail,
-      token: interviewLinkToken,
-      organizationName: user.organizationName,
-      isNewOrganization: false,
+    const emailSent = await sendEmail({
+      to: candidateEmail,
+      subject: emailContent.subject,
+      html: emailContent.html,
+      text: emailContent.text,
     })
 
     // Update organization interview usage
@@ -423,6 +423,184 @@ export async function createBulkInterviews(formData: FormData): Promise<Intervie
     return {
       success: false,
       error: 'Đã xảy ra lỗi khi xử lý file. Vui lòng thử lại.'
+    }
+  }
+}
+
+/**
+ * Resend interview invitation email
+ */
+export async function resendInterviewEmail(formData: FormData): Promise<InterviewResult> {
+  try {
+    // Require authentication
+    const user = await requireAuth()
+
+    const interviewId = formData.get('interviewId') as string
+
+    if (!interviewId) {
+      return {
+        success: false,
+        error: 'ID phỏng vấn không hợp lệ'
+      }
+    }
+
+    // Get interview by ID and ensure it belongs to user's organization
+    const interview = await db
+      .select({
+        id: interviews.id,
+        candidateName: interviews.candidateName,
+        candidateEmail: interviews.candidateEmail,
+        jobTemplateId: interviews.jobTemplateId,
+        interviewLinkToken: interviews.interviewLinkToken,
+        interviewLinkExpiresAt: interviews.interviewLinkExpiresAt,
+        status: interviews.status,
+        organizationId: interviews.organizationId
+      })
+      .from(interviews)
+      .where(
+        and(
+          eq(interviews.id, interviewId),
+          eq(interviews.organizationId, user.organizationId)
+        )
+      )
+      .limit(1)
+
+    if (!interview[0]) {
+      return {
+        success: false,
+        error: 'Phỏng vấn không tồn tại hoặc bạn không có quyền truy cập'
+      }
+    }
+
+    const interviewData = interview[0]
+
+    // Check if interview is still valid (not completed and not expired)
+    if (interviewData.status === 'completed') {
+      return {
+        success: false,
+        error: 'Không thể gửi lại email cho phỏng vấn đã hoàn thành'
+      }
+    }
+
+    if (interviewData.interviewLinkExpiresAt && new Date() > interviewData.interviewLinkExpiresAt) {
+      return {
+        success: false,
+        error: 'Liên kết phỏng vấn đã hết hạn. Vui lòng tạo phỏng vấn mới.'
+      }
+    }
+
+    // Get job template information
+    const jobTemplate = await db
+      .select()
+      .from(jobTemplates)
+      .where(eq(jobTemplates.id, interviewData.jobTemplateId))
+      .limit(1)
+
+    if (!jobTemplate[0]) {
+      return {
+        success: false,
+        error: 'Template phỏng vấn không tồn tại'
+      }
+    }
+
+    // Construct interview URL
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const interviewUrl = `${baseUrl}/interview/${interviewData.interviewLinkToken}`
+
+    // Send interview invitation email
+    const emailContent = {
+      to: interviewData.candidateEmail,
+      subject: `[Gửi lại] Lời mời phỏng vấn AI - ${jobTemplate[0].title}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Lời mời phỏng vấn AI</title>
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .content { background: #f9fafb; padding: 30px; border-radius: 8px; }
+            .button { display: inline-block; background: #1e40af; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1 style="color: #1e40af;">VietinBank AI Interviewer</h1>
+              <h2>Lời mời phỏng vấn (Gửi lại)</h2>
+            </div>
+            <div class="content">
+              <p>Xin chào <strong>${interviewData.candidateName}</strong>,</p>
+              <p>Đây là email gửi lại lời mời tham gia phỏng vấn AI cho vị trí <strong>${jobTemplate[0].title}</strong> tại <strong>${user.organizationName}</strong>.</p>
+
+              <div style="margin: 20px 0; padding: 15px; background: white; border-radius: 6px;">
+                <h3 style="margin: 0 0 10px 0;">Thông tin phỏng vấn:</h3>
+                <ul style="margin: 0;">
+                  <li>Vị trí: ${jobTemplate[0].title}</li>
+                  <li>Thời gian: ${jobTemplate[0].interviewDuration} phút</li>
+                  <li>Hạn cuối: ${interviewData.interviewLinkExpiresAt?.toLocaleDateString('vi-VN')}</li>
+                  <li>Tổ chức: ${user.organizationName}</li>
+                </ul>
+              </div>
+
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${interviewUrl}" class="button">Bắt đầu phỏng vấn</a>
+              </div>
+
+              <div style="background: #fef3c7; padding: 15px; border-radius: 6px; margin: 20px 0;">
+                <strong>Lưu ý quan trọng:</strong>
+                <ul style="margin: 10px 0 0 0; font-size: 14px;">
+                  <li>Chuẩn bị webcam và microphone</li>
+                  <li>Tìm nơi yên tĩnh, ánh sáng tốt</li>
+                  <li>Link phỏng vấn có thời hạn ${interviewData.interviewLinkExpiresAt?.toLocaleDateString('vi-VN')}</li>
+                  <li>Phỏng vấn được thực hiện bằng tiếng Việt</li>
+                </ul>
+              </div>
+            </div>
+            <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #666;">
+              Email được gửi từ hệ thống VietinBank AI Interviewer
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+      text: `
+        [Gửi lại] Lời mời phỏng vấn AI - ${jobTemplate[0].title}
+
+        Xin chào ${interviewData.candidateName},
+
+        Đây là email gửi lại lời mời tham gia phỏng vấn AI cho vị trí ${jobTemplate[0].title} tại ${user.organizationName}.
+
+        Thông tin phỏng vấn:
+        - Vị trí: ${jobTemplate[0].title}
+        - Thời gian: ${jobTemplate[0].interviewDuration} phút
+        - Hạn cuối: ${interviewData.interviewLinkExpiresAt?.toLocaleDateString('vi-VN')}
+
+        Link phỏng vấn: ${interviewUrl}
+
+        Lưu ý: Chuẩn bị webcam, microphone và tìm nơi yên tĩnh cho phỏng vấn.
+      `
+    }
+
+    const emailSent = await sendEmail({
+      to: interviewData.candidateEmail,
+      subject: emailContent.subject,
+      html: emailContent.html,
+      text: emailContent.text,
+    })
+
+    return {
+      success: true,
+      message: `Email mời phỏng vấn đã được gửi lại cho ${interviewData.candidateName} (${interviewData.candidateEmail})`,
+    }
+
+  } catch (error) {
+    console.error('Error resending interview email:', error)
+    return {
+      success: false,
+      error: 'Đã xảy ra lỗi khi gửi lại email. Vui lòng thử lại.'
     }
   }
 }

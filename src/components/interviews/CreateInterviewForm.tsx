@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { Upload, User, Users, Mail, Phone, Clock, CheckCircle, Loader2, FileText, X } from 'lucide-react'
 import { createSingleInterview, createBulkInterviews } from '@/app/dashboard/interviews/actions'
+import Link from 'next/link'
 
 interface JobTemplate {
   id: string
@@ -223,7 +224,7 @@ export default function CreateInterviewForm({ user, jobTemplates }: CreateInterv
                     </Select>
                     {jobTemplates.length === 0 && (
                       <p className="text-xs text-yellow-600 mt-1">
-                        Chưa có job template nào. <a href="/dashboard/templates/create" className="underline">Tạo template mới</a>
+                        Chưa có job template nào. <Link href="/dashboard/templates/create" className="underline">Tạo template mới</Link>
                       </p>
                     )}
                   </div>

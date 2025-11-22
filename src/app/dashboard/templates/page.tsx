@@ -5,15 +5,26 @@ import { eq } from 'drizzle-orm'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Clock, Users, Plus, Edit, Trash2, Eye, FileText } from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Clock, Users, Plus, Edit, Trash2, Eye, FileText, CheckCircle, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
 
-export default async function TemplatesPage() {
+interface TemplatesPageProps {
+  searchParams: Promise<{
+    deleted?: string
+    error?: string
+  }>
+}
+
+export default async function TemplatesPage({ searchParams }: TemplatesPageProps) {
   // Require authentication
   const user = await requireAuth()
+
+  // Await searchParams for Next.js 15 compatibility
+  const params = await searchParams
 
   // Get templates for this organization
   const templates = await db
@@ -58,6 +69,27 @@ export default async function TemplatesPage() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Success/Error Messages */}
+        {params.deleted && (
+          <Alert className="mb-6 border-green-200 bg-green-50">
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-800">
+              Template đã được xóa thành công.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {params.error && (
+          <Alert className="mb-6 border-red-200 bg-red-50">
+            <AlertTriangle className="h-4 w-4 text-red-600" />
+            <AlertDescription className="text-red-800">
+              {params.error === 'delete_failed'
+                ? 'Có lỗi xảy ra khi xóa template. Vui lòng thử lại.'
+                : decodeURIComponent(params.error)
+              }
+            </AlertDescription>
+          </Alert>
+        )}
         {templates.length === 0 ? (
           /* Empty State */
           <div className="text-center py-12">
@@ -152,19 +184,33 @@ export default async function TemplatesPage() {
                         <div className="text-xs text-gray-500">
                           {new Date(template.createdAt).toLocaleDateString('vi-VN')}
                         </div>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-1">
                           <Link href={`/dashboard/templates/${template.id}`}>
                             <Button variant="outline" size="sm">
-                              <Eye className="h-3 w-3 mr-1" />
-                              Xem
+                              <Eye className="h-3 w-3" />
                             </Button>
                           </Link>
                           <Link href={`/dashboard/templates/${template.id}/edit`}>
                             <Button variant="outline" size="sm">
-                              <Edit className="h-3 w-3 mr-1" />
-                              Sửa
+                              <Edit className="h-3 w-3" />
                             </Button>
                           </Link>
+                          <form action="/dashboard/templates/delete" method="post" className="inline">
+                            <input type="hidden" name="id" value={template.id} />
+                            <Button
+                              type="submit"
+                              variant="outline"
+                              size="sm"
+                              className="text-red-600 hover:bg-red-50 hover:border-red-200"
+                              onClick={(e) => {
+                                if (!confirm(`Bạn có chắc chắn muốn xóa template "${template.title}"? Hành động này không thể hoàn tác.`)) {
+                                  e.preventDefault()
+                                }
+                              }}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </form>
                         </div>
                       </div>
                     </div>

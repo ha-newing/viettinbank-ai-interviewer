@@ -412,6 +412,27 @@ export default function CandidateList({ organizationId }: CandidateListProps) {
                         <Eye className="h-4 w-4" />
                       </Button>
                     )}
+
+                    {/* Resend email button - only for pending and in_progress interviews */}
+                    {(interview.interviewStatus === 'pending' || interview.interviewStatus === 'in_progress') && (
+                      <form action="/dashboard/interviews/resend-email" method="post" className="inline">
+                        <input type="hidden" name="interviewId" value={interview.id} />
+                        <Button
+                          type="submit"
+                          variant="ghost"
+                          className="h-11 w-11 p-0 text-blue-600 hover:bg-blue-50"
+                          title="Gửi lại email mời phỏng vấn"
+                          onClick={(e) => {
+                            if (!confirm(`Gửi lại email mời phỏng vấn cho ${interview.candidateName}?`)) {
+                              e.preventDefault()
+                            }
+                          }}
+                        >
+                          <Mail className="h-4 w-4" />
+                        </Button>
+                      </form>
+                    )}
+
                     <Button variant="ghost" className="h-11 w-11 p-0" title="Chỉnh sửa">
                       <Edit className="h-4 w-4" />
                     </Button>

@@ -5,15 +5,26 @@ import { eq, count, and, gte } from 'drizzle-orm'
 import { logoutAction } from '@/app/auth/actions'
 import DashboardStats from '@/components/dashboard/DashboardStats'
 import CandidateList from '@/components/dashboard/CandidateList'
-import { Users, FileText, BarChart, Settings } from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Users, FileText, BarChart, Settings, CheckCircle, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 
 // Force dynamic rendering for authentication
 export const dynamic = 'force-dynamic'
 
-export default async function DashboardPage() {
+interface DashboardPageProps {
+  searchParams: Promise<{
+    email_sent?: string
+    error?: string
+  }>
+}
+
+export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   // Require authentication
   const user = await requireAuth()
+
+  // Await searchParams for Next.js 15 compatibility
+  const params = await searchParams
 
   // Get statistics for the dashboard
   const stats = await Promise.all([
@@ -111,6 +122,27 @@ export default async function DashboardPage() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Success/Error Messages */}
+        {params.email_sent && (
+          <Alert className="mb-6 border-green-200 bg-green-50">
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-800">
+              Email mời phỏng vấn đã được gửi thành công.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {params.error && (
+          <Alert className="mb-6 border-red-200 bg-red-50">
+            <AlertTriangle className="h-4 w-4 text-red-600" />
+            <AlertDescription className="text-red-800">
+              {params.error === 'email_send_failed'
+                ? 'Có lỗi xảy ra khi gửi email. Vui lòng thử lại.'
+                : decodeURIComponent(params.error)
+              }
+            </AlertDescription>
+          </Alert>
+        )}
         {/* Quick Actions */}
         <div className="mb-8">
           <h2 className="text-lg font-medium text-gray-900 mb-4">Tác vụ nhanh</h2>
