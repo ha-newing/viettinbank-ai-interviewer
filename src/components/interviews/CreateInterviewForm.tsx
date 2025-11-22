@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { useFormState, useFormStatus } from 'react-dom'
+import { useActionState } from 'react'
+import { useFormStatus } from 'react-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -63,11 +64,11 @@ function SubmitButton({ type }: { type: 'single' | 'bulk' }) {
 }
 
 export default function CreateInterviewForm({ user, jobTemplates }: CreateInterviewFormProps) {
-  const [singleState, singleAction] = useFormState(
+  const [singleState, singleAction] = useActionState(
     async (prevState: any, formData: FormData) => await createSingleInterview(formData),
     null
   )
-  const [bulkState, bulkAction] = useFormState(
+  const [bulkState, bulkAction] = useActionState(
     async (prevState: any, formData: FormData) => await createBulkInterviews(formData),
     null
   )

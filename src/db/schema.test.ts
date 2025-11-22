@@ -248,12 +248,14 @@ describe('Database Schema', () => {
 
       const interview1 = createInterviewData({
         organizationId: organization.id,
+        jobTemplateId: null, // No job template needed for this test
         createdBy: adminUser.id,
         interviewLinkToken: duplicateToken
       })
 
       const interview2 = createInterviewData({
         organizationId: organization.id,
+        jobTemplateId: null, // No job template needed for this test
         createdBy: adminUser.id,
         interviewLinkToken: duplicateToken
       })
@@ -272,6 +274,7 @@ describe('Database Schema', () => {
       for (const status of statuses) {
         const interviewData = createInterviewData({
           organizationId: organization.id,
+          jobTemplateId: null, // No job template needed for this test
           createdBy: adminUser.id,
           candidateEmail: `${status}@example.com`,
           status
@@ -289,6 +292,7 @@ describe('Database Schema', () => {
       for (const candidateStatus of candidateStatuses) {
         const interviewData = createInterviewData({
           organizationId: organization.id,
+          jobTemplateId: null, // No job template needed for this test
           createdBy: adminUser.id,
           candidateEmail: `${candidateStatus}@example.com`,
           candidateStatus
@@ -306,6 +310,7 @@ describe('Database Schema', () => {
       for (const recommendation of recommendations) {
         const interviewData = createInterviewData({
           organizationId: organization.id,
+          jobTemplateId: null, // No job template needed for this test
           createdBy: adminUser.id,
           candidateEmail: `${recommendation.toLowerCase()}@example.com`,
           recommendation,
@@ -378,6 +383,7 @@ describe('Database Schema', () => {
 
       const interviewData = createInterviewData({
         organizationId: organization.id,
+        jobTemplateId: null, // No job template needed for this test
         createdBy: adminUser.id
       })
       const [interview] = await db.insert(schema.interviews).values(interviewData).returning()
@@ -403,6 +409,7 @@ describe('Database Schema', () => {
 
       const interviewData = createInterviewData({
         organizationId: organization.id,
+        jobTemplateId: null, // No job template needed for this test
         createdBy: adminUser.id
       })
       const [interview] = await db.insert(schema.interviews).values(interviewData).returning()
@@ -430,6 +437,7 @@ describe('Database Schema', () => {
 
       const interviewData = createInterviewData({
         organizationId: organization.id,
+        jobTemplateId: null, // No job template needed for this test
         createdBy: adminUser.id
       })
       const [interview] = await db.insert(schema.interviews).values(interviewData).returning()
@@ -479,11 +487,13 @@ describe('Database Schema', () => {
 
       const verification1 = createEmailVerificationData({
         token: duplicateToken,
+        organizationId: null, // No organization needed for this test
         email: 'user1@test.com'
       })
 
       const verification2 = createEmailVerificationData({
         token: duplicateToken,
+        organizationId: null, // No organization needed for this test
         email: 'user2@test.com'
       })
 
