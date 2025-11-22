@@ -51,8 +51,13 @@ async function VerificationHandler({ token }: { token: string }) {
     const result = await verifyEmail(formData)
 
     if (result.success) {
-      // Success - redirect to dashboard
-      redirect('/dashboard')
+      // Check if redirect is needed (for new organization)
+      if ('redirect' in result) {
+        redirect(result.redirect)
+      } else {
+        // Existing organization - redirect to dashboard
+        redirect('/dashboard')
+      }
     } else {
       // Error - show error message
       return (

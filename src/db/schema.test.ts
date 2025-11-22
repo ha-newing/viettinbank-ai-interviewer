@@ -390,6 +390,7 @@ describe('Database Schema', () => {
 
       const responseData = createInterviewResponseData({
         interviewId: interview.id,
+        questionId: null, // No question needed for this test
         questionOrder: 1,
         responseTranscript: 'Trả lời test'
       })
@@ -424,6 +425,7 @@ describe('Database Schema', () => {
 
       const responseData = createInterviewResponseData({
         interviewId: interview.id,
+        questionId: null, // No question needed for this test
         responseScores: scores
       })
 
@@ -443,7 +445,8 @@ describe('Database Schema', () => {
       const [interview] = await db.insert(schema.interviews).values(interviewData).returning()
 
       const responseData = createInterviewResponseData({
-        interviewId: interview.id
+        interviewId: interview.id,
+        questionId: null // No question needed for this test
       })
       await db.insert(schema.interviewResponses).values(responseData)
 

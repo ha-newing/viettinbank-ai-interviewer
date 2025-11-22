@@ -6,6 +6,30 @@ import { AIScoringEngine, createAIScoringEngine, formatScoresForStorage } from '
 import { mockOpenAIAPI, mockOpenAISummaryResponse, setupCommonMocks } from '@/test/mocks'
 import { createAIEvaluationResult } from '@/test/factories'
 
+// Mock the OpenAI module
+jest.mock('openai', () => {
+  return jest.fn().mockImplementation(() => ({
+    chat: {
+      completions: {
+        create: jest.fn().mockResolvedValue({
+          choices: [{
+            message: {
+              content: JSON.stringify({
+                score: 75,
+                level: 'Good',
+                analysis: 'Test analysis',
+                strengths: ['Good communication'],
+                areas_for_improvement: ['Technical skills'],
+                reasoning: 'Based on response quality'
+              })
+            }
+          }]
+        })
+      }
+    }
+  }))
+})
+
 // Mock the evaluation framework
 jest.mock('./evaluation-framework', () => ({
   loadEvaluationFramework: jest.fn().mockReturnValue({

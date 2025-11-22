@@ -34,6 +34,7 @@ const newOrganizationSchema = z.object({
 export type AuthResult =
   | { success: true; message: string }
   | { success: false; error: string }
+  | { success: true; redirect: string; message: string }
 
 /**
  * Handle initial login/signup request
@@ -150,8 +151,12 @@ export async function verifyEmail(formData: FormData): Promise<AuthResult> {
     await markEmailVerified(verification.id)
 
     if (verification.isNewOrganization) {
-      // New organization signup - redirect to organization creation
-      redirect(`/auth/create-organization?token=${token}&email=${encodeURIComponent(verification.email)}`)
+      // New organization signup - return redirect instruction
+      return {
+        success: true,
+        redirect: `/auth/create-organization?token=${token}&email=${encodeURIComponent(verification.email)}`,
+        message: 'Chuyển hướng đến trang tạo tổ chức...'
+      }
     } else {
       // Existing organization login
       if (!verification.organizationId) {

@@ -115,7 +115,7 @@ export function createTestDatabase(): TestDatabase {
     CREATE TABLE IF NOT EXISTS interview_responses (
       id TEXT PRIMARY KEY,
       interview_id TEXT NOT NULL,
-      question_id TEXT NOT NULL,
+      question_id TEXT,
       question_order INTEGER NOT NULL,
       response_video_url TEXT,
       response_transcript TEXT,
