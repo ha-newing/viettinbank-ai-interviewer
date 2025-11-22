@@ -518,8 +518,7 @@ describe('AIScoringEngine', () => {
     })
 
     it('should handle incomplete AI responses', async () => {
-      const mockOpenAI = mocks.openAI
-      mockOpenAI.chat.completions.create.mockResolvedValue({
+      mockCreateCompletion.mockResolvedValue({
         choices: [{
           message: {
             content: JSON.stringify({

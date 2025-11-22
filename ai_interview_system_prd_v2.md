@@ -10,9 +10,10 @@ A Vietnamese-first AI-powered video interview platform for automated candidate s
 ### 🎯 **Planning & Requirements**
 | Section | Description | Status | Lines |
 |---------|-------------|--------|-------|
-| **User Stories & Acceptance Criteria** | 10 detailed user stories covering all personas and workflows | ✅ Complete | 8-208 |
-| **Authentication & Organization Setup** | Corporate domain validation, auto-organization creation | ✅ Implemented | 210-244 |
-| **Core Features Overview** | Candidate management, interview setup, AI assessment | ✅ Implemented | 245-290 |
+| **User Stories & Acceptance Criteria** | 13 detailed user stories covering all personas and workflows | ✅ Complete | 114-315 |
+| **Job Template & Question Set Management** | Template CRUD, question builder, library management (CRITICAL GAP FIXED) | ✅ Complete | 318-489 |
+| **Authentication & Organization Setup** | Corporate domain validation, auto-organization creation | ✅ Implemented | 493-527 |
+| **Core Features Overview** | Candidate management, interview setup, AI assessment | ✅ Implemented | 529-574 |
 
 ### 🎥 **Interview System**
 | Section | Description | Status | Lines |
@@ -96,6 +97,11 @@ A Vietnamese-first AI-powered video interview platform for automated candidate s
   - **Candidate Recording**: Lines 1377-1472 (step-by-step flow, preview, upload)
   - **Multi-Reviewer Analysis**: Lines 1474-1603 (collaboration, annotations, consensus)
   - **Quality Controls**: Lines 1605-1699 (adaptive quality, compression, validation)
+- **📋 Job Template Management (NEW!)**: Lines 318-489 (CRITICAL GAP FIXED)
+  - **Template CRUD**: Lines 328-389 (create, edit, delete templates)
+  - **Question Builder**: Lines 351-370 (drag-and-drop question sets)
+  - **Template Library**: Lines 372-389 (organize, duplicate, analytics)
+  - **UX/UI Interfaces**: Lines 393-489 (complete template management workflows)
 - **🤖 AI & Vietnamese Language**: Lines 452-520, 1701-1733
 - **🏢 Business Packages**: Lines 802-850 (includes new Small Business tier)
 - **⚠️ Error Handling**: Lines 942-1050 (comprehensive edge cases)
@@ -312,6 +318,183 @@ Acceptance Criteria:
 ✅ AND I can approve/reject candidates with large touch targets
 ✅ AND the interface works smoothly in portrait orientation
 ```
+
+---
+
+## Job Template & Question Set Management
+
+### ❌ **CRITICAL GAP IDENTIFIED: Missing from Original PRD**
+
+The codebase shows comprehensive job template schema and usage, but the PRD lacked complete specifications for template CRUD operations. This section addresses that gap.
+
+### Job Template CRUD User Stories
+
+#### 🏢 **Template Management**
+
+**US-011: Create Job Template**
+```
+As an HR Admin
+I want to create custom job templates for different positions
+So that interviews are standardized and aligned with role requirements
+
+Acceptance Criteria:
+✅ GIVEN I'm an HR admin
+✅ WHEN I access the template management section
+✅ THEN I can create a new job template
+✅ AND I can set job title (Vietnamese/English)
+✅ AND I can add job description and requirements
+✅ AND I can configure interview duration (10, 15, 20, 30 minutes)
+✅ AND I can set evaluation criteria weights (must total 100%):
+    - Tạo Ấn Tượng (Impression): 0-40%
+    - Hiệu Suất Nhiệm Vụ (Task Performance): 0-40%
+    - Tư Duy Logic (Logical Thinking): 0-40%
+    - Khả Năng Nghiên Cứu (Research Ability): 0-40%
+    - Giao Tiếp (Communication): 0-40%
+✅ AND I can assign questions from the question library
+✅ AND I can preview the candidate experience
+```
+
+**US-012: Question Set Builder**
+```
+As an HR Admin
+I want to build custom question sets for different job types
+So that candidates are evaluated on relevant competencies
+
+Acceptance Criteria:
+✅ GIVEN I'm creating/editing a job template
+✅ WHEN I access the question builder
+✅ THEN I can browse questions by category:
+    - Tạo Ấn Tượng (Introduction, confidence, presentation)
+    - Hiệu Suất Nhiệm Vụ (Experience, achievements, examples)
+    - Tư Duy Logic (Problem-solving, analytical thinking)
+    - Khả Năng Nghiên Cứu (Learning, curiosity, research skills)
+    - Giao Tiếp (Communication, language skills)
+✅ AND I can add/remove questions with drag-and-drop
+✅ AND I can set question order and time limits
+✅ AND I can preview questions in Vietnamese and English
+✅ AND I can save as template for reuse
+```
+
+**US-013: Template Library Management**
+```
+As an HR Admin
+I want to manage our organization's template library
+So that HR team can reuse and maintain consistent interview standards
+
+Acceptance Criteria:
+✅ GIVEN I have created multiple job templates
+✅ WHEN I access the template library
+✅ THEN I can see all templates organized by:
+    - Department (IT, Finance, Marketing, etc.)
+    - Seniority Level (Junior, Mid, Senior, Manager)
+    - Creation Date and Usage Statistics
+✅ AND I can duplicate existing templates for quick setup
+✅ AND I can archive/deactivate outdated templates
+✅ AND I can track template performance (average scores, completion rates)
+✅ AND I can export templates for backup/sharing
+```
+
+### Job Template Management UI/UX
+
+#### **Template Library Dashboard**
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ 📋 Job Template Library                    [+ Tạo template mới] │
+├─────────────────────────────────────────────────────────────────┤
+│ 🔍 Search templates  [Dept ▾] [Level ▾] [Status ▾] [Sort ▾]     │
+├─────────────────────────────────────────────────────────────────┤
+│ 📊 Quick Stats:                                                │
+│ • Total Templates: 12  • Active: 10  • This Month: 45 interviews│
+├─────────────────────────────────────────────────────────────────┤
+│ ┌─ IT Department ─────────────────────────────────────────────┐ │
+│ │ 💻 Java Developer (Senior)        📊 8.2 avg • 23 used    │ │
+│ │ 15 min • 5 questions • Updated: Nov 15                    │ │
+│ │ [👁️ View] [✏️ Edit] [📋 Duplicate] [📊 Analytics]         │ │
+│ ├─────────────────────────────────────────────────────────────┤ │
+│ │ 💻 Frontend Developer (Mid)       📊 7.8 avg • 18 used    │ │
+│ │ 20 min • 6 questions • Updated: Nov 10                    │ │
+│ │ [👁️ View] [✏️ Edit] [📋 Duplicate] [📊 Analytics]         │ │
+│ └─────────────────────────────────────────────────────────────┘ │
+│                                                                 │
+│ ┌─ Finance Department ───────────────────────────────────────┐ │
+│ │ 💰 Financial Analyst (Junior)     📊 7.5 avg • 12 used    │ │
+│ │ 15 min • 4 questions • Updated: Nov 12                    │ │
+│ │ [👁️ View] [✏️ Edit] [📋 Duplicate] [📊 Analytics]         │ │
+│ └─────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+#### **Template Creation/Edit Interface**
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ ✏️ Edit Template: Java Developer (Senior)      [💾 Save Draft] │
+│                                                [✅ Publish]    │
+├─────────────────────────────────────────────────────────────────┤
+│ 📋 Basic Information                                            │
+│ ┌─ Job Title (VN): [Lập trình viên Java Senior            ] ─┐ │
+│ │ Job Title (EN): [Senior Java Developer                   ] │ │
+│ │ Department:     [IT ▾]  Seniority: [Senior ▾]           │ │
+│ │ Duration:       [15 minutes ▾]                           │ │
+│ └─────────────────────────────────────────────────────────────┘ │
+├─────────────────────────────────────────────────────────────────┤
+│ ⚖️ Evaluation Criteria Weights (Must Total 100%)              │
+│ ┌─────────────────────────────────────────────────────────────┐ │
+│ │ Tạo Ấn Tượng:        [████████░░] 20% [+/-]              │ │
+│ │ Hiệu Suất Nhiệm Vụ:  [████████████████░░] 35% [+/-]      │ │
+│ │ Tư Duy Logic:        [██████████░░] 25% [+/-]            │ │
+│ │ Khả Năng Nghiên Cứu: [████░░] 10% [+/-]                  │ │
+│ │ Giao Tiếp:          [████░░] 10% [+/-]                   │ │
+│ │                                          Total: 100% ✅   │ │
+│ └─────────────────────────────────────────────────────────────┘ │
+├─────────────────────────────────────────────────────────────────┤
+│ 📝 Question Set Builder (5/10 questions)                       │
+│ ┌─ Question Library ────┐ ┌─ Selected Questions ─────────────┐ │
+│ │ 🔍 Search questions   │ │ 1. [Tạo Ấn Tượng] Giới thiệu   │ │
+│ │                       │ │    bản thân và kinh nghiệm     │ │
+│ │ 📂 Categories:        │ │    ⏱️ 2 min • [Edit] [Remove]   │ │
+│ │ □ Tạo Ấn Tượng (25)  │ │                                 │ │
+│ │ ☑ Hiệu Suất NV (40)  │ │ 2. [Hiệu Suất] Dự án thành    │ │
+│ │ □ Tư Duy Logic (30)   │ │    công với Java/Spring        │ │
+│ │ □ Nghiên Cứu (20)    │ │    ⏱️ 3 min • [Edit] [Remove]   │ │
+│ │ □ Giao Tiếp (35)     │ │                                 │ │
+│ │                       │ │ [+ Add Question] [🎯 AI Suggest] │ │
+│ │ [+ New Question]      │ └─────────────────────────────────┘ │
+│ └───────────────────────┘                                     │ │
+├─────────────────────────────────────────────────────────────────┤
+│ 👀 Preview & Testing                                           │
+│ [📱 Mobile Preview] [🖥️ Desktop Preview] [🎬 Record Test]       │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+#### **Question Library Management**
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ 📚 Question Library                     [+ Thêm câu hỏi mới]   │
+├─────────────────────────────────────────────────────────────────┤
+│ 🔍 [Search questions...] [Category ▾] [Language ▾] [Sort ▾]     │
+├─────────────────────────────────────────────────────────────────┤
+│ ┌─ Tạo Ấn Tượng (25 questions) ──────────────────────────────┐ │
+│ │ 💼 "Giới thiệu bản thân và kinh nghiệm làm việc"          │ │
+│ │ 🌏 EN: "Introduce yourself and your work experience"       │ │
+│ │ ⏱️ 2 min • Used in 12 templates • ⭐ 4.8/5.0             │ │
+│ │ [👁️ Preview] [✏️ Edit] [📋 Duplicate] [📊 Performance]     │ │
+│ ├─────────────────────────────────────────────────────────────┤ │
+│ │ 🎯 "Tại sao bạn quan tâm đến vị trí này?"                  │ │
+│ │ 🌏 EN: "Why are you interested in this position?"          │ │
+│ │ ⏱️ 2 min • Used in 8 templates • ⭐ 4.6/5.0              │ │
+│ │ [👁️ Preview] [✏️ Edit] [📋 Duplicate] [📊 Performance]     │ │
+│ └─────────────────────────────────────────────────────────────┘ │
+│                                                                 │
+│ ┌─ Hiệu Suất Nhiệm Vụ (40 questions) ────────────────────────┐ │
+│ │ 🚀 "Kể về dự án thành công nhất mà bạn đã thực hiện"       │ │
+│ │ 🌏 EN: "Tell me about your most successful project"        │ │
+│ │ ⏱️ 3 min • Used in 15 templates • ⭐ 4.9/5.0             │ │
+│ │ [👁️ Preview] [✏️ Edit] [📋 Duplicate] [📊 Performance]     │ │
+│ └─────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
 
 ## Authentication & Organization Setup
 
