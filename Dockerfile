@@ -4,7 +4,8 @@ FROM node:22-alpine AS base
 # Install dependencies only when needed
 FROM base AS deps
 # Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat
+# Add build dependencies for better-sqlite3
+RUN apk add --no-cache libc6-compat python3 make g++ cairo-dev jpeg-dev pango-dev giflib-dev
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
@@ -13,6 +14,8 @@ RUN npm ci --only=production && npm cache clean --force
 
 # Rebuild the source code only when needed
 FROM base AS builder
+# Add build dependencies for better-sqlite3
+RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
