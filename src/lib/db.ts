@@ -3,7 +3,8 @@ import Database from 'better-sqlite3'
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator'
 import * as schema from '@/db/schema'
 
-const sqlite = new Database('./src/db/sqlite.db')
+const dbPath = process.env.DATABASE_URL || './src/db/sqlite.db'
+const sqlite = new Database(dbPath)
 export const db = drizzle(sqlite, { schema })
 
 // Auto-migrate on startup (production runtime, not build time)

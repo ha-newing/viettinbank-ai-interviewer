@@ -5,11 +5,6 @@ const nextConfig = {
   images: {
     domains: ['localhost'],
   },
-  env: {
-    SONIOX_API_KEY: process.env.SONIOX_API_KEY,
-    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
-    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
-  },
   outputFileTracingExcludes: {
     '*': [
       'node_modules/@swc/core-linux-x64-gnu',
