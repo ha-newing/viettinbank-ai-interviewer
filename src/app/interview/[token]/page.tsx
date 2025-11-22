@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
 import { db } from '@/lib/db'
 import { interviews, jobTemplates, organizations } from '@/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import InterviewLanding from '@/components/interview/InterviewLanding'
 
 // Force dynamic rendering
@@ -37,8 +37,12 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
 
   const { interview, jobTemplate, organization } = interviewResult[0]
 
+  // Ensure dates are properly converted
+  const expiresAt = new Date(interview.interviewLinkExpiresAt)
+  const completedAt = interview.completedAt ? new Date(interview.completedAt) : null
+
   // Check if interview link has expired
-  if (interview.interviewLinkExpiresAt < new Date()) {
+  if (expiresAt < new Date()) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
@@ -48,7 +52,7 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
           </h1>
           <p className="text-gray-600 mb-6">
             Liên kết phỏng vấn này đã hết hạn vào ngày{' '}
-            {interview.interviewLinkExpiresAt.toLocaleDateString('vi-VN')}.
+            {expiresAt.toLocaleDateString('vi-VN')}.
           </p>
           <p className="text-sm text-gray-500">
             Vui lòng liên hệ với HR để nhận liên kết mới.
@@ -69,7 +73,7 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
           </h1>
           <p className="text-gray-600 mb-6">
             Bạn đã hoàn thành phỏng vấn này vào ngày{' '}
-            {interview.completedAt?.toLocaleDateString('vi-VN')}.
+            {completedAt?.toLocaleDateString('vi-VN')}.
           </p>
           <p className="text-sm text-gray-500">
             Kết quả sẽ được thông báo qua email trong thời gian sớm nhất.
@@ -86,7 +90,11 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
 
   return (
     <InterviewLanding
-      interview={interview}
+      interview={{
+        ...interview,
+        interviewLinkExpiresAt: expiresAt,
+        completedAt: completedAt
+      }}
       jobTemplate={jobTemplate}
       organization={organization}
       token={token}
