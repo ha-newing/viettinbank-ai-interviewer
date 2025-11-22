@@ -5,6 +5,8 @@ import { eq, count, and, gte } from 'drizzle-orm'
 import { logoutAction } from '@/app/auth/actions'
 import DashboardStats from '@/components/dashboard/DashboardStats'
 import CandidateList from '@/components/dashboard/CandidateList'
+import { Users, FileText, BarChart, Settings } from 'lucide-react'
+import Link from 'next/link'
 
 // Force dynamic rendering for authentication
 export const dynamic = 'force-dynamic'
@@ -109,6 +111,88 @@ export default async function DashboardPage() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Quick Actions */}
+        <div className="mb-8">
+          <h2 className="text-lg font-medium text-gray-900 mb-4">Tác vụ nhanh</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Link
+              href="/dashboard/interviews/create"
+              className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-blue-300 transition-all group"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900 group-hover:text-blue-600">
+                    Tạo phỏng vấn
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Mời ứng viên tham gia phỏng vấn AI
+                  </p>
+                </div>
+                <div className="bg-blue-100 rounded-lg p-2 group-hover:bg-blue-200 transition-colors">
+                  <Users className="h-5 w-5 text-blue-600" />
+                </div>
+              </div>
+            </Link>
+
+            <Link
+              href="/dashboard/templates"
+              className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-green-300 transition-all group"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900 group-hover:text-green-600">
+                    Quản lý Templates
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Tạo và chỉnh sửa mẫu phỏng vấn
+                  </p>
+                </div>
+                <div className="bg-green-100 rounded-lg p-2 group-hover:bg-green-200 transition-colors">
+                  <FileText className="h-5 w-5 text-green-600" />
+                </div>
+              </div>
+            </Link>
+
+            <Link
+              href="/dashboard/reports"
+              className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-purple-300 transition-all group"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900 group-hover:text-purple-600">
+                    Báo cáo
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Xem kết quả phỏng vấn và thống kê
+                  </p>
+                </div>
+                <div className="bg-purple-100 rounded-lg p-2 group-hover:bg-purple-200 transition-colors">
+                  <BarChart className="h-5 w-5 text-purple-600" />
+                </div>
+              </div>
+            </Link>
+
+            <Link
+              href="/dashboard/settings"
+              className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-gray-400 transition-all group"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900 group-hover:text-gray-700">
+                    Cài đặt
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Quản lý tổ chức và tài khoản
+                  </p>
+                </div>
+                <div className="bg-gray-100 rounded-lg p-2 group-hover:bg-gray-200 transition-colors">
+                  <Settings className="h-5 w-5 text-gray-600" />
+                </div>
+              </div>
+            </Link>
+          </div>
+        </div>
+
         {/* Dashboard Statistics */}
         <DashboardStats stats={dashboardStats} />
 
