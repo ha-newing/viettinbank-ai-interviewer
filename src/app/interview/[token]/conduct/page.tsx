@@ -51,11 +51,11 @@ export default async function InterviewConductPage({ params }: InterviewConductP
       .orderBy(interviewQuestions.questionOrder)
   }
 
-  // If no questions found, create default questions
-  if (questions.length === 0) {
-    questions = [
+  // If no questions found, create and insert default questions
+  if (questions.length === 0 && jobTemplate) {
+    const defaultQuestions = [
       {
-        id: 'default-1',
+        jobTemplateId: jobTemplate.id,
         questionText: 'Vui lòng giới thiệu về bản thân và kinh nghiệm làm việc của bạn.',
         questionTextEn: 'Please introduce yourself and your work experience.',
         questionOrder: 1,
@@ -64,7 +64,7 @@ export default async function InterviewConductPage({ params }: InterviewConductP
         isRequired: true,
       },
       {
-        id: 'default-2',
+        jobTemplateId: jobTemplate.id,
         questionText: 'Tại sao bạn quan tâm đến vị trí này và công ty chúng tôi?',
         questionTextEn: 'Why are you interested in this position and our company?',
         questionOrder: 2,
@@ -73,7 +73,7 @@ export default async function InterviewConductPage({ params }: InterviewConductP
         isRequired: true,
       },
       {
-        id: 'default-3',
+        jobTemplateId: jobTemplate.id,
         questionText: 'Kể về một thách thức khó khăn mà bạn đã vượt qua trong công việc.',
         questionTextEn: 'Tell me about a difficult challenge you overcame at work.',
         questionOrder: 3,
@@ -82,6 +82,12 @@ export default async function InterviewConductPage({ params }: InterviewConductP
         isRequired: true,
       },
     ]
+
+    // Insert default questions into database
+    questions = await db
+      .insert(interviewQuestions)
+      .values(defaultQuestions)
+      .returning()
   }
 
   return (
