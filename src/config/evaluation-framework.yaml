@@ -6,6 +6,15 @@ language: "vi"
 created_date: "2024-11-21"
 description: "Khung đánh giá 5 chiều đo cho hệ thống phỏng vấn AI VietinBank"
 
+# Framework information
+framework_info:
+  name: "VietinBank AI Evaluation Framework"
+  version: "1.0"
+  language: "vi"
+  total_dimensions: 5
+  scoring_method: "weighted"
+  cultural_adaptation: "vietnam"
+
 # Cấu hình tổng quan
 evaluation_config:
   total_score: 100
