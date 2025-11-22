@@ -6,8 +6,8 @@ import * as schema from '@/db/schema'
 const sqlite = new Database('./src/db/sqlite.db')
 export const db = drizzle(sqlite, { schema })
 
-// Auto-migrate on startup (production)
-if (process.env.NODE_ENV === 'production') {
+// Auto-migrate on startup (production runtime, not build time)
+if (process.env.NODE_ENV === 'production' && !process.env.CI) {
   migrate(db, { migrationsFolder: './src/db/migrations' })
 }
 
