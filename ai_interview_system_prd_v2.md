@@ -55,7 +55,12 @@ A Vietnamese-first AI-powered video interview platform for automated candidate s
 ### 🔧 **Technical Implementation**
 | Section | Description | Status | Lines |
 |---------|-------------|--------|-------|
-| **Video Processing Pipeline** | WebRTC recording, compression, audio extraction | ✅ Implemented | 520-580 |
+| **Video Processing Pipeline** | WebRTC recording, compression, audio extraction | ✅ Implemented | 1239-1255 |
+| **Video Storage & File Management** | File naming, organization, lifecycle, metadata tracking | ✅ Complete | 1256-1296 |
+| **Admin Video Retrieval & Playback** | HR dashboard video access, player controls, bulk operations | ✅ Complete | 1298-1375 |
+| **Candidate Video Recording Journey** | Step-by-step recording flow, preview, upload, error handling | ✅ Complete | 1377-1472 |
+| **Reviewer Video Analysis Workflow** | Multi-reviewer system, annotations, consensus, collaboration | ✅ Complete | 1474-1603 |
+| **Video Quality Controls** | Adaptive quality, auto-adjustment, compression, validation | ✅ Complete | 1605-1699 |
 | **Database Schema** | SQLite + Drizzle ORM with proper enums (no raw SQL) | ✅ Implemented | 582-650 |
 | **API Endpoints** | Server Actions, interview management, candidate experience | ✅ Implemented | 652-700 |
 | **Soniox Integration** | Vietnamese STT configuration, real-time processing | ✅ Implemented | 702-750 |
@@ -63,33 +68,39 @@ A Vietnamese-first AI-powered video interview platform for automated candidate s
 ### 🏗️ **Architecture & Infrastructure**
 | Section | Description | Status | Lines |
 |---------|-------------|--------|-------|
-| **Technical Architecture** | Next.js 15 + Server-first + Mobile optimization | ✅ Implemented | 1051-1226 |
-| **State Management** | Server Components, Server Actions, TanStack Query hierarchy | ✅ Implemented | 1065-1110 |
-| **Security Implementation** | Authentication, encryption, GDPR compliance | ✅ Implemented | 1184-1198 |
-| **Performance & Deployment** | Optimization strategies, scalability, single-file deployment | ✅ Implemented | 1199-1226 |
+| **Technical Architecture** | Next.js 15 + Server-first + Mobile optimization | ✅ Implemented | 1701-1876 |
+| **State Management** | Server Components, Server Actions, TanStack Query hierarchy | ✅ Implemented | 1715-1760 |
+| **Security Implementation** | Authentication, encryption, GDPR compliance | ✅ Implemented | 1834-1848 |
+| **Performance & Deployment** | Optimization strategies, scalability, single-file deployment | ✅ Implemented | 1849-1876 |
 
 ### 🔗 **Integrations & Future**
 | Section | Description | Status | Lines |
 |---------|-------------|--------|-------|
-| **ATS Integration** | Workday, SuccessFactors, BambooHR webhooks | 🔄 Phase 2 | 1228-1250 |
-| **Email Integration** | SendGrid templates, Vietnamese/English notifications | ✅ Implemented | 1252-1270 |
-| **Calendar Integration** | Microsoft Graph, Google Calendar APIs | 📅 Future | 1272-1290 |
+| **ATS Integration** | Workday, SuccessFactors, BambooHR webhooks | 🔄 Phase 2 | 1878-1900 |
+| **Email Integration** | SendGrid templates, Vietnamese/English notifications | ✅ Implemented | 1902-1920 |
+| **Calendar Integration** | Microsoft Graph, Google Calendar APIs | 📅 Future | 1922-1940 |
 
 ### 🚫 **Scope & Constraints**
 | Section | Description | Status | Lines |
 |---------|-------------|--------|-------|
-| **Non-Goals (v1.0)** | Features explicitly not being built in first version | ✅ Complete | 1292-1320 |
-| **Success Metrics & KPIs** | Performance targets, business goals, AI accuracy metrics | ✅ Complete | 1322-1360 |
+| **Non-Goals (v1.0)** | Features explicitly not being built in first version | ✅ Complete | 1942-1970 |
+| **Success Metrics & KPIs** | Performance targets, business goals, AI accuracy metrics | ✅ Complete | 1972-2010 |
 
 ---
 
 ### 🔍 **Quick Navigation Guide**
 - **📱 Mobile Features**: Lines 672-720, 1109-1123
-- **🤖 AI & Vietnamese Language**: Lines 452-520, 1160-1182
+- **🎥 Video System (NEW!)**: Lines 1239-1699 (complete video recording, storage & review workflows)
+  - **Video Storage**: Lines 1256-1296 (file naming, organization, lifecycle)
+  - **Admin Video Access**: Lines 1298-1375 (HR dashboard, player, bulk operations)
+  - **Candidate Recording**: Lines 1377-1472 (step-by-step flow, preview, upload)
+  - **Multi-Reviewer Analysis**: Lines 1474-1603 (collaboration, annotations, consensus)
+  - **Quality Controls**: Lines 1605-1699 (adaptive quality, compression, validation)
+- **🤖 AI & Vietnamese Language**: Lines 452-520, 1701-1733
 - **🏢 Business Packages**: Lines 802-850 (includes new Small Business tier)
 - **⚠️ Error Handling**: Lines 942-1050 (comprehensive edge cases)
 - **💾 Database Schema**: Lines 582-650 (SQLite + Drizzle, no raw SQL)
-- **🔐 Security & Compliance**: Lines 1184-1198, 1022-1050
+- **🔐 Security & Compliance**: Lines 1834-1848, 1022-1050
 - **🎯 Demo Gap Solutions**: Lines 522-580 (executive summary + recommendations)
 
 ### 📊 **Implementation Status Legend**
@@ -1241,7 +1252,8 @@ migrate(db, { migrationsFolder: './src/db/migrations' })
 **Recording Flow:**
 ```
 Mobile Camera → WebRTC → Browser Recording →
-Chunked Upload → Server Storage → FFmpeg Processing →
+Video Preview → Candidate Confirmation → Chunked Upload →
+Server Storage → File Naming → FFmpeg Processing →
 Audio Extraction → Soniox Transcription → AI Scoring
 ```
 
@@ -1251,6 +1263,451 @@ Audio Extraction → Soniox Transcription → AI Scoring
 - **Automatic compression** using WebCodecs API when available
 - **Fallback quality levels** for poor network conditions
 - **Real-time feedback** on video quality and audio levels
+
+### Video Storage & File Management
+
+**File Naming Convention:**
+```
+Storage Structure:
+/videos/
+  /{organizationId}/
+    /{interviewId}/
+      /question-{order}-attempt-{attempt}-{timestamp}.webm
+
+Example:
+/videos/vietinbank-com-vn/iv_abc123/question-1-attempt-1-20231122143052.webm
+/videos/vietinbank-com-vn/iv_abc123/question-1-attempt-2-20231122143245.webm
+/videos/vietinbank-com-vn/iv_abc123/question-2-attempt-1-20231122143410.webm
+```
+
+**Storage Implementation:**
+- **Local Development**: `/uploads/videos/` directory with auto-cleanup
+- **Production**: Cloud storage (AWS S3/equivalent) with CDN delivery
+- **File Size Limits**: 500MB per video, 2GB per complete interview
+- **Retention Policy**: 90 days auto-deletion after interview completion
+- **Backup Strategy**: Automated daily backups with 30-day retention
+
+**Database Video References:**
+```typescript
+// interview_responses table stores video URLs
+responseVideoUrl: `/videos/${organizationId}/${interviewId}/question-${order}-attempt-${attempt}-${timestamp}.webm`
+
+// Additional metadata
+{
+  originalFileName: "question-1-attempt-1-20231122143052.webm",
+  fileSize: 45672345, // bytes
+  duration: 125, // seconds
+  resolution: "1280x720",
+  codec: "webm/vp8",
+  uploadedAt: "2023-11-22T14:30:52Z",
+  storageProvider: "local" | "s3" | "gcs",
+  cdnUrl: "https://cdn.interview.vietinbank.com/videos/...",
+  thumbnailUrl: "/thumbnails/iv_abc123/question-1-thumb.jpg"
+}
+```
+
+### Admin Video Retrieval & Playback
+
+**HR Dashboard Video Access:**
+
+**1. Candidate List Video Indicators:**
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ ☑ [📷] Nguyễn Văn An    an.nguyen@gmail.com    [82%] [🎥5] ✓✗📄│
+│   └─ Questions: Q1 ✅ Q2 ✅ Q3 ✅ Q4 ❌ Q5 ✅  Total: 4/5      │
+│      Click 🎥5 for video playlist, individual ✅ for single Q   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**2. Video Player Integration:**
+```typescript
+// Video player component with admin controls
+interface AdminVideoPlayer {
+  // Basic playback controls
+  play: () => void
+  pause: () => void
+  seek: (timeSeconds: number) => void
+  setSpeed: (speed: 0.5 | 1 | 1.25 | 1.5 | 2) => void
+
+  // Admin-specific features
+  addNote: (timestamp: number, note: string) => void
+  flagConcern: (timestamp: number, concern: string) => void
+  exportVideo: (format: 'mp4' | 'original') => void
+  shareWithColleague: (email: string) => void
+
+  // Analysis overlay
+  showTranscript: boolean
+  showAIScoring: boolean
+  showTimestamps: boolean
+}
+```
+
+**3. Video Review Workflow:**
+```
+HR Manager Dashboard → Candidate List → [🎥5] Click →
+Video Playlist Modal → Question Selection → Video Player →
+Add Notes/Flags → Save Assessment → Next Question/Candidate
+```
+
+**Video Player Interface:**
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ 🎥 Nguyễn Văn An - Question 1: "Giới thiệu bản thân"           │
+├─────────────────────────────────────────────────────────────────┤
+│ ┌───────────────────────────────────────────────────────────────┐ │
+│ │                                                             │ │
+│ │               [Video Player Area]                           │ │
+│ │                     ▶ 01:45 / 02:30                         │ │
+│ │                                                             │ │
+│ └───────────────────────────────────────────────────────────────┘ │
+├─────────────────────────────────────────────────────────────────┤
+│ [⏪] [⏯️] [⏩] [🔊] [⚙️Speed] [📝Notes] [🚩Flag] [💾Export] [📤Share] │
+├─────────────────────────────────────────────────────────────────┤
+│ 📋 Transcript (Auto-scroll with video):                        │
+│ "Xin chào, tôi tên là Nguyễn Văn An, hiện đang làm việc..."    │
+│                                                                 │
+│ 📊 AI Analysis:                                                │
+│ • Tạo Ấn Tượng: 8.5/10 - "Tự tin, giọng nói rõ ràng"          │
+│ • Giao Tiếp: 8.2/10 - "Cấu trúc câu tốt, từ ngữ phù hợp"      │
+├─────────────────────────────────────────────────────────────────┤
+│ ✍️ Your Notes:                                                 │
+│ [01:23] Candidate appears confident and well-prepared          │
+│ [02:15] Good examples of teamwork experience                   │
+│                                                                 │
+│ 🚩 Flags/Concerns:                                             │
+│ [None added]                                                   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Bulk Video Operations:**
+- **Video Export**: Batch download multiple candidate videos
+- **Playlist Creation**: Custom playlists for interview panels
+- **Sharing Permissions**: Share specific videos with hiring managers
+- **Quality Controls**: Choose video quality for bandwidth optimization
+
+### Candidate Video Recording Journey
+
+**Detailed Recording Flow:**
+
+**Step 1: Pre-Recording Setup**
+```
+1. Device Compatibility Check
+   ✅ Camera access permission granted
+   ✅ Microphone access permission granted
+   ✅ Browser compatibility confirmed
+   ✅ Internet speed test passed (>1 Mbps upload)
+
+2. Practice Session
+   → Record 30-second practice video
+   → Preview playback with audio/video quality indicators
+   → Option to re-record practice (unlimited)
+   → "I'm ready to start" confirmation
+```
+
+**Step 2: Question Recording**
+```
+For Each Question (1-10):
+  1. Question Display (30-second read time)
+     ┌─────────────────────────────────────────┐
+     │ Question 3/5 • Time limit: 2:00        │
+     │                                         │
+     │ "Hãy kể về một dự án thành công mà     │
+     │ bạn đã tham gia. Vai trò của bạn       │
+     │ là gì?"                                 │
+     │                                         │
+     │ 💡 Gợi ý: Tập trung vào kết quả cụ thể │
+     │                                         │
+     │ [🎬 Bắt đầu ghi] (Ready when you are)   │
+     └─────────────────────────────────────────┘
+
+  2. Recording Phase
+     ┌─────────────────────────────────────────┐
+     │ 🔴 RECORDING • 00:45 / 02:00           │
+     │                                         │
+     │ ┌─────────────────────────────────────┐ │
+     │ │     [Live Camera Preview]            │ │
+     │ │                                     │ │
+     │ │ 👤 Face detected ✅                 │ │
+     │ │ 🎤 Audio level: ████████░░ Good     │ │
+     │ │ 💡 Look at camera, speak clearly    │ │
+     │ └─────────────────────────────────────┘ │
+     │                                         │
+     │ [⏹️ Stop Recording]  [⏸️ Pause]        │
+     └─────────────────────────────────────────┘
+
+  3. Preview & Confirmation
+     ┌─────────────────────────────────────────┐
+     │ 📹 Review Your Response                 │
+     │                                         │
+     │ ┌─────────────────────────────────────┐ │
+     │ │    [Video Playback Preview]         │ │
+     │ │        ▶ 01:23 / 01:45             │ │
+     │ │                                     │ │
+     │ │ Quality: Good ✅                    │ │
+     │ │ Audio: Clear ✅                     │ │
+     │ └─────────────────────────────────────┘ │
+     │                                         │
+     │ [🎤 Re-record] [➡️ Submit & Continue]   │
+     │ Attempts left: 1/2                     │
+     └─────────────────────────────────────────┘
+
+  4. Upload Progress
+     ┌─────────────────────────────────────────┐
+     │ 📤 Uploading response...                │
+     │ ████████████████░░░░ 75% (15.2 MB)     │
+     │                                         │
+     │ ⏱️ Estimated time: 30 seconds          │
+     │ 📶 Connection: Stable                   │
+     │                                         │
+     │ [❌ Cancel] [⏸️ Pause Upload]           │
+     └─────────────────────────────────────────┘
+```
+
+**Step 3: Upload Error Handling**
+```
+Upload Failure Scenarios:
+1. Network Interruption
+   → Auto-pause upload, resume when connection restored
+   → Show "Connection lost, retrying..." message
+   → Resume from last uploaded chunk
+
+2. File Too Large
+   → Auto-compress video to meet size limits
+   → Show "Compressing video for optimal upload..."
+   → Provide quality vs. size tradeoff options
+
+3. Server Error
+   → Retry with exponential backoff (3 attempts)
+   → Show "Server busy, retrying in 10 seconds..."
+   → Provide "Contact Support" option after 3 failures
+```
+
+### Reviewer Video Analysis Workflow
+
+**Multi-Reviewer Process:**
+
+**1. Interview Assignment & Distribution**
+```typescript
+// Reviewer assignment system
+interface InterviewReview {
+  interviewId: string
+  primaryReviewer: string // HR Manager who receives candidate
+  secondaryReviewers: string[] // Additional stakeholders
+  reviewDeadline: Date
+  reviewStatus: 'pending' | 'in_progress' | 'completed'
+  consensusRequired: boolean // For disagreements
+}
+```
+
+**2. Reviewer Dashboard Video Queue**
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ 📋 Your Interview Review Queue (5 pending)                     │
+├─────────────────────────────────────────────────────────────────┤
+│ 🔴 HIGH PRIORITY                                               │
+│ [📹] Nguyễn Văn An - Java Developer - Due: Today 6PM           │
+│ Questions: 5/5 completed • Duration: 12:34 • AI Score: 82%     │
+│ [▶️ Start Review] [📄 AI Report] [👥 Other Reviews: 0]         │
+├─────────────────────────────────────────────────────────────────┤
+│ [📹] Trần Thị Hồng - Product Manager - Due: Tomorrow           │
+│ Questions: 4/5 completed • Duration: 10:15 • AI Score: 67%     │
+│ [▶️ Start Review] [📄 AI Report] [👥 Other Reviews: 1]         │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**3. Video Review Interface**
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ 👥 Multi-Reviewer Analysis: Nguyễn Văn An                      │
+│ Java Developer • Applied: Nov 20, 2023 • Your Role: Primary    │
+├─────────────────────────────────────────────────────────────────┤
+│ 📹 Video Playlist (5 questions)    📊 Review Progress          │
+│ ┌─ Q1: Giới thiệu bản thân ✅───┐  ┌─ Your Review: 3/5 ─────┐   │
+│ │ [▶️] 2:15 • AI: 8.5/10        │  │ [████████░░] 60%       │   │
+│ │ 📝 Your notes: Professional   │  │                        │   │
+│ │ ⭐ Your score: 8/10           │  │ Other Reviewers:       │   │
+│ ├─ Q2: Kinh nghiệm làm việc ✅──┤  │ • Manager A: 2/5       │   │
+│ │ [▶️] 3:42 • AI: 7.8/10        │  │ • Tech Lead: 0/5       │   │
+│ │ 📝 Your notes: Good examples  │  │                        │   │
+│ │ ⭐ Your score: 8/10           │  │ Consensus: Pending     │   │
+│ ├─ Q3: Thử thách lớn nhất ⏳──│  └────────────────────────┘   │
+│ │ [▶️] 2:58 • AI: 6.2/10        │                              │
+│ │ 📝 Add your notes...          │  🎯 Quick Actions:           │
+│ │ ⭐ Score: [Select 1-10]       │  [🏃 Quick Review Mode]     │
+│ └───────────────────────────────┘  [📝 Add Overall Comment]   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**4. Video Annotation & Collaboration**
+```typescript
+interface VideoAnnotation {
+  timestamp: number // seconds from start
+  reviewer: string
+  type: 'note' | 'flag' | 'highlight' | 'question'
+  content: string
+  isPrivate: boolean // visible to all reviewers or just you
+  tags: string[] // e.g., ['technical-skill', 'communication', 'red-flag']
+}
+
+// Example annotations
+[
+  {
+    timestamp: 83, // 1:23 in video
+    reviewer: "hr.manager@vietinbank.com.vn",
+    type: "highlight",
+    content: "Excellent example of leadership under pressure",
+    isPrivate: false,
+    tags: ["leadership", "strength"]
+  },
+  {
+    timestamp: 157, // 2:37 in video
+    reviewer: "tech.lead@vietinbank.com.vn",
+    type: "flag",
+    content: "Claims 5 years React experience but seems uncertain about hooks",
+    isPrivate: false,
+    tags: ["technical-concern", "verification-needed"]
+  }
+]
+```
+
+**5. Consensus & Decision Making**
+```
+Reviewer Conflict Resolution:
+
+WHEN reviewers disagree (>20% score difference):
+1. System flags interview for consensus review
+2. All reviewers notified of disagreement
+3. Video conference call scheduled automatically
+4. Shared annotation workspace opened
+5. Final consensus score recorded with reasoning
+
+Review Weighting System:
+- Primary Reviewer (HR): 40% weight
+- Hiring Manager: 35% weight
+- Technical Reviewer: 25% weight
+- Final Score = Weighted average of all reviews
+```
+
+**6. Video Review Completion**
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ ✅ Review Complete: Nguyễn Văn An                               │
+├─────────────────────────────────────────────────────────────────┤
+│ Your Overall Assessment:                                        │
+│ ⭐ Final Score: 8.2/10 (vs AI: 8.2/10 ✅ Aligned)             │
+│                                                                 │
+│ 📝 Summary Comment:                                            │
+│ "Strong candidate with excellent communication skills and      │
+│ relevant experience. Some concerns about advanced technical    │
+│ depth but good potential for growth. Recommend for next round."│
+│                                                                 │
+│ 🎯 Next Step Recommendation:                                  │
+│ ○ STRONGLY RECOMMEND  ● RECOMMEND  ○ CONSIDER  ○ REJECT       │
+│                                                                 │
+│ 📋 Interview Focus for Round 2:                               │
+│ ☑ Technical deep-dive on React/Node.js                        │
+│ ☑ System design challenge                                     │
+│ ☑ Team collaboration scenarios                                │
+│                                                                 │
+│ [📤 Submit Review] [💾 Save Draft] [🔄 Review Again]          │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Video Quality Controls & Technical Specifications
+
+**Adaptive Quality Settings:**
+
+**Recording Quality Tiers:**
+```typescript
+interface VideoQualityConfig {
+  // Auto-detected based on device/connection
+  tier: 'high' | 'medium' | 'low'
+
+  high: {
+    resolution: '1920x1080',
+    bitrate: '2500kbps',
+    frameRate: 30,
+    audioBitrate: '128kbps'
+  }
+
+  medium: {
+    resolution: '1280x720',
+    bitrate: '1500kbps',
+    frameRate: 25,
+    audioBitrate: '96kbps'
+  }
+
+  low: {
+    resolution: '854x480',
+    bitrate: '800kbps',
+    frameRate: 20,
+    audioBitrate: '64kbps'
+  }
+}
+```
+
+**Quality Auto-Adjustment:**
+```
+During Recording:
+1. Monitor upload bandwidth every 10 seconds
+2. If bandwidth drops below threshold:
+   → Auto-reduce quality to next tier
+   → Show notification: "Adjusting quality for stable connection"
+   → Continue recording without interruption
+
+3. If bandwidth improves:
+   → Auto-upgrade quality after 30 seconds of stable connection
+   → Show notification: "Improved connection detected, enhancing quality"
+
+Quality Indicators:
+🟢 HD (High) - Excellent connection
+🟡 SD (Medium) - Good connection
+🔴 LD (Low) - Poor connection but stable
+⚠️ Unstable - Connection issues detected
+```
+
+**Video Compression & Storage:**
+```typescript
+interface CompressionSettings {
+  // Real-time compression during upload
+  codec: 'h264' | 'vp9' | 'av1'
+  targetSizeMB: number // Based on duration
+  qualityPreservation: 'auto' | 'prioritize-size' | 'prioritize-quality'
+
+  // Post-upload optimization
+  generateThumbnail: boolean
+  createPreviewClip: boolean // First 30 seconds
+  audioNormalization: boolean
+}
+
+// Storage size optimization
+const optimizeVideo = (originalSize: number, maxSize: number) => {
+  if (originalSize <= maxSize) return 'no-compression'
+
+  const compressionRatio = maxSize / originalSize
+  if (compressionRatio > 0.7) return 'light-compression'
+  if (compressionRatio > 0.5) return 'medium-compression'
+  return 'high-compression'
+}
+```
+
+**Technical Quality Validation:**
+```
+Pre-Upload Validation:
+✅ Video duration: 30 seconds minimum, 5 minutes maximum
+✅ File format: WebM, MP4, or MOV
+✅ Audio present: Minimum 30dB volume level
+✅ Video present: Minimum 480p resolution
+✅ Face detection: At least 50% of frames with face detected
+✅ File corruption: Header and metadata validation
+
+Post-Upload Processing:
+1. Virus scan with ClamAV
+2. Content verification (ensure it's interview content)
+3. Audio quality analysis (background noise, clarity)
+4. Video stability check (excessive movement, lighting)
+5. Duration validation against question time limits
+```
 
 ### AI Processing Architecture
 

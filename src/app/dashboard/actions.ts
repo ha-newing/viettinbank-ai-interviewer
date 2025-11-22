@@ -59,7 +59,7 @@ export async function getDashboardInterviews(params?: {
     }
 
     // Fetch interviews with related data
-    let query = db
+    const query = db
       .select({
         interview: interviews,
         jobTemplate: jobTemplates,
