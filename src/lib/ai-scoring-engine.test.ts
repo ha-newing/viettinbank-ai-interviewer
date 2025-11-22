@@ -6,32 +6,37 @@ import { AIScoringEngine, createAIScoringEngine, formatScoresForStorage } from '
 import { mockOpenAIAPI, mockOpenAISummaryResponse, setupCommonMocks } from '@/test/mocks'
 import { createAIEvaluationResult } from '@/test/factories'
 
-// Mock the OpenAI module
+// Create a controllable mock for OpenAI
+const mockCreateCompletion = jest.fn()
+
 jest.mock('openai', () => {
   return jest.fn().mockImplementation(() => ({
     chat: {
       completions: {
-        create: jest.fn().mockImplementation(async () => {
-          // Add small delay to ensure processing_time_ms > 0
-          await new Promise(resolve => setTimeout(resolve, 1))
-          return {
-            choices: [{
-              message: {
-                content: JSON.stringify({
-                  score: 75,
-                  level: 'Good',
-                  analysis: 'Test analysis',
-                  strengths: ['Good communication'],
-                  areas_for_improvement: ['Technical skills'],
-                  reasoning: 'Based on response quality'
-                })
-              }
-            }]
-          }
-        })
+        create: mockCreateCompletion
       }
     }
   }))
+})
+
+// Set default mock implementation
+mockCreateCompletion.mockImplementation(async () => {
+  // Add small delay to ensure processing_time_ms > 0
+  await new Promise(resolve => setTimeout(resolve, 1))
+  return {
+    choices: [{
+      message: {
+        content: JSON.stringify({
+          score: 75,
+          level: 'Good',
+          analysis: 'Test analysis',
+          strengths: ['Good communication'],
+          areas_for_improvement: ['Technical skills'],
+          reasoning: 'Based on response quality'
+        })
+      }
+    }]
+  }
 })
 
 // Mock the evaluation framework
@@ -85,6 +90,25 @@ describe('AIScoringEngine', () => {
   beforeEach(() => {
     mocks = setupCommonMocks()
     jest.clearAllMocks()
+
+    // Reset the controllable mock to default implementation
+    mockCreateCompletion.mockImplementation(async () => {
+      await new Promise(resolve => setTimeout(resolve, 1))
+      return {
+        choices: [{
+          message: {
+            content: JSON.stringify({
+              score: 75,
+              level: 'Good',
+              analysis: 'Test analysis',
+              strengths: ['Good communication'],
+              areas_for_improvement: ['Technical skills'],
+              reasoning: 'Based on response quality'
+            })
+          }
+        }]
+      }
+    })
   })
 
   afterEach(() => {
@@ -259,8 +283,7 @@ describe('AIScoringEngine', () => {
     })
 
     it('should handle AI API errors gracefully', async () => {
-      const mockOpenAI = mocks.openAI
-      mockOpenAI.chat.completions.create.mockRejectedValue(new Error('API Error'))
+      mockCreateCompletion.mockRejectedValue(new Error('API Error'))
 
       await expect(
         engine.evaluateInterview('test-interview-id', mockResponses)
@@ -268,8 +291,7 @@ describe('AIScoringEngine', () => {
     })
 
     it('should handle invalid JSON responses from AI', async () => {
-      const mockOpenAI = mocks.openAI
-      mockOpenAI.chat.completions.create.mockResolvedValue({
+      mockCreateCompletion.mockResolvedValue({
         choices: [{
           message: {
             content: 'Invalid JSON response'
@@ -351,8 +373,15 @@ describe('AIScoringEngine', () => {
   describe('testEvaluation', () => {
     let engine: AIScoringEngine
 
-    beforeEach(() => {
+    beforeEach(async () => {
       engine = new AIScoringEngine('test-key')
+
+      // Reset validation to allow valid scores for testEvaluation
+      const evaluationFramework = await import('./evaluation-framework')
+      ;(evaluationFramework.validateDimensionScores as jest.Mock).mockReturnValue({
+        isValid: true,
+        errors: []
+      })
     })
 
     it('should run test evaluation successfully', async () => {
@@ -360,10 +389,9 @@ describe('AIScoringEngine', () => {
     })
 
     it('should handle test evaluation errors', async () => {
-      const mockOpenAI = mocks.openAI
-      mockOpenAI.chat.completions.create.mockRejectedValue(new Error('Test API Error'))
+      mockCreateCompletion.mockRejectedValue(new Error('Test API Error'))
 
-      await expect(engine.testEvaluation()).rejects.toThrow('Test API Error')
+      await expect(engine.testEvaluation()).rejects.toThrow('AI evaluation failed: Test API Error')
     })
   })
 
@@ -462,13 +490,19 @@ describe('AIScoringEngine', () => {
   describe('Error Handling', () => {
     let engine: AIScoringEngine
 
-    beforeEach(() => {
+    beforeEach(async () => {
       engine = new AIScoringEngine('test-key')
+
+      // Reset validation to allow valid scores for error handling tests
+      const evaluationFramework = await import('./evaluation-framework')
+      ;(evaluationFramework.validateDimensionScores as jest.Mock).mockReturnValue({
+        isValid: true,
+        errors: []
+      })
     })
 
     it('should handle API rate limiting', async () => {
-      const mockOpenAI = mocks.openAI
-      mockOpenAI.chat.completions.create.mockRejectedValue({
+      mockCreateCompletion.mockRejectedValue({
         error: { code: 'rate_limit_exceeded' }
       })
 
@@ -508,8 +542,7 @@ describe('AIScoringEngine', () => {
     })
 
     it('should handle network timeouts', async () => {
-      const mockOpenAI = mocks.openAI
-      mockOpenAI.chat.completions.create.mockRejectedValue(new Error('Network timeout'))
+      mockCreateCompletion.mockRejectedValue(new Error('Network timeout'))
 
       const responses = [{
         question_text: 'Test question',
@@ -523,81 +556,29 @@ describe('AIScoringEngine', () => {
     })
 
     it('should provide fallback summary on AI failure', async () => {
-      const mockOpenAI = mocks.openAI
+      // Mock successful dimension evaluations (5 calls) but failed summary generation (6th call)
+      const dimensionResponse = {
+        choices: [{
+          message: {
+            content: JSON.stringify({
+              score: 75,
+              level: 'Good',
+              analysis: 'Test analysis',
+              strengths: ['Test strength'],
+              areas_for_improvement: ['Test improvement'],
+              reasoning: 'Test reasoning'
+            })
+          }
+        }]
+      }
 
-      // Mock successful dimension evaluation but failed summary
-      mockOpenAI.chat.completions.create
-        .mockResolvedValueOnce({
-          choices: [{
-            message: {
-              content: JSON.stringify({
-                score: 75,
-                level: 'Good',
-                analysis: 'Test analysis',
-                strengths: ['Test strength'],
-                areas_for_improvement: ['Test improvement'],
-                reasoning: 'Test reasoning'
-              })
-            }
-          }]
-        })
-        .mockResolvedValueOnce({
-          choices: [{
-            message: {
-              content: JSON.stringify({
-                score: 75,
-                level: 'Good',
-                analysis: 'Test analysis',
-                strengths: ['Test strength'],
-                areas_for_improvement: ['Test improvement'],
-                reasoning: 'Test reasoning'
-              })
-            }
-          }]
-        })
-        .mockResolvedValueOnce({
-          choices: [{
-            message: {
-              content: JSON.stringify({
-                score: 75,
-                level: 'Good',
-                analysis: 'Test analysis',
-                strengths: ['Test strength'],
-                areas_for_improvement: ['Test improvement'],
-                reasoning: 'Test reasoning'
-              })
-            }
-          }]
-        })
-        .mockResolvedValueOnce({
-          choices: [{
-            message: {
-              content: JSON.stringify({
-                score: 75,
-                level: 'Good',
-                analysis: 'Test analysis',
-                strengths: ['Test strength'],
-                areas_for_improvement: ['Test improvement'],
-                reasoning: 'Test reasoning'
-              })
-            }
-          }]
-        })
-        .mockResolvedValueOnce({
-          choices: [{
-            message: {
-              content: JSON.stringify({
-                score: 75,
-                level: 'Good',
-                analysis: 'Test analysis',
-                strengths: ['Test strength'],
-                areas_for_improvement: ['Test improvement'],
-                reasoning: 'Test reasoning'
-              })
-            }
-          }]
-        })
-        .mockRejectedValueOnce(new Error('Summary generation failed'))
+      mockCreateCompletion
+        .mockResolvedValueOnce(dimensionResponse)  // impression
+        .mockResolvedValueOnce(dimensionResponse)  // taskPerformance
+        .mockResolvedValueOnce(dimensionResponse)  // logicalThinking
+        .mockResolvedValueOnce(dimensionResponse)  // researchAbility
+        .mockResolvedValueOnce(dimensionResponse)  // communication
+        .mockRejectedValueOnce(new Error('Summary generation failed'))  // overall summary
 
       const responses = [{
         question_text: 'Test question',
@@ -609,6 +590,7 @@ describe('AIScoringEngine', () => {
 
       expect(result.overall_summary).toBe('Đánh giá tự động gặp lỗi. Cần đánh giá thủ công.')
       expect(result.recommendation).toBe('CONSIDER')
+      expect(result.recommendation_reasoning).toBe('Cần đánh giá thủ công do lỗi hệ thống')
       expect(result.key_concerns).toContain('Cần đánh giá thủ công')
     })
   })

@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
+import { useRouter } from 'next/navigation'
 import { createNewOrganization } from '@/app/auth/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -36,6 +37,7 @@ interface CreateOrganizationFormProps {
 }
 
 export default function CreateOrganizationForm({ token, email }: CreateOrganizationFormProps) {
+  const router = useRouter()
   const [state, formAction] = useActionState(
     async (prevState: any, formData: FormData) => await createNewOrganization(formData),
     null
@@ -44,6 +46,18 @@ export default function CreateOrganizationForm({ token, email }: CreateOrganizat
 
   // Extract domain from email for display
   const domain = email.split('@')[1]
+
+  // Redirect to dashboard when organization creation is successful
+  useEffect(() => {
+    if (state?.success) {
+      // Show success message briefly, then redirect
+      const timer = setTimeout(() => {
+        router.push('/dashboard')
+      }, 2000) // 2 second delay to show success message
+
+      return () => clearTimeout(timer)
+    }
+  }, [state, router])
 
   return (
     <div className="space-y-6">
