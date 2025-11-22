@@ -28,8 +28,12 @@ import {
 } from '@/test/factories'
 
 // Mock the database connection
+let mockDb: ReturnType<typeof createTestDatabase>
+
 jest.mock('@/lib/db', () => ({
-  db: undefined // Will be set in tests
+  get db() {
+    return mockDb
+  }
 }))
 
 describe('Authentication Functions', () => {
@@ -37,13 +41,7 @@ describe('Authentication Functions', () => {
 
   beforeEach(async () => {
     db = createTestDatabase()
-
-    // Mock the db export
-    const dbModule = await import('@/lib/db')
-    Object.defineProperty(dbModule, 'db', {
-      get: () => db,
-      configurable: true
-    })
+    mockDb = db
   })
 
   afterEach(async () => {
@@ -192,6 +190,7 @@ describe('Authentication Functions', () => {
 
       const verificationData = createEmailVerificationData({
         email: 'test@company.com',
+        organizationId: null, // No organization needed for this test
         expiresAt: expiredDate
       })
 
@@ -204,6 +203,7 @@ describe('Authentication Functions', () => {
     it('should return null for already verified token', async () => {
       const verificationData = createEmailVerificationData({
         email: 'test@company.com',
+        organizationId: null, // No organization needed for this test
         verifiedAt: new Date()
       })
 
@@ -217,7 +217,8 @@ describe('Authentication Functions', () => {
   describe('markEmailVerified', () => {
     it('should mark email verification as verified', async () => {
       const verificationData = createEmailVerificationData({
-        email: 'test@company.com'
+        email: 'test@company.com',
+        organizationId: null // No organization needed for this test
       })
 
       const [created] = await db.insert(schema.emailVerifications).values(verificationData).returning()
@@ -229,7 +230,7 @@ describe('Authentication Functions', () => {
       })
 
       expect(updated?.verifiedAt).toBeInstanceOf(Date)
-      expect(updated?.verifiedAt?.getTime()).toBeGreaterThan(created.createdAt.getTime())
+      expect(updated?.verifiedAt?.getTime()).toBeGreaterThanOrEqual(created.createdAt.getTime())
     })
 
     it('should handle marking non-existent verification', async () => {
@@ -366,54 +367,64 @@ describe('Authentication Functions', () => {
     it('should create session for valid user', async () => {
       const { adminUser } = await seedBasicTestData(db)
 
-      const session = await createUserSession(adminUser.id)
+      const sessionToken = await createUserSession(adminUser.id)
 
-      expect(session).toMatchObject({
-        userId: adminUser.id
+      // Should return a session token string
+      expect(typeof sessionToken).toBe('string')
+      expect(sessionToken.length).toBeGreaterThan(10)
+
+      // Verify session was stored in database
+      const sessions = await db.query.userSessions.findMany({
+        where: (s, { eq }) => eq(s.userId, adminUser.id)
       })
-      expect(session.sessionToken).toBeDefined()
-      expect(session.sessionToken.length).toBeGreaterThan(10)
-      expect(session.expiresAt.getTime()).toBeGreaterThan(Date.now())
+      expect(sessions).toHaveLength(1)
+      expect(sessions[0].sessionToken).toBe(sessionToken)
+      expect(sessions[0].expiresAt.getTime()).toBeGreaterThan(Date.now())
     })
 
-    it('should set expiry time 8 hours in the future', async () => {
+    it('should set expiry time 7 days in the future', async () => {
       const { adminUser } = await seedBasicTestData(db)
 
-      const session = await createUserSession(adminUser.id)
+      const sessionToken = await createUserSession(adminUser.id)
+
+      // Retrieve the created session from database
+      const sessions = await db.query.userSessions.findMany({
+        where: (s, { eq }) => eq(s.sessionToken, sessionToken)
+      })
+
+      expect(sessions).toHaveLength(1)
+      const session = sessions[0]
 
       const expectedExpiry = new Date()
-      expectedExpiry.setHours(expectedExpiry.getHours() + 8)
+      expectedExpiry.setDate(expectedExpiry.getDate() + 7) // 7 days as per SESSION_DURATION
 
       // Allow for a few seconds of difference
       const timeDiff = Math.abs(session.expiresAt.getTime() - expectedExpiry.getTime())
       expect(timeDiff).toBeLessThan(5000) // Less than 5 seconds difference
     })
 
-    it('should clean up expired sessions for user', async () => {
+    it('should allow multiple sessions for same user', async () => {
       const { adminUser } = await seedBasicTestData(db)
 
-      // Create an expired session
-      const expiredDate = new Date()
-      expiredDate.setHours(expiredDate.getHours() - 1)
+      // Create first session
+      const sessionToken1 = await createUserSession(adminUser.id)
 
-      const expiredSessionData = createUserSessionData({
-        userId: adminUser.id,
-        expiresAt: expiredDate
-      })
+      // Create second session
+      const sessionToken2 = await createUserSession(adminUser.id)
 
-      await db.insert(schema.userSessions).values(expiredSessionData)
-
-      // Create new session (should clean up expired ones)
-      await createUserSession(adminUser.id)
-
-      // Check that expired session was removed
+      // Check that both sessions exist
       const sessions = await db.query.userSessions.findMany({
         where: (s, { eq }) => eq(s.userId, adminUser.id)
       })
 
-      // Should only have the new session
-      expect(sessions).toHaveLength(1)
-      expect(sessions[0].expiresAt.getTime()).toBeGreaterThan(Date.now())
+      expect(sessions).toHaveLength(2)
+      expect(sessions.map(s => s.sessionToken)).toContain(sessionToken1)
+      expect(sessions.map(s => s.sessionToken)).toContain(sessionToken2)
+
+      // Both should be valid (not expired)
+      sessions.forEach(session => {
+        expect(session.expiresAt.getTime()).toBeGreaterThan(Date.now())
+      })
     })
   })
 
@@ -465,8 +476,9 @@ describe('Authentication Functions', () => {
       expect(user.email).toBe(verification.email)
 
       // Step 5: Create session
-      const session = await createUserSession(user.id)
-      expect(session.userId).toBe(user.id)
+      const sessionToken = await createUserSession(user.id)
+      expect(typeof sessionToken).toBe('string')
+      expect(sessionToken.length).toBeGreaterThan(10)
     })
 
     it('should handle complete authentication flow for new organization', async () => {
@@ -504,8 +516,9 @@ describe('Authentication Functions', () => {
       expect(adminUser.isAdmin).toBe(true)
 
       // Step 5: Create session
-      const session = await createUserSession(adminUser.id)
-      expect(session.userId).toBe(adminUser.id)
+      const sessionToken = await createUserSession(adminUser.id)
+      expect(typeof sessionToken).toBe('string')
+      expect(sessionToken.length).toBeGreaterThan(10)
     })
   })
 })

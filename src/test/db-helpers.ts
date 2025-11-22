@@ -3,7 +3,7 @@
  */
 
 import { drizzle } from 'drizzle-orm/better-sqlite3'
-import { SQLiteTable } from 'drizzle-orm/sqlite-core'
+import { migrate } from 'drizzle-orm/better-sqlite3/migrator'
 import Database from 'better-sqlite3'
 import * as schema from '@/db/schema'
 import {
@@ -21,27 +21,164 @@ import {
 export type TestDatabase = ReturnType<typeof drizzle<typeof schema>>
 
 /**
- * Create a test database instance
+ * Create a test database instance with schema
  */
 export function createTestDatabase(): TestDatabase {
   const sqlite = new Database(':memory:')
-  return drizzle(sqlite, { schema })
+
+  // Enable foreign key constraints in SQLite
+  sqlite.pragma('foreign_keys = ON')
+
+  const db = drizzle(sqlite, { schema })
+
+  // Create tables manually since no migrations exist
+  sqlite.exec(`
+    CREATE TABLE IF NOT EXISTS organizations (
+      id TEXT PRIMARY KEY,
+      domain TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      package_tier TEXT DEFAULT 'startup',
+      interview_quota INTEGER DEFAULT 100,
+      interviews_used INTEGER DEFAULT 0,
+      subscription_expires_at TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      email TEXT NOT NULL UNIQUE,
+      organization_id TEXT NOT NULL,
+      is_admin INTEGER DEFAULT 0,
+      last_login_at TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (organization_id) REFERENCES organizations(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS job_templates (
+      id TEXT PRIMARY KEY,
+      organization_id TEXT NOT NULL,
+      title TEXT NOT NULL,
+      description TEXT,
+      interview_duration INTEGER DEFAULT 15,
+      impression_weight INTEGER DEFAULT 20,
+      task_performance_weight INTEGER DEFAULT 25,
+      logical_thinking_weight INTEGER DEFAULT 20,
+      research_ability_weight INTEGER DEFAULT 15,
+      communication_weight INTEGER DEFAULT 20,
+      is_active INTEGER DEFAULT 1,
+      created_at INTEGER,
+      created_by TEXT NOT NULL,
+      FOREIGN KEY (organization_id) REFERENCES organizations(id),
+      FOREIGN KEY (created_by) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS interview_questions (
+      id TEXT PRIMARY KEY,
+      job_template_id TEXT,
+      question_text TEXT NOT NULL,
+      question_text_en TEXT,
+      question_order INTEGER NOT NULL,
+      time_limit INTEGER DEFAULT 120,
+      category TEXT,
+      is_required INTEGER DEFAULT 1,
+      created_at INTEGER,
+      FOREIGN KEY (job_template_id) REFERENCES job_templates(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS interviews (
+      id TEXT PRIMARY KEY,
+      organization_id TEXT NOT NULL,
+      job_template_id TEXT,
+      candidate_email TEXT NOT NULL,
+      candidate_name TEXT NOT NULL,
+      candidate_phone TEXT,
+      status TEXT DEFAULT 'pending',
+      candidate_status TEXT DEFAULT 'screened',
+      interview_link_token TEXT NOT NULL UNIQUE,
+      interview_link_expires_at INTEGER NOT NULL,
+      overall_score INTEGER,
+      recommendation TEXT,
+      ai_scores TEXT,
+      transcript TEXT,
+      processing_started_at INTEGER,
+      processing_completed_at INTEGER,
+      started_at INTEGER,
+      completed_at INTEGER,
+      created_at INTEGER,
+      created_by TEXT NOT NULL,
+      FOREIGN KEY (organization_id) REFERENCES organizations(id),
+      FOREIGN KEY (job_template_id) REFERENCES job_templates(id),
+      FOREIGN KEY (created_by) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS interview_responses (
+      id TEXT PRIMARY KEY,
+      interview_id TEXT NOT NULL,
+      question_id TEXT NOT NULL,
+      question_order INTEGER NOT NULL,
+      video_url TEXT,
+      video_duration REAL,
+      response_transcript TEXT,
+      transcription_confidence REAL,
+      attempt_number INTEGER DEFAULT 1,
+      processing_status TEXT DEFAULT 'pending',
+      ai_scores TEXT,
+      submitted_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      processed_at TEXT,
+      FOREIGN KEY (interview_id) REFERENCES interviews(id),
+      FOREIGN KEY (question_id) REFERENCES interview_questions(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS email_verifications (
+      id TEXT PRIMARY KEY,
+      email TEXT NOT NULL,
+      token TEXT NOT NULL UNIQUE,
+      organization_id TEXT,
+      is_new_organization INTEGER DEFAULT 0,
+      expires_at INTEGER NOT NULL,
+      verified_at INTEGER,
+      created_at INTEGER,
+      FOREIGN KEY (organization_id) REFERENCES organizations(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS user_sessions (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      session_token TEXT NOT NULL UNIQUE,
+      expires_at INTEGER NOT NULL,
+      created_at INTEGER,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS candidate_statuses (
+      interview_id TEXT PRIMARY KEY,
+      status TEXT NOT NULL DEFAULT 'all',
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (interview_id) REFERENCES interviews(id)
+    );
+  `)
+
+  return db
 }
 
 /**
  * Seed database with test organization and admin user
  */
 export async function seedBasicTestData(db: TestDatabase) {
+  // Generate unique suffix for this test run
+  const uniqueId = Math.random().toString(36).substr(2, 8)
+
   // Create test organization
   const orgData = createOrganizationData({
-    domain: 'vietinbank.com.vn',
-    name: 'VietinBank Test'
+    domain: `vietinbank-${uniqueId}.com.vn`,
+    name: `VietinBank Test ${uniqueId}`
   })
   const [organization] = await db.insert(schema.organizations).values(orgData).returning()
 
   // Create admin user
   const adminData = createUserData({
-    email: 'admin@vietinbank.com.vn',
+    email: `admin-${uniqueId}@vietinbank-${uniqueId}.com.vn`,
     organizationId: organization.id,
     isAdmin: true
   })
@@ -49,7 +186,7 @@ export async function seedBasicTestData(db: TestDatabase) {
 
   // Create regular user
   const userData = createUserData({
-    email: 'user@vietinbank.com.vn',
+    email: `user-${uniqueId}@vietinbank-${uniqueId}.com.vn`,
     organizationId: organization.id,
     isAdmin: false
   })
@@ -177,7 +314,7 @@ export async function getTableCount<T extends keyof typeof schema>(
   db: TestDatabase,
   tableName: T
 ) {
-  const table = schema[tableName] as SQLiteTable<any>
+  const table = schema[tableName] as any
   const result = await db.select().from(table)
   return result.length
 }

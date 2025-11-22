@@ -17,8 +17,11 @@ import {
 import { setupCommonMocks } from '@/test/mocks'
 
 // Mock the database
+let mockDb: any
 jest.mock('@/lib/db', () => ({
-  db: undefined // Will be set in tests
+  get db() {
+    return mockDb
+  }
 }))
 
 // Mock file upload and processing services
@@ -42,14 +45,8 @@ describe('POST /api/interview/submit-response', () => {
 
   beforeEach(async () => {
     db = createTestDatabase()
+    mockDb = db
     mocks = setupCommonMocks()
-
-    // Mock the db export
-    const dbModule = await import('@/lib/db')
-    Object.defineProperty(dbModule, 'db', {
-      get: () => db,
-      configurable: true
-    })
   })
 
   afterEach(async () => {

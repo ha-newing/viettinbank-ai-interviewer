@@ -21,10 +21,11 @@ export function createOrganizationData(overrides?: Partial<{
   interviewQuota: number
   interviewsUsed: number
 }>) {
-  return {
+  const uniqueId = nanoid(8)
+  const baseData = {
     id: nanoid(),
-    domain: 'vietinbank.com.vn',
-    name: 'VietinBank Test Organization',
+    domain: `test-${uniqueId}.com`,
+    name: `Test Organization ${uniqueId}`,
     packageTier: 'startup' as PackageTier,
     interviewQuota: 100,
     interviewsUsed: 0,
@@ -33,6 +34,13 @@ export function createOrganizationData(overrides?: Partial<{
     updatedAt: new Date(),
     ...overrides
   }
+
+  // Normalize domain to lowercase for consistency
+  if (baseData.domain) {
+    baseData.domain = baseData.domain.toLowerCase()
+  }
+
+  return baseData
 }
 
 /**
@@ -44,15 +52,23 @@ export function createUserData(overrides?: Partial<{
   organizationId: string
   isAdmin: boolean
 }>) {
-  return {
+  const uniqueId = nanoid(8)
+  const baseData = {
     id: nanoid(),
-    email: 'test.user@vietinbank.com.vn',
+    email: `user-${uniqueId}@test.com`,
     organizationId: nanoid(),
     isAdmin: false,
     lastLoginAt: null,
     createdAt: new Date(),
     ...overrides
   }
+
+  // Normalize email to lowercase for consistency
+  if (baseData.email) {
+    baseData.email = baseData.email.toLowerCase()
+  }
+
+  return baseData
 }
 
 /**

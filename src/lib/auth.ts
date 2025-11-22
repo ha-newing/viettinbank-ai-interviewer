@@ -126,7 +126,26 @@ export async function logout(): Promise<void> {
  * Extract domain from email address
  */
 export function extractDomainFromEmail(email: string): string {
-  return email.split('@')[1].toLowerCase()
+  // Allow domains with or without dots (for localhost, etc.)
+  const emailRegex = /^[^\s@]+@[^\s@]+$/
+  if (!emailRegex.test(email)) {
+    throw new Error('Invalid email format')
+  }
+
+  const parts = email.split('@')
+  if (parts.length !== 2 || parts[1].length === 0) {
+    throw new Error('Invalid email format')
+  }
+
+  const domain = parts[1].toLowerCase()
+
+  // Check for personal email domains
+  const personalDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com']
+  if (personalDomains.includes(domain)) {
+    throw new Error('Personal email domains are not allowed')
+  }
+
+  return domain
 }
 
 /**
@@ -136,7 +155,7 @@ export async function findOrganizationByDomain(domain: string) {
   const result = await db
     .select()
     .from(organizations)
-    .where(eq(organizations.domain, domain))
+    .where(eq(organizations.domain, domain.toLowerCase()))
     .limit(1)
 
   return result[0] || null
@@ -226,10 +245,10 @@ export async function createOrganization({
   const organization = await db
     .insert(organizations)
     .values({
-      domain,
+      domain: domain.toLowerCase(),
       name,
       packageTier,
-      interviewQuota: packageTier === 'startup' ? 100 : packageTier === 'growth' ? 500 : 2000,
+      interviewQuota: packageTier === 'startup' ? 100 : packageTier === 'growth' ? 500 : 999999,
     })
     .returning()
 
@@ -251,7 +270,7 @@ export async function createUser({
   const user = await db
     .insert(users)
     .values({
-      email,
+      email: email.toLowerCase(),
       organizationId,
       isAdmin,
     })
@@ -267,7 +286,7 @@ export async function findUserByEmail(email: string) {
   const result = await db
     .select()
     .from(users)
-    .where(eq(users.email, email))
+    .where(eq(users.email, email.toLowerCase()))
     .limit(1)
 
   return result[0] || null

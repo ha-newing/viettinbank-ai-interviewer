@@ -1,6 +1,6 @@
 /** @type {import('jest').Config} */
 const config = {
-  preset: 'ts-jest/presets/default-esm',
+  preset: 'ts-jest',
   testEnvironment: 'node',
   setupFilesAfterEnv: ['<rootDir>/src/test/setup.ts'],
   testMatch: [
@@ -23,14 +23,14 @@ const config = {
   ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
-    '^nanoid$': '<rootDir>/src/test/__mocks__/nanoid.ts'
+    '^nanoid$': '<rootDir>/src/test/__mocks__/nanoid.ts',
+    '^nanoid/(.*)$': '<rootDir>/src/test/__mocks__/nanoid.ts'
   },
   transform: {
     '^.+\\.(ts|tsx)$': ['ts-jest', {
-      useESM: true,
       tsconfig: {
         target: 'ES2020',
-        module: 'ESNext',
+        module: 'CommonJS',
         moduleResolution: 'node',
         esModuleInterop: true,
         allowSyntheticDefaultImports: true,
@@ -41,10 +41,9 @@ const config = {
     }],
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(nanoid|@napi-rs/simple-git)/)'
+    'node_modules/(?!(nanoid)/)'
   ],
-  testTimeout: 30000,
-  extensionsToTreatAsEsm: ['.ts', '.tsx']
+  testTimeout: 30000
 };
 
 module.exports = config;
