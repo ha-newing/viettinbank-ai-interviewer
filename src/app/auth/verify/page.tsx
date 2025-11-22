@@ -39,11 +39,7 @@ export default async function VerifyPage({ searchParams }: VerifyPageProps) {
     )
   }
 
-  return <VerificationHandler token={token} />
-}
-
-async function VerificationHandler({ token }: { token: string }) {
-  // Create a form data object with the token
+  // Process verification
   const formData = new FormData()
   formData.append('token', token)
 
@@ -58,35 +54,35 @@ async function VerificationHandler({ token }: { token: string }) {
         // Existing organization - redirect to dashboard
         redirect('/dashboard')
       }
-    } else {
-      // Error - show error message
-      return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-          <div className="sm:mx-auto sm:w-full sm:max-w-md">
-            <div className="bg-white py-8 px-4 shadow-xl sm:rounded-lg sm:px-10 border border-gray-200">
-              <div className="text-center">
-                <XCircle className="mx-auto h-12 w-12 text-red-500" />
-                <h2 className="mt-4 text-xl font-semibold text-gray-900">
-                  Xác thực thất bại
-                </h2>
-                <div className="mt-4">
-                  <Alert className="border-red-200 bg-red-50">
-                    <AlertDescription className="text-red-800">
-                      {result.error}
-                    </AlertDescription>
-                  </Alert>
-                </div>
-                <div className="mt-6 space-y-3">
-                  <Button asChild className="w-full">
-                    <a href="/auth/login">Thử lại</a>
-                  </Button>
-                </div>
+    }
+
+    // If we get here, there was an error - show error message
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="bg-white py-8 px-4 shadow-xl sm:rounded-lg sm:px-10 border border-gray-200">
+            <div className="text-center">
+              <XCircle className="mx-auto h-12 w-12 text-red-500" />
+              <h2 className="mt-4 text-xl font-semibold text-gray-900">
+                Xác thực thất bại
+              </h2>
+              <div className="mt-4">
+                <Alert className="border-red-200 bg-red-50">
+                  <AlertDescription className="text-red-800">
+                    {result.error || 'Có lỗi xảy ra trong quá trình xác thực'}
+                  </AlertDescription>
+                </Alert>
+              </div>
+              <div className="mt-6 space-y-3">
+                <Button asChild className="w-full">
+                  <a href="/auth/login">Thử lại</a>
+                </Button>
               </div>
             </div>
           </div>
         </div>
-      )
-    }
+      </div>
+    )
   } catch (error) {
     // Handle redirect or other errors
     console.error('Verification error:', error)
