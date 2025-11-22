@@ -5,6 +5,7 @@
 import { drizzle } from 'drizzle-orm/better-sqlite3'
 import Database from 'better-sqlite3'
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator'
+import { eq } from 'drizzle-orm'
 import * as schema from './schema'
 import {
   createTestDatabase,
@@ -140,7 +141,7 @@ describe('Database Schema', () => {
       expect(usersBefore.length).toBeGreaterThan(0)
 
       // Delete organization
-      await db.delete(schema.organizations).where(schema.organizations.id === organization.id)
+      await db.delete(schema.organizations).where(eq(schema.organizations.id, organization.id))
 
       // Verify users are deleted
       const usersAfter = await db.query.users.findMany()
@@ -369,7 +370,7 @@ describe('Database Schema', () => {
       expect(questionsBefore.length).toBe(1)
 
       // Delete job template
-      await db.delete(schema.jobTemplates).where(schema.jobTemplates.id === jobTemplate.id)
+      await db.delete(schema.jobTemplates).where(eq(schema.jobTemplates.id, jobTemplate.id))
 
       // Verify questions are deleted
       const questionsAfter = await db.query.interviewQuestions.findMany()
@@ -455,7 +456,7 @@ describe('Database Schema', () => {
       expect(responsesBefore.length).toBe(1)
 
       // Delete interview
-      await db.delete(schema.interviews).where(schema.interviews.id === interview.id)
+      await db.delete(schema.interviews).where(eq(schema.interviews.id, interview.id))
 
       // Verify responses are deleted
       const responsesAfter = await db.query.interviewResponses.findMany()
@@ -560,7 +561,7 @@ describe('Database Schema', () => {
       expect(sessionsBefore.length).toBe(1)
 
       // Delete user
-      await db.delete(schema.users).where(schema.users.id === adminUser.id)
+      await db.delete(schema.users).where(eq(schema.users.id, adminUser.id))
 
       // Verify sessions are deleted
       const sessionsAfter = await db.query.userSessions.findMany()

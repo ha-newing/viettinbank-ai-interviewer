@@ -52,7 +52,7 @@ export function createTestDatabase(): TestDatabase {
       is_admin INTEGER DEFAULT 0,
       last_login_at TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (organization_id) REFERENCES organizations(id)
+      FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
     );
 
     CREATE TABLE IF NOT EXISTS job_templates (
@@ -83,7 +83,7 @@ export function createTestDatabase(): TestDatabase {
       category TEXT,
       is_required INTEGER DEFAULT 1,
       created_at INTEGER,
-      FOREIGN KEY (job_template_id) REFERENCES job_templates(id)
+      FOREIGN KEY (job_template_id) REFERENCES job_templates(id) ON DELETE CASCADE
     );
 
     CREATE TABLE IF NOT EXISTS interviews (
@@ -125,7 +125,7 @@ export function createTestDatabase(): TestDatabase {
       recording_started_at INTEGER,
       recording_ended_at INTEGER,
       created_at INTEGER,
-      FOREIGN KEY (interview_id) REFERENCES interviews(id),
+      FOREIGN KEY (interview_id) REFERENCES interviews(id) ON DELETE CASCADE,
       FOREIGN KEY (question_id) REFERENCES interview_questions(id)
     );
 
@@ -147,7 +147,7 @@ export function createTestDatabase(): TestDatabase {
       session_token TEXT NOT NULL UNIQUE,
       expires_at INTEGER NOT NULL,
       created_at INTEGER,
-      FOREIGN KEY (user_id) REFERENCES users(id)
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
 
     CREATE TABLE IF NOT EXISTS candidate_statuses (

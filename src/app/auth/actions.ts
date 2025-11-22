@@ -147,17 +147,16 @@ export async function verifyEmail(formData: FormData): Promise<AuthResult> {
       }
     }
 
-    // Mark verification as completed
-    await markEmailVerified(verification.id)
-
     if (verification.isNewOrganization) {
-      // New organization signup - return redirect instruction
+      // New organization signup - DON'T mark as verified yet, wait until org is created
       return {
         success: true,
         redirect: `/auth/create-organization?token=${token}&email=${encodeURIComponent(verification.email)}`,
         message: 'Chuyển hướng đến trang tạo tổ chức...'
       }
     } else {
+      // Mark verification as completed for existing organization login
+      await markEmailVerified(verification.id)
       // Existing organization login
       if (!verification.organizationId) {
         return {
@@ -248,6 +247,9 @@ export async function createNewOrganization(formData: FormData): Promise<AuthRes
       organizationId: organization.id,
       isAdmin: true, // First user becomes admin
     })
+
+    // Mark verification as completed now that organization is created
+    await markEmailVerified(verification.id)
 
     // Create session
     await createUserSession(user.id)
