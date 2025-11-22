@@ -16,8 +16,11 @@ import {
 import { setupCommonMocks } from '@/test/mocks'
 
 // Mock the database and email services
+let mockDb: any
 jest.mock('@/lib/db', () => ({
-  db: undefined // Will be set in tests
+  get db() {
+    return mockDb
+  }
 }))
 
 jest.mock('@/lib/email', () => ({
@@ -30,14 +33,8 @@ describe('Authentication Server Actions - Integration Tests', () => {
 
   beforeEach(async () => {
     db = createTestDatabase()
+    mockDb = db
     mocks = setupCommonMocks()
-
-    // Mock the db export
-    const dbModule = await import('@/lib/db')
-    Object.defineProperty(dbModule, 'db', {
-      get: () => db,
-      configurable: true
-    })
   })
 
   afterEach(async () => {
