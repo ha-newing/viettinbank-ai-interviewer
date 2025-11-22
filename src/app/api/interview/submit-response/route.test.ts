@@ -16,6 +16,10 @@ import {
 } from '@/test/factories'
 import { setupCommonMocks } from '@/test/mocks'
 
+// Import the mocked function for test control
+import { processVideoResponse } from '@/lib/interview-processor'
+const mockProcessVideoResponse = processVideoResponse as jest.MockedFunction<typeof processVideoResponse>
+
 // Mock the database
 let mockDb: any
 jest.mock('@/lib/db', () => ({
@@ -36,6 +40,16 @@ jest.mock('@/lib/soniox', () => ({
   transcribeAudio: jest.fn().mockResolvedValue({
     transcript: 'Xin chào, tôi tên là Nguyễn Văn A.',
     confidence: 0.95
+  })
+}))
+
+jest.mock('@/lib/interview-processor', () => ({
+  processVideoResponse: jest.fn().mockResolvedValue({
+    success: true,
+    responseId: 'test-response-id',
+    transcript: 'Xin chào, tôi tên là Nguyễn Văn A.',
+    confidence: 0.95,
+    duration: 45
   })
 }))
 
@@ -104,23 +118,16 @@ describe('POST /api/interview/submit-response', () => {
       expect(response.status).toBe(200)
       expect(result).toMatchObject({
         success: true,
-        message: 'Phản hồi đã được gửi thành công'
+        message: 'Video đã được gửi và đang được xử lý'
       })
-      expect(result.responseId).toBeDefined()
+      expect(result.data.responseId).toBeDefined()
 
-      // Verify response was stored in database
-      const responses = await db.query.interviewResponses.findMany({
-        where: (r, { eq }) => eq(r.interviewId, interview.id)
-      })
-
-      expect(responses).toHaveLength(1)
-      expect(responses[0]).toMatchObject({
+      // Verify processVideoResponse was called with correct parameters
+      expect(mockProcessVideoResponse).toHaveBeenCalledWith({
         interviewId: interview.id,
         questionId: question.id,
-        questionOrder: 1,
-        attemptNumber: 1,
-        responseVideoUrl: 'https://example.com/video/test.mp4',
-        responseTranscript: 'Xin chào, tôi tên là Nguyễn Văn A.'
+        videoBlob: expect.any(Blob),
+        questionOrder: 1
       })
     })
 
@@ -287,6 +294,7 @@ describe('POST /api/interview/submit-response', () => {
 
       const interviewData = createInterviewData({
         organizationId: organization.id,
+        jobTemplateId: null, // No job template needed for this test
         createdBy: adminUser.id,
         status: 'in_progress'
       })
@@ -347,6 +355,7 @@ describe('POST /api/interview/submit-response', () => {
 
       const interviewData = createInterviewData({
         organizationId: organization.id,
+        jobTemplateId: null, // No job template needed for this test
         createdBy: adminUser.id,
         status: 'completed' // Interview is already completed
       })
@@ -387,6 +396,7 @@ describe('POST /api/interview/submit-response', () => {
 
       const interviewData = createInterviewData({
         organizationId: organization.id,
+        jobTemplateId: null, // No job template needed for this test
         createdBy: adminUser.id,
         status: 'expired',
         interviewLinkExpiresAt: expiredDate
@@ -425,6 +435,7 @@ describe('POST /api/interview/submit-response', () => {
 
       const interviewData = createInterviewData({
         organizationId: organization.id,
+        jobTemplateId: null, // No job template needed for this test
         createdBy: adminUser.id,
         status: 'in_progress'
       })
@@ -522,6 +533,7 @@ describe('POST /api/interview/submit-response', () => {
 
       const interviewData = createInterviewData({
         organizationId: organization.id,
+        jobTemplateId: null, // No job template needed for this test
         createdBy: adminUser.id,
         status: 'in_progress'
       })
@@ -561,6 +573,7 @@ describe('POST /api/interview/submit-response', () => {
 
       const interviewData = createInterviewData({
         organizationId: organization.id,
+        jobTemplateId: null, // No job template needed for this test
         createdBy: adminUser.id,
         status: 'in_progress'
       })
