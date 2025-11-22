@@ -39,7 +39,6 @@ next-env.d.ts
 *.db
 *.sqlite
 /src/db/sqlite.db
-/src/db/migrations/*.sql
 
 # IDE
 .vscode/
