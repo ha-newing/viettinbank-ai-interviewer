@@ -25,12 +25,15 @@ import { notFound } from 'next/navigation'
 export const dynamic = 'force-dynamic'
 
 interface TemplateViewPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default async function TemplateViewPage({ params }: TemplateViewPageProps) {
+  // Resolve params first
+  const resolvedParams = await params
+
   // Require authentication
   const user = await requireAuth()
 
@@ -40,7 +43,7 @@ export default async function TemplateViewPage({ params }: TemplateViewPageProps
     .from(jobTemplates)
     .where(
       and(
-        eq(jobTemplates.id, params.id),
+        eq(jobTemplates.id, resolvedParams.id),
         eq(jobTemplates.organizationId, user.organizationId)
       )
     )
@@ -57,14 +60,14 @@ export default async function TemplateViewPage({ params }: TemplateViewPageProps
     db
       .select({ count: count() })
       .from(interviews)
-      .where(eq(interviews.jobTemplateId, params.id)),
+      .where(eq(interviews.jobTemplateId, resolvedParams.id)),
 
     db
       .select({ count: count() })
       .from(interviews)
       .where(
         and(
-          eq(interviews.jobTemplateId, params.id),
+          eq(interviews.jobTemplateId, resolvedParams.id),
           eq(interviews.status, 'pending')
         )
       ),
@@ -74,7 +77,7 @@ export default async function TemplateViewPage({ params }: TemplateViewPageProps
       .from(interviews)
       .where(
         and(
-          eq(interviews.jobTemplateId, params.id),
+          eq(interviews.jobTemplateId, resolvedParams.id),
           eq(interviews.status, 'completed')
         )
       ),
@@ -195,7 +198,7 @@ export default async function TemplateViewPage({ params }: TemplateViewPageProps
                     <div className="flex items-center mt-1">
                       <Activity className="h-4 w-4 text-gray-400 mr-1" />
                       <p className="text-sm text-gray-900">
-                        {new Date(templateData.updatedAt).toLocaleDateString('vi-VN')}
+                        {new Date(templateData.createdAt).toLocaleDateString('vi-VN')}
                       </p>
                     </div>
                   </div>

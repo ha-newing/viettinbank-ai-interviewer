@@ -9,12 +9,15 @@ import { notFound } from 'next/navigation'
 export const dynamic = 'force-dynamic'
 
 interface EditTemplatePageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default async function EditTemplatePage({ params }: EditTemplatePageProps) {
+  // Resolve params first
+  const resolvedParams = await params
+
   // Require authentication
   const user = await requireAuth()
 
@@ -24,7 +27,7 @@ export default async function EditTemplatePage({ params }: EditTemplatePageProps
     .from(jobTemplates)
     .where(
       and(
-        eq(jobTemplates.id, params.id),
+        eq(jobTemplates.id, resolvedParams.id),
         eq(jobTemplates.organizationId, user.organizationId)
       )
     )

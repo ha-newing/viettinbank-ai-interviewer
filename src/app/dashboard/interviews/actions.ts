@@ -490,6 +490,13 @@ export async function resendInterviewEmail(formData: FormData): Promise<Intervie
     }
 
     // Get job template information
+    if (!interviewData.jobTemplateId) {
+      return {
+        success: false,
+        error: 'Phỏng vấn không có job template được liên kết'
+      }
+    }
+
     const jobTemplate = await db
       .select()
       .from(jobTemplates)

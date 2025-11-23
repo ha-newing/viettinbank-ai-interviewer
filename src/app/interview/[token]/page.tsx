@@ -93,7 +93,6 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
       interview={{
         ...interview,
         interviewLinkExpiresAt: expiresAt,
-        completedAt: completedAt
       }}
       jobTemplate={jobTemplate}
       organization={organization}
