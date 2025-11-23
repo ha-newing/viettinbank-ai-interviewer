@@ -213,11 +213,24 @@ export async function verifyEmailToken(token: string) {
     .limit(1)
 
   const verification = result[0]
-  if (!verification || verification.expiresAt < new Date() || verification.verifiedAt) {
+  if (!verification) {
     return null
   }
 
-  return verification
+  // Convert database timestamps to Date objects for comparison
+  const expiresAt = new Date(verification.expiresAt)
+  const verifiedAt = verification.verifiedAt ? new Date(verification.verifiedAt) : null
+
+  // Check if expired or already verified
+  if (expiresAt < new Date() || verifiedAt) {
+    return null
+  }
+
+  return {
+    ...verification,
+    expiresAt,
+    verifiedAt
+  }
 }
 
 /**
