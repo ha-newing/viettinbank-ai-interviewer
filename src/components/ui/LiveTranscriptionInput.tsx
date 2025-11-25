@@ -135,14 +135,19 @@ export default function LiveTranscriptionInput({
   // Get Soniox configuration for single-question transcription
   const getSonioxConfig = async () => {
     try {
-      // We'll create a temporary session for individual question transcription
-      // Since this is for single questions, we don't need the full assessment session
-      const response = await fetch('/api/case-study/soniox-auth', {
+      // Use the dedicated interview transcription endpoint
+      // Detect context type based on sessionId
+      const contextType = sessionId?.includes('hipo') ? 'hipo' : 'tbei'
+
+      const response = await fetch('/api/interview/start-transcription', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          sessionId: sessionId || 'temp-session',
-          questionId
+          questionId,
+          context: {
+            type: contextType,
+            questionText
+          }
         })
       })
 

@@ -204,7 +204,7 @@ export default function CreateAssessmentSessionForm({ user, jobTemplates }: Crea
                   <SelectValue placeholder="Assessment Center (không cần template)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Assessment Center (sử dụng khung năng lực chuẩn)</SelectItem>
+                  <SelectItem value="default">Assessment Center (sử dụng khung năng lực chuẩn)</SelectItem>
                   {jobTemplates.map((template) => (
                     <SelectItem key={template.id} value={template.id}>
                       {template.title}
