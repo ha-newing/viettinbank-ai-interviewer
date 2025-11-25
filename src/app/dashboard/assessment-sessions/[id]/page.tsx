@@ -28,10 +28,12 @@ import {
   FileText,
   MessageSquare,
   BarChart3,
-  Mail
+  Mail,
+  Key
 } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { generateInterviewTokens, sendInterviewInvitations } from './actions'
 
 export const dynamic = 'force-dynamic'
 
@@ -287,10 +289,42 @@ export default async function AssessmentSessionViewPage({ params }: AssessmentSe
             {/* Participants List */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Users className="h-5 w-5 mr-2" />
-                  Danh sách thí sinh ({participants.length})
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center">
+                    <Users className="h-5 w-5 mr-2" />
+                    Danh sách thí sinh ({participants.length})
+                  </CardTitle>
+
+                  {/* Interview Management Actions */}
+                  {session.status === 'case_study_completed' && (
+                    <div className="flex items-center space-x-2">
+                      <form action={generateInterviewTokens.bind(null, session.id)}>
+                        <Button
+                          type="submit"
+                          size="sm"
+                          variant="outline"
+                          disabled={participants.every(p => p.interviewToken)}
+                        >
+                          <Key className="h-4 w-4 mr-1" />
+                          {participants.some(p => !p.interviewToken) ? 'Tạo link phỏng vấn' : 'Đã tạo link'}
+                        </Button>
+                      </form>
+
+                      {participants.every(p => p.interviewToken) && (
+                        <form action={sendInterviewInvitations.bind(null, session.id)}>
+                          <Button
+                            type="submit"
+                            size="sm"
+                            variant="default"
+                          >
+                            <Mail className="h-4 w-4 mr-1" />
+                            Gửi email mời
+                          </Button>
+                        </form>
+                      )}
+                    </div>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -311,6 +345,18 @@ export default async function AssessmentSessionViewPage({ params }: AssessmentSe
                             <Mail className="h-4 w-4 mr-1" />
                             {participant.email}
                           </p>
+                          {participant.interviewToken && (
+                            <div className="text-xs text-blue-600 mt-1">
+                              <Link
+                                href={`/interview/${participant.interviewToken}`}
+                                className="flex items-center hover:underline"
+                                target="_blank"
+                              >
+                                <Key className="h-3 w-3 mr-1" />
+                                Link phỏng vấn
+                              </Link>
+                            </div>
+                          )}
                           <div className="flex space-x-2 mt-1">
                             <Badge
                               variant="outline"
