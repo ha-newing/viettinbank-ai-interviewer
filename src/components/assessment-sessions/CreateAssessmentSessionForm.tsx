@@ -193,7 +193,7 @@ export default function CreateAssessmentSessionForm({ user, jobTemplates }: Crea
 
             <div>
               <Label htmlFor="jobTemplateId" className="text-sm font-medium">
-                Mẫu công việc <span className="text-red-500">*</span>
+                Mẫu công việc <span className="text-gray-500">(tùy chọn)</span>
               </Label>
               <Select
                 name="jobTemplateId"
@@ -201,9 +201,10 @@ export default function CreateAssessmentSessionForm({ user, jobTemplates }: Crea
                 onValueChange={(value) => setFormData({ ...formData, jobTemplateId: value })}
               >
                 <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Chọn mẫu công việc" />
+                  <SelectValue placeholder="Assessment Center (không cần template)" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="">Assessment Center (sử dụng khung năng lực chuẩn)</SelectItem>
                   {jobTemplates.map((template) => (
                     <SelectItem key={template.id} value={template.id}>
                       {template.title}

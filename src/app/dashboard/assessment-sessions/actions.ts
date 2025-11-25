@@ -16,7 +16,7 @@ import { eq, and, count } from 'drizzle-orm'
 // Validation schemas
 const createAssessmentSessionSchema = z.object({
   name: z.string().min(2, 'Tên phiên đánh giá không được dưới 2 ký tự').max(100, 'Tên phiên đánh giá không được vượt quá 100 ký tự'),
-  jobTemplateId: z.string().min(1, 'Vui lòng chọn mẫu công việc'),
+  jobTemplateId: z.string().optional(),
   participants: z.array(
     z.object({
       name: z.string().min(2, 'Tên thí sinh không được dưới 2 ký tự'),
@@ -96,23 +96,27 @@ export async function createAssessmentSession(formData: FormData): Promise<Asses
 
     const data = result.data
 
-    // Check if job template exists and belongs to organization
-    const jobTemplate = await db
-      .select()
-      .from(jobTemplates)
-      .where(
-        and(
-          eq(jobTemplates.id, data.jobTemplateId),
-          eq(jobTemplates.organizationId, user.organizationId)
+    // Check if job template exists and belongs to organization (if provided)
+    let jobTemplate = null
+    if (data.jobTemplateId) {
+      const jobTemplateResult = await db
+        .select()
+        .from(jobTemplates)
+        .where(
+          and(
+            eq(jobTemplates.id, data.jobTemplateId),
+            eq(jobTemplates.organizationId, user.organizationId)
+          )
         )
-      )
-      .limit(1)
+        .limit(1)
 
-    if (!jobTemplate[0]) {
-      return {
-        success: false,
-        error: 'Mẫu công việc không tồn tại hoặc bạn không có quyền truy cập'
+      if (!jobTemplateResult[0]) {
+        return {
+          success: false,
+          error: 'Mẫu công việc không tồn tại hoặc bạn không có quyền truy cập'
+        }
       }
+      jobTemplate = jobTemplateResult[0]
     }
 
     // Create session and participants in a transaction
@@ -123,7 +127,7 @@ export async function createAssessmentSession(formData: FormData): Promise<Asses
         .values({
           organizationId: user.organizationId,
           name: data.name,
-          jobTemplateId: data.jobTemplateId,
+          jobTemplateId: data.jobTemplateId || null,
           status: 'created'
         })
         .returning()
