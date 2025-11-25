@@ -91,6 +91,19 @@ const QUIZ_QUESTIONS = [
     correctAnswer: 'B',
     explanation: 'Hạn mức cho vay tối đa đối với 1 khách hàng là 15% vốn điều lệ theo quy định của NHNN.'
   },
+  {
+    id: 'BR_003',
+    category: 'banking_regulations',
+    question: 'Theo quy định của NHNN, tỷ lệ dự trữ bắt buộc hiện tại của VND đối với các TCTD là bao nhiêu?',
+    options: [
+      { id: 'A', text: '3%' },
+      { id: 'B', text: '4%' },
+      { id: 'C', text: '5%' },
+      { id: 'D', text: '6%' }
+    ],
+    correctAnswer: 'A',
+    explanation: 'Tỷ lệ dự trữ bắt buộc hiện tại đối với tiền gửi VND là 3% theo quy định của NHNN.'
+  },
 
   // Products & Services
   {
@@ -118,6 +131,19 @@ const QUIZ_QUESTIONS = [
     ],
     correctAnswer: 'C',
     explanation: 'VietinBank cho vay thế chấp bất động sản tối đa 85% giá trị tài sản đảm bảo.'
+  },
+  {
+    id: 'PS_003',
+    category: 'products_services',
+    question: 'Thẻ tín dụng VietinBank có thể rút tiền mặt tối đa bao nhiêu % hạn mức tín dụng?',
+    options: [
+      { id: 'A', text: '30%' },
+      { id: 'B', text: '40%' },
+      { id: 'C', text: '50%' },
+      { id: 'D', text: '60%' }
+    ],
+    correctAnswer: 'C',
+    explanation: 'Thẻ tín dụng VietinBank cho phép rút tiền mặt tối đa 50% hạn mức tín dụng được phê duyệt.'
   },
 
   // Risk Management
@@ -147,6 +173,19 @@ const QUIZ_QUESTIONS = [
     correctAnswer: 'A',
     explanation: 'KYC là viết tắt của "Know Your Customer" - tìm hiểu khách hàng của bạn.'
   },
+  {
+    id: 'RM_003',
+    category: 'risk_management',
+    question: 'Theo Basel II, rủi ro tín dụng được đo lường bằng chỉ số nào?',
+    options: [
+      { id: 'A', text: 'PD (Probability of Default)' },
+      { id: 'B', text: 'LGD (Loss Given Default)' },
+      { id: 'C', text: 'EAD (Exposure at Default)' },
+      { id: 'D', text: 'Tất cả các chỉ số trên' }
+    ],
+    correctAnswer: 'D',
+    explanation: 'Basel II sử dụng cả 3 thành phần PD, LGD và EAD để đo lường rủi ro tín dụng một cách toàn diện.'
+  },
 
   // Customer Service
   {
@@ -175,6 +214,19 @@ const QUIZ_QUESTIONS = [
     correctAnswer: 'D',
     explanation: '5S gồm: Seiri (sắp xếp), Seiton (sờn), Seiso (sạch sẽ), Seiketsu (săn sóc), Shitsuke (siết chặt).'
   },
+  {
+    id: 'CS_003',
+    category: 'customer_service',
+    question: 'Chuẩn dịch vụ "HEART" của VietinBank, chữ "H" đại diện cho yếu tố nào?',
+    options: [
+      { id: 'A', text: 'Hospitality (Hiếu khách)' },
+      { id: 'B', text: 'Honesty (Trung thực)' },
+      { id: 'C', text: 'Helpful (Hữu ích)' },
+      { id: 'D', text: 'Harmony (Hài hòa)' }
+    ],
+    correctAnswer: 'A',
+    explanation: 'Trong chuẩn dịch vụ HEART, "H" đại diện cho Hospitality - tinh thần hiếu khách trong phục vụ.'
+  },
 
   // Digital Banking
   {
@@ -202,6 +254,45 @@ const QUIZ_QUESTIONS = [
     ],
     correctAnswer: 'C',
     explanation: 'Blockchain mang lại tính bảo mật cao và minh bạch trong các giao dịch.'
+  },
+  {
+    id: 'DB_003',
+    category: 'digital_banking',
+    question: 'Open Banking cho phép khách hàng làm gì?',
+    options: [
+      { id: 'A', text: 'Mở tài khoản tại nhiều ngân hàng cùng lúc' },
+      { id: 'B', text: 'Chia sẻ dữ liệu tài chính với bên thứ ba' },
+      { id: 'C', text: 'Giao dịch không cần xác thực' },
+      { id: 'D', text: 'Vay vốn với lãi suất 0%' }
+    ],
+    correctAnswer: 'B',
+    explanation: 'Open Banking cho phép khách hàng chia sẻ dữ liệu tài chính của mình với các bên thứ ba được ủy quyền để nhận dịch vụ tốt hơn.'
+  },
+  {
+    id: 'DB_004',
+    category: 'digital_banking',
+    question: 'Fintech là viết tắt của cụm từ nào?',
+    options: [
+      { id: 'A', text: 'Finance Technology' },
+      { id: 'B', text: 'Financial Technique' },
+      { id: 'C', text: 'Finished Technology' },
+      { id: 'D', text: 'Final Tech' }
+    ],
+    correctAnswer: 'A',
+    explanation: 'Fintech là viết tắt của Financial Technology - công nghệ tài chính.'
+  },
+  {
+    id: 'DB_005',
+    category: 'digital_banking',
+    question: 'QR Pay là phương thức thanh toán dựa trên công nghệ nào?',
+    options: [
+      { id: 'A', text: 'NFC (Near Field Communication)' },
+      { id: 'B', text: 'QR Code (Quick Response Code)' },
+      { id: 'C', text: 'RFID (Radio Frequency ID)' },
+      { id: 'D', text: 'Bluetooth' }
+    ],
+    correctAnswer: 'B',
+    explanation: 'QR Pay sử dụng công nghệ QR Code để thực hiện thanh toán nhanh chóng và tiện lợi.'
   }
 ]
 

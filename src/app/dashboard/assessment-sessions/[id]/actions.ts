@@ -6,6 +6,7 @@ import { db } from '@/lib/db'
 import { assessmentParticipants, assessmentSessions } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { requireAuth } from '@/lib/auth'
+import { sendAssessmentInvitationEmail } from '@/lib/email'
 import { nanoid } from 'nanoid'
 
 /**
@@ -102,15 +103,38 @@ export async function sendInterviewInvitations(sessionId: string) {
       throw new Error('No participants with interview tokens found. Generate tokens first.')
     }
 
-    // TODO: Integrate with email service
-    // For now, we'll just mark as email sent
-    const emailPromises = participantsWithTokens.map(participant =>
-      db.update(assessmentParticipants)
-        .set({
-          emailSentAt: new Date()
+    // Send email invitations to all participants
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+
+    const emailPromises = participantsWithTokens.map(async (participant) => {
+      try {
+        const interviewUrl = `${baseUrl}/interview/${participant.interviewToken}`
+
+        const emailSent = await sendAssessmentInvitationEmail({
+          participantName: participant.name,
+          participantEmail: participant.email,
+          sessionName: session[0].name,
+          interviewUrl,
+          organizationName: user.organizationName,
+          participantRole: participant.roleName,
         })
-        .where(eq(assessmentParticipants.id, participant.id))
-    )
+
+        if (emailSent) {
+          // Mark email as sent in database
+          await db.update(assessmentParticipants)
+            .set({
+              emailSentAt: new Date()
+            })
+            .where(eq(assessmentParticipants.id, participant.id))
+
+          console.log(`📧 Assessment invitation sent to ${participant.email}`)
+        } else {
+          console.error(`❌ Failed to send email to ${participant.email}`)
+        }
+      } catch (error) {
+        console.error(`❌ Error sending email to ${participant.email}:`, error)
+      }
+    })
 
     await Promise.all(emailPromises)
 
