@@ -3,10 +3,20 @@ import yaml from 'js-yaml'
 import { readFileSync } from 'fs'
 import path from 'path'
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-})
+// Singleton OpenAI client with lazy initialization
+let openaiClient: OpenAI | null = null
+
+function getOpenAIClient(): OpenAI {
+  if (!openaiClient) {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error('OPENAI_API_KEY environment variable is required')
+    }
+    openaiClient = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY
+    })
+  }
+  return openaiClient
+}
 
 // Load evaluation framework
 const frameworkPath = path.join(process.cwd(), 'src/config/evaluation-framework-vietinbank.yaml')
@@ -85,7 +95,7 @@ export async function evaluateTranscriptChunk(
     const prompt = buildEvaluationPrompt(request, competency)
 
     // Call OpenAI for evaluation
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAIClient().chat.completions.create({
       model: 'gpt-4',
       messages: [
         {

@@ -3,9 +3,20 @@ import { db } from '@/lib/db'
 import { tbeiResponses, assessmentParticipants } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-})
+// Singleton OpenAI client with lazy initialization
+let openaiClient: OpenAI | null = null
+
+function getOpenAIClient(): OpenAI {
+  if (!openaiClient) {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error('OPENAI_API_KEY environment variable is required')
+    }
+    openaiClient = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY
+    })
+  }
+  return openaiClient
+}
 
 // TBEI Competency frameworks from specs
 const COMPETENCY_FRAMEWORKS = {
@@ -150,7 +161,7 @@ Focus on:
 - Leadership and decision-making capabilities
 `
 
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAIClient().chat.completions.create({
       model: 'gpt-4',
       messages: [
         {
