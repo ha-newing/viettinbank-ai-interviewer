@@ -127,7 +127,7 @@ export async function getParticipantProgressData(sessionId: string): Promise<Par
           hipoProgress = {
             sectionsCompleted: participant.hipoStatus === 'completed' ? totalSections : sectionsCompleted,
             totalSections,
-            score: hipoData[0].totalScore,
+            score: hipoData[0].totalScore ?? undefined,
             lastActivity: hipoData[0].completedAt?.toISOString() || hipoData[0].createdAt?.toISOString()
           }
         } else if (participant.hipoStatus === 'in_progress') {
@@ -163,9 +163,9 @@ export async function getParticipantProgressData(sessionId: string): Promise<Par
           quizProgress = {
             questionsAnswered: participant.quizStatus === 'completed' ? totalQuestions : questionsAnswered,
             totalQuestions,
-            score: quizData[0].score,
+            score: quizData[0].score ?? undefined,
             timeRemaining: participant.quizStatus === 'in_progress' ? timeRemaining : undefined,
-            lastActivity: quizData[0].completedAt?.toISOString() || quizData[0].createdAt?.toISOString()
+            lastActivity: quizData[0].completedAt?.toISOString()
           }
         } else if (participant.quizStatus === 'in_progress') {
           // In progress but no data yet

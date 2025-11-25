@@ -38,6 +38,11 @@ export default async function TbeiPage({ params }: TbeiPageProps) {
 
   const { participant, session, jobTemplate, organization } = tbeiResult[0]
 
+  // Validate that session exists (required for TBEI)
+  if (!session) {
+    notFound()
+  }
+
   // Check if all assessments are completed
   const allCompleted =
     participant.tbeiStatus === 'completed' &&

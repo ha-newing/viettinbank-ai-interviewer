@@ -561,13 +561,13 @@ export default function HipoAssessment({
                   <div className="font-medium text-blue-900">Tổng điểm</div>
                   <div className="text-sm text-blue-700">
                     {Object.values(likertResponses).reduce((total, section) =>
-                      total + Object.values(section).reduce((sum, score) => sum + score, 0), 0
+                      total + Object.values(section).reduce((sum: number, score) => sum + (score as number), 0), 0
                     )}/100 điểm
                   </div>
                 </div>
                 <div className="text-2xl font-bold text-blue-600">
                   {Math.round((Object.values(likertResponses).reduce((total, section) =>
-                    total + Object.values(section).reduce((sum, score) => sum + score, 0), 0
+                    total + Object.values(section).reduce((sum: number, score) => sum + (score as number), 0), 0
                   ) / 100) * 100)}%
                 </div>
               </div>

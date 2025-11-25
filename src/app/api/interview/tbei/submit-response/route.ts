@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { tbeiResponses, assessmentParticipants } from '@/db/schema'
-import { eq } from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
 import { z } from 'zod'
 import { evaluateTbeiResponse } from '@/lib/tbei-evaluation'
 
@@ -51,8 +51,10 @@ export async function POST(request: NextRequest) {
     const existingResponse = await db
       .select()
       .from(tbeiResponses)
-      .where(eq(tbeiResponses.participantId, participantId))
-      .where(eq(tbeiResponses.competencyId, competencyId))
+      .where(and(
+        eq(tbeiResponses.participantId, participantId),
+        eq(tbeiResponses.competencyId, competencyId)
+      ))
       .limit(1)
 
     let responseId: string
