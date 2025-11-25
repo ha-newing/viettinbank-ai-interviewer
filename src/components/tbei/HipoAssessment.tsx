@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Textarea } from '@/components/ui/textarea'
+import LiveTranscriptionInput from '@/components/ui/LiveTranscriptionInput'
 import { Badge } from '@/components/ui/badge'
 import {
   Brain,
@@ -474,16 +475,14 @@ export default function HipoAssessment({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <Textarea
+                <LiveTranscriptionInput
+                  questionId={q.id}
+                  questionText={q.question}
                   placeholder={q.placeholder}
                   value={openResponses[q.id as keyof OpenResponses]}
-                  onChange={(e) => handleOpenResponse(q.id as keyof OpenResponses, e.target.value)}
-                  rows={6}
-                  className="resize-none"
+                  onChange={(value) => handleOpenResponse(q.id as keyof OpenResponses, value)}
+                  sessionId="temp-hipo-session"
                 />
-                <div className="mt-2 text-sm text-gray-500">
-                  {openResponses[q.id as keyof OpenResponses].length} ký tự
-                </div>
               </CardContent>
             </Card>
           ))}

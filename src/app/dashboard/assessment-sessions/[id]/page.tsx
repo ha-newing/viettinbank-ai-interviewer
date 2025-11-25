@@ -469,6 +469,19 @@ export default async function AssessmentSessionViewPage({ params }: AssessmentSe
                   <PlayCircle className="h-4 w-4 mr-2" />
                   Bắt đầu case study
                 </Button>
+                <Link
+                  href={`/dashboard/assessment-sessions/${session.id}/case-study`}
+                  className={session.status === 'case_study_in_progress' ? '' : 'pointer-events-none'}
+                >
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    disabled={session.status !== 'case_study_in_progress'}
+                  >
+                    <Monitor className="h-4 w-4 mr-2" />
+                    Theo dõi Case Study (Live)
+                  </Button>
+                </Link>
                 <Button
                   variant="outline"
                   className="w-full justify-start"
