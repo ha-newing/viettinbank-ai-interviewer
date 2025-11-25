@@ -403,43 +403,6 @@ export default async function AssessmentSessionViewPage({ params }: AssessmentSe
 
           {/* Sidebar */}
           <div className="lg:col-span-1 space-y-6">
-            {/* Statistics */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <BarChart3 className="h-5 w-5 mr-2" />
-                  Thống kê tiến độ
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Transcript chunks</span>
-                  <span className="font-semibold">{transcriptCount[0]?.count || 0}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Đánh giá case study</span>
-                  <span className="font-semibold">{evaluationCount[0]?.count || 0}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">TBEI hoàn thành</span>
-                  <span className="font-semibold">
-                    {participants.filter(p => p.tbeiStatus === 'completed').length}/{participants.length}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">HiPo hoàn thành</span>
-                  <span className="font-semibold">
-                    {participants.filter(p => p.hipoStatus === 'completed').length}/{participants.length}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Quiz hoàn thành</span>
-                  <span className="font-semibold">
-                    {participants.filter(p => p.quizStatus === 'completed').length}/{participants.length}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Quick Actions */}
             <Card>

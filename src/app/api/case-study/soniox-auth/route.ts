@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify({
         usage_type: 'transcribe_websocket',
-        expires_in_seconds: 7200 // 2 hours (max session duration)
+        expires_in_seconds: 3600 // 1 hour (Soniox max limit)
       })
     })
 
@@ -196,12 +196,12 @@ export async function POST(request: NextRequest) {
         security: {
           note: 'Temporary API key provided for secure WebSocket connection to Soniox',
           restrictions: [
-            'Temporary key expires in 2 hours',
+            'Temporary key expires in 1 hour',
             'Use only for this session',
             'Do not store permanently',
             'Connection expires when session ends'
           ],
-          expires_in_seconds: 7200
+          expires_in_seconds: 3600
         }
       }
     })
