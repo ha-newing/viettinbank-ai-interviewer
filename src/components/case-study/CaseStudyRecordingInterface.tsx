@@ -19,6 +19,8 @@ import {
   Wifi,
   WifiOff
 } from 'lucide-react'
+import useSpeakerDiarization, { type SpeakerSegment } from '@/hooks/useSpeakerDiarization'
+import SpeakerDiarizedTranscript from './SpeakerDiarizedTranscript'
 
 interface Participant {
   id: string
@@ -40,15 +42,6 @@ interface JobTemplate {
   id: string
   title: string
   description: string | null
-}
-
-interface SonioxToken {
-  text: string
-  speaker?: string
-  start_time?: number
-  duration?: number
-  is_final?: boolean
-  confidence?: number
 }
 
 interface TranscriptChunk {
@@ -152,22 +145,16 @@ export default function CaseStudyRecordingInterface({
   const [isRecording, setIsRecording] = useState(false)
   const [recordingDuration, setRecordingDuration] = useState(0)
   const [nextChunkIn, setNextChunkIn] = useState(60)
-
-  // WebSocket and audio state
-  const [isConnected, setIsConnected] = useState(false)
-  const [connectionError, setConnectionError] = useState<string | null>(null)
   const [microphoneActive, setMicrophoneActive] = useState(false)
 
   // Transcript state
-  const [currentTokens, setCurrentTokens] = useState<SonioxToken[]>([])
   const [transcriptChunks, setTranscriptChunks] = useState<TranscriptChunk[]>([])
-  const [speakerMapping, setSpeakerMapping] = useState<Record<string, string>>({})
-  const [detectedSpeakers, setDetectedSpeakers] = useState<string[]>([])
+  const [speakerSegments, setSpeakerSegments] = useState<SpeakerSegment[]>([])
+  const [speakerMapping, setSpeakerMapping] = useState<Map<number, string>>(new Map())
 
   // Statistics
   const [totalChunks, setTotalChunks] = useState(0)
   const [totalWords, setTotalWords] = useState(0)
-  const [averageConfidence, setAverageConfidence] = useState(0)
 
   // Evaluation state
   const [evaluationData, setEvaluationData] = useState<EvaluationData | null>(null)
@@ -176,129 +163,46 @@ export default function CaseStudyRecordingInterface({
   const [showEvaluations, setShowEvaluations] = useState(false)
 
   // Refs
-  const websocketRef = useRef<WebSocket | null>(null)
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const mediaStreamRef = useRef<MediaStream | null>(null)
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null)
   const chunkTimerRef = useRef<NodeJS.Timeout | null>(null)
-  const currentChunkTokensRef = useRef<SonioxToken[]>([])
   const evaluationPollingRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Initialize Soniox connection
-  const initializeSoniox = useCallback(async () => {
-    try {
-      setConnectionError(null)
+  // Speaker Diarization Hook
+  const {
+    startTranscription,
+    stopTranscription,
+    isSessionActive,
+    error: transcriptionError,
+    correctSpeaker,
+    connectionStatus
+  } = useSpeakerDiarization({
+    sessionId: session.id,
+    onTranscriptUpdate: (segments, mapping) => {
+      setSpeakerSegments(segments)
+      setSpeakerMapping(mapping)
 
-      // Get Soniox credentials from backend
-      const authResponse = await fetch('/api/case-study/soniox-auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId: session.id })
-      })
-
-      if (!authResponse.ok) {
-        throw new Error('Failed to get Soniox credentials')
-      }
-
-      const authData = await authResponse.json()
-      if (!authData.success) {
-        throw new Error(authData.error || 'Authentication failed')
-      }
-
-      const { soniox } = authData.data
-
-      // Connect to Soniox WebSocket
-      const ws = new WebSocket(soniox.endpoint)
-      websocketRef.current = ws
-
-      ws.onopen = () => {
-        console.log('Soniox WebSocket connected')
-
-        // Send configuration as first message
-        const config = {
-          ...soniox.config,
-          api_key: soniox.api_key
-        }
-
-        ws.send(JSON.stringify(config))
-        setIsConnected(true)
-      }
-
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data)
-
-          if (data.error_code) {
-            console.error('Soniox error:', data.error_message)
-            setConnectionError(data.error_message)
-            return
-          }
-
-          if (data.tokens && Array.isArray(data.tokens)) {
-            const newTokens = data.tokens as SonioxToken[]
-
-            // Add to current tokens
-            setCurrentTokens(prev => [...prev, ...newTokens])
-            currentChunkTokensRef.current.push(...newTokens)
-
-            // Track detected speakers
-            const speakers = newTokens
-              .map(token => token.speaker)
-              .filter(Boolean) as string[]
-
-            setDetectedSpeakers(prev => {
-              const combined = [...new Set([...prev, ...speakers])]
-              return combined.sort()
-            })
-
-            // Update statistics
-            const words = newTokens.filter(token => token.text.trim().length > 0)
-            setTotalWords(prev => prev + words.length)
-
-            const confidenceSum = newTokens
-              .filter(token => token.confidence !== undefined)
-              .reduce((sum, token) => sum + (token.confidence || 0), 0)
-
-            if (confidenceSum > 0) {
-              setAverageConfidence(prev => {
-                const count = newTokens.filter(token => token.confidence !== undefined).length
-                return (prev + confidenceSum / count) / 2
-              })
-            }
-          }
-        } catch (error) {
-          console.error('Error parsing Soniox response:', error)
-        }
-      }
-
-      ws.onclose = () => {
-        console.log('Soniox WebSocket disconnected')
-        setIsConnected(false)
-
-        // Auto-reconnect if recording
-        if (isRecording) {
-          setTimeout(() => initializeSoniox(), 2000)
-        }
-      }
-
-      ws.onerror = (error) => {
-        console.error('Soniox WebSocket error:', error)
-        setConnectionError('WebSocket connection failed')
-        setIsConnected(false)
-      }
-
-    } catch (error) {
-      console.error('Error initializing Soniox:', error)
-      setConnectionError(error instanceof Error ? error.message : 'Connection failed')
-      setIsConnected(false)
+      // Update statistics
+      const words = segments.reduce((acc, segment) => acc + segment.tokens.length, 0)
+      setTotalWords(words)
+    },
+    onSessionStarted: () => {
+      setIsRecording(true)
+      setRecordingDuration(0)
+      setNextChunkIn(60)
+    },
+    onSessionFinished: () => {
+      setIsRecording(false)
+    },
+    onError: (error) => {
+      console.error('Speaker diarization error:', error)
     }
-  }, [session.id, isRecording])
+  })
+
 
   // Start recording
   const startRecording = useCallback(async () => {
     try {
-      setConnectionError(null)
-
       // Request microphone access
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -311,36 +215,8 @@ export default function CaseStudyRecordingInterface({
       mediaStreamRef.current = stream
       setMicrophoneActive(true)
 
-      // Connect to Soniox if not already connected
-      if (!isConnected) {
-        await initializeSoniox()
-      }
-
-      // Start AudioContext for PCM audio streaming (like LiveTranscriptionInput)
-      const audioContext = new AudioContext({ sampleRate: 16000 })
-      const source = audioContext.createMediaStreamSource(stream)
-      const processor = audioContext.createScriptProcessor(4096, 1, 1)
-
-      // Convert audio buffer to PCM 16-bit format for Soniox
-      const convertAudioBuffer = (audioBuffer: Float32Array) => {
-        const pcmBuffer = new Int16Array(audioBuffer.length)
-        for (let i = 0; i < audioBuffer.length; i++) {
-          const sample = Math.max(-1, Math.min(1, audioBuffer[i]))
-          pcmBuffer[i] = sample * 0x7FFF
-        }
-        return pcmBuffer.buffer
-      }
-
-      processor.onaudioprocess = (event) => {
-        if (websocketRef.current?.readyState === WebSocket.OPEN && isRecording) {
-          const inputBuffer = event.inputBuffer.getChannelData(0)
-          const audioData = convertAudioBuffer(inputBuffer)
-          websocketRef.current.send(audioData)
-        }
-      }
-
-      source.connect(processor)
-      processor.connect(audioContext.destination)
+      // Start transcription using the hook
+      await startTranscription(stream)
 
       // Update session status to 'case_study_in_progress'
       await fetch('/api/case-study/update-status', {
@@ -351,10 +227,6 @@ export default function CaseStudyRecordingInterface({
           status: 'case_study_in_progress'
         })
       })
-
-      setIsRecording(true)
-      setRecordingDuration(0)
-      setNextChunkIn(60)
 
       // Start timers
       recordingTimerRef.current = setInterval(() => {
@@ -374,16 +246,13 @@ export default function CaseStudyRecordingInterface({
 
     } catch (error) {
       console.error('Error starting recording:', error)
-      setConnectionError(error instanceof Error ? error.message : 'Failed to start recording')
       setMicrophoneActive(false)
     }
-  }, [session.id, isConnected, initializeSoniox])
+  }, [session.id, startTranscription])
 
   // Stop recording
   const stopRecording = useCallback(async () => {
     try {
-      setIsRecording(false)
-
       // Stop timers
       if (recordingTimerRef.current) {
         clearInterval(recordingTimerRef.current)
@@ -398,11 +267,6 @@ export default function CaseStudyRecordingInterface({
       // Stop evaluation polling
       stopEvaluationPolling()
 
-      // Stop media recorder
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-        mediaRecorderRef.current.stop()
-      }
-
       // Stop media stream
       if (mediaStreamRef.current) {
         mediaStreamRef.current.getTracks().forEach(track => track.stop())
@@ -412,22 +276,10 @@ export default function CaseStudyRecordingInterface({
       setMicrophoneActive(false)
 
       // Send final transcript chunk
-      if (currentChunkTokensRef.current.length > 0) {
-        await sendTranscriptChunk()
-      }
+      await sendTranscriptChunk()
 
-      // Signal end of audio to Soniox
-      if (websocketRef.current?.readyState === WebSocket.OPEN) {
-        websocketRef.current.send('')
-      }
-
-      // Close WebSocket
-      if (websocketRef.current) {
-        websocketRef.current.close()
-        websocketRef.current = null
-      }
-
-      setIsConnected(false)
+      // Stop transcription using the hook
+      stopTranscription()
 
       // Update session status to 'case_study_completed'
       await fetch('/api/case-study/update-status', {
@@ -441,21 +293,29 @@ export default function CaseStudyRecordingInterface({
 
     } catch (error) {
       console.error('Error stopping recording:', error)
-      setConnectionError(error instanceof Error ? error.message : 'Failed to stop recording')
     }
-  }, [session.id])
+  }, [session.id, stopTranscription])
 
   // Send transcript chunk to backend
   const sendTranscriptChunk = useCallback(async () => {
-    if (currentChunkTokensRef.current.length === 0) {
+    if (speakerSegments.length === 0) {
       return
     }
 
     try {
-      // Combine tokens into transcript text
-      const rawTranscript = currentChunkTokensRef.current
-        .map(token => `${token.speaker || 'Unknown'}: ${token.text}`)
+      // Combine segments into transcript text
+      const rawTranscript = speakerSegments
+        .map(segment => {
+          const speakerName = speakerMapping.get(segment.speaker) || `Speaker ${segment.speaker}`
+          return `${speakerName}: ${segment.text}`
+        })
         .join(' ')
+
+      // Convert Map to Record for API
+      const speakerMappingRecord: Record<string, string> = {}
+      speakerMapping.forEach((name, id) => {
+        speakerMappingRecord[id.toString()] = name
+      })
 
       // Send to backend
       const response = await fetch('/api/case-study/transcript-chunk', {
@@ -464,9 +324,9 @@ export default function CaseStudyRecordingInterface({
         body: JSON.stringify({
           sessionId: session.id,
           rawTranscript,
-          speakerMapping,
+          speakerMapping: speakerMappingRecord,
           durationSeconds: 60,
-          tokens: currentChunkTokensRef.current
+          tokens: speakerSegments.flatMap(segment => segment.tokens)
         })
       })
 
@@ -483,27 +343,17 @@ export default function CaseStudyRecordingInterface({
             consolidatedTranscript: rawTranscript, // Will be processed by backend
             durationSeconds: 60,
             createdAt: new Date(),
-            speakerMapping
+            speakerMapping: speakerMappingRecord
           }
           setTranscriptChunks(prev => [newChunk, ...prev])
         }
       }
 
-      // Clear current chunk tokens
-      currentChunkTokensRef.current = []
-
     } catch (error) {
       console.error('Error sending transcript chunk:', error)
     }
-  }, [session.id, speakerMapping])
+  }, [session.id, speakerSegments, speakerMapping])
 
-  // Map speaker to participant
-  const mapSpeaker = useCallback((speaker: string, participantId: string) => {
-    setSpeakerMapping(prev => ({
-      ...prev,
-      [speaker]: participantId
-    }))
-  }, [])
 
   // Poll for evaluation results
   const pollEvaluations = useCallback(async () => {
@@ -573,7 +423,6 @@ export default function CaseStudyRecordingInterface({
       if (recordingTimerRef.current) clearInterval(recordingTimerRef.current)
       if (chunkTimerRef.current) clearTimeout(chunkTimerRef.current)
       if (evaluationPollingRef.current) clearInterval(evaluationPollingRef.current)
-      if (websocketRef.current) websocketRef.current.close()
       if (mediaStreamRef.current) {
         mediaStreamRef.current.getTracks().forEach(track => track.stop())
       }
@@ -632,15 +481,25 @@ export default function CaseStudyRecordingInterface({
               Điều khiển ghi âm
             </span>
             <div className="flex items-center space-x-2">
-              {isConnected ? (
+              {connectionStatus === 'connected' ? (
                 <Badge className="bg-green-100 text-green-800">
                   <Wifi className="h-3 w-3 mr-1" />
                   Kết nối
                 </Badge>
-              ) : (
+              ) : connectionStatus === 'connecting' ? (
+                <Badge className="bg-yellow-100 text-yellow-800">
+                  <Wifi className="h-3 w-3 mr-1" />
+                  Đang kết nối
+                </Badge>
+              ) : connectionStatus === 'error' ? (
                 <Badge className="bg-red-100 text-red-800">
                   <WifiOff className="h-3 w-3 mr-1" />
-                  Mất kết nối
+                  Lỗi kết nối
+                </Badge>
+              ) : (
+                <Badge className="bg-gray-100 text-gray-800">
+                  <WifiOff className="h-3 w-3 mr-1" />
+                  Chưa kết nối
                 </Badge>
               )}
               {microphoneActive && (
@@ -654,11 +513,11 @@ export default function CaseStudyRecordingInterface({
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Connection Error */}
-          {connectionError && (
+          {transcriptionError && (
             <Alert className="border-red-200 bg-red-50">
               <AlertTriangle className="h-4 w-4 text-red-600" />
               <AlertDescription className="text-red-800">
-                {connectionError}
+                {transcriptionError.message}
               </AlertDescription>
             </Alert>
           )}
@@ -740,28 +599,6 @@ export default function CaseStudyRecordingInterface({
                   </div>
                 </div>
 
-                {/* Speaker mapping */}
-                {detectedSpeakers.length > 0 && isRecording && (
-                  <div className="mt-2">
-                    <label className="text-xs text-gray-600">Mapped to speaker:</label>
-                    <select
-                      value={Object.keys(speakerMapping).find(s => speakerMapping[s] === participant.id) || ''}
-                      onChange={(e) => {
-                        if (e.target.value) {
-                          mapSpeaker(e.target.value, participant.id)
-                        }
-                      }}
-                      className="w-full mt-1 text-xs border rounded px-2 py-1"
-                    >
-                      <option value="">Chọn speaker...</option>
-                      {detectedSpeakers.map(speaker => (
-                        <option key={speaker} value={speaker}>
-                          {speaker}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
               </div>
             ))}
           </div>
@@ -776,46 +613,46 @@ export default function CaseStudyRecordingInterface({
             <div className="text-sm text-gray-600 space-x-4">
               <span>Chunks: {totalChunks}</span>
               <span>Words: {totalWords}</span>
-              <span>Avg confidence: {(averageConfidence * 100).toFixed(1)}%</span>
+              {connectionStatus === 'connected' && (
+                <Badge className="bg-green-100 text-green-800">
+                  <Wifi className="h-3 w-3 mr-1" />
+                  Đang kết nối
+                </Badge>
+              )}
+              {connectionStatus === 'connecting' && (
+                <Badge className="bg-yellow-100 text-yellow-800">
+                  Đang kết nối...
+                </Badge>
+              )}
+              {connectionStatus === 'error' && (
+                <Badge className="bg-red-100 text-red-800">
+                  <WifiOff className="h-3 w-3 mr-1" />
+                  Lỗi kết nối
+                </Badge>
+              )}
             </div>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {/* Current live tokens */}
-          {isRecording && currentTokens.length > 0 && (
-            <div className="mb-4 p-3 bg-blue-50 rounded border border-blue-200">
-              <h4 className="text-sm font-medium text-blue-900 mb-2">Live (chưa lưu)</h4>
-              <p className="text-sm text-blue-800">
-                {currentTokens
-                  .filter(token => token.text.trim())
-                  .map(token => `${token.speaker || 'Unknown'}: ${token.text}`)
-                  .join(' ')}
-              </p>
-            </div>
+          {/* Connection Error */}
+          {transcriptionError && (
+            <Alert className="border-red-200 bg-red-50 mb-4">
+              <AlertTriangle className="h-4 w-4 text-red-600" />
+              <AlertDescription className="text-red-800">
+                {transcriptionError.message}
+              </AlertDescription>
+            </Alert>
           )}
 
-          {/* Saved transcript chunks */}
-          <div className="space-y-3 max-h-96 overflow-y-auto">
-            {transcriptChunks.map((chunk) => (
-              <div key={chunk.id} className="p-3 bg-gray-50 rounded border">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-medium text-gray-600">
-                    Chunk #{chunk.sequenceNumber}
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    {new Date(chunk.createdAt).toLocaleTimeString('vi-VN')}
-                  </span>
-                </div>
-                <p className="text-sm text-gray-800">{chunk.consolidatedTranscript}</p>
-              </div>
-            ))}
-          </div>
-
-          {transcriptChunks.length === 0 && !isRecording && (
-            <p className="text-center text-gray-500 py-8">
-              Chưa có transcript nào. Bắt đầu ghi âm để xem transcript trực tiếp.
-            </p>
-          )}
+          {/* Speaker Diarized Transcript */}
+          <SpeakerDiarizedTranscript
+            segments={speakerSegments}
+            speakerMapping={speakerMapping}
+            placeholder={isRecording ? "Đang khởi động transcription..." : "Chưa có transcript nào. Bắt đầu ghi âm để xem transcript trực tiếp."}
+            enableAutoScroll={isSessionActive}
+            availableParticipants={participants.map(p => p.name)}
+            onSpeakerCorrection={correctSpeaker}
+          />
         </CardContent>
       </Card>
 
