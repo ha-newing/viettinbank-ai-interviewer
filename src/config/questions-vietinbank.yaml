@@ -1,0 +1,458 @@
+# VietinBank Assessment Center - Interview Questions Configuration
+# Câu hỏi đánh giá năng lực cho Assessment Center VietinBank
+
+version: "1.0"
+language: "vi"
+created_date: "2024-11-25"
+description: "Ngân hàng câu hỏi phỏng vấn TBEI và Case Study cho Assessment Center VietinBank"
+
+# Question Configuration
+config:
+  tbei_questions_per_competency: 2
+  tbei_duration_minutes: 15
+  case_study_duration_minutes: 120
+  default_time_limit_seconds: 180
+  response_format: "STAR"
+
+# TBEI Interview Questions (Targeted Behavioral Event Interview)
+tbei_questions:
+
+  # PHÁT TRIỂN ĐỘI NGŨ (Talent Development)
+  talent_development:
+    competency_id: "talent_development"
+    competency_name: "Phát Triển Đội Ngũ"
+    competency_name_en: "Talent Development"
+    focus: "Nhận diện tiềm năng, kế cận, coaching, tạo cơ hội phát triển trong đơn vị mình phụ trách"
+    questions:
+
+      - id: "TD_Q1"
+        question_text: "Anh/Chị hãy kể về một lần Anh/Chị xác định và xây dựng đội ngũ kế cận cho các vị trí chủ chốt trong phòng ban/mảng mình phụ trách. Anh/Chị đã lập kế hoạch phát triển cho họ như thế nào?"
+        question_text_en: "Tell me about a time when you identified and built a succession team for key positions in your department. How did you develop their development plan?"
+        behavioral_indicator: "HV1"
+        time_limit_seconds: 180
+        star_focus:
+          situation: "Bối cảnh đơn vị, các vị trí then chốt, thách thức nhân sự"
+          task: "Mục tiêu xây dựng đội ngũ kế cận"
+          action: "Phương pháp nhận diện tiềm năng, lập kế hoạch IDP"
+          result: "Kết quả phát triển, người được đề bạt/thăng tiến"
+        evaluation_criteria:
+          - "Có quy trình rõ ràng để nhận diện nhân sự tiềm năng"
+          - "Kế hoạch phát triển cá nhân (IDP) cụ thể và khả thi"
+          - "Đa dạng phương pháp đào tạo (on-the-job, coaching, formal training)"
+          - "Theo dõi tiến độ và điều chỉnh kịp thời"
+
+      - id: "TD_Q2"
+        question_text: "Mô tả một tình huống Anh/Chị chủ động trao đổi với một cán bộ tiềm năng về định hướng phát triển nghề nghiệp và sau đó sắp xếp nhiệm vụ, đào tạo hoặc luân chuyển để hỗ trợ họ phát triển."
+        question_text_en: "Describe a situation where you proactively discussed career development with a high-potential employee and then arranged tasks, training, or job rotation to support their growth."
+        behavioral_indicator: "HV2"
+        time_limit_seconds: 180
+        star_focus:
+          situation: "Profile nhân sự tiềm năng, hoàn cảnh trao đổi"
+          task: "Mục tiêu hỗ trợ phát triển"
+          action: "Các hành động cụ thể: trao đổi, phân công, đào tạo"
+          result: "Kết quả phát triển của nhân sự"
+        evaluation_criteria:
+          - "Chủ động trong việc tìm hiểu nhu cầu phát triển"
+          - "Hiểu rõ thế mạnh và điểm cần cải thiện của nhân sự"
+          - "Phân công nhiệm vụ phù hợp với mục tiêu phát triển"
+          - "Tạo cơ hội học tập và trải nghiệm đa dạng"
+
+      - id: "TD_Q3"
+        question_text: "Hãy kể về một ví dụ Anh/Chị giao một nhiệm vụ hoặc dự án 'stretch' (vượt khỏi vùng an toàn) cho một nhân sự, đồng thời trực tiếp huấn luyện/feedback trong quá trình thực hiện để người đó trưởng thành lên một vai trò mới."
+        question_text_en: "Tell me about an example where you assigned a 'stretch' task or project to a team member, while providing direct coaching and feedback to help them grow into a new role."
+        behavioral_indicator: "HV3"
+        time_limit_seconds: 180
+        star_focus:
+          situation: "Nhiệm vụ stretch, profile nhân sự, rủi ro tiềm ẩn"
+          task: "Mục tiêu phát triển qua nhiệm vụ stretch"
+          action: "Phương pháp coaching, feedback, hỗ trợ"
+          result: "Kết quả nhiệm vụ và sự trưởng thành của nhân sự"
+        evaluation_criteria:
+          - "Đánh giá đúng khả năng và độ sẵn sàng của nhân sự"
+          - "Thiết kế nhiệm vụ stretch phù hợp với mục tiêu phát triển"
+          - "Cung cấp coaching và feedback kịp thời, hiệu quả"
+          - "Cân bằng giữa trao quyền và kiểm soát rủi ro"
+
+  # CHUYỂN ĐỔI SỐ (Digital Transformation / Tech Savvy)
+  digital_transformation:
+    competency_id: "digital_transformation"
+    competency_name: "Chuyển Đổi Số"
+    competency_name_en: "Digital Transformation"
+    focus: "Phó GĐ hiểu chiến lược số, chọn đúng công nghệ, triển khai trong đơn vị, làm cầu nối với Hội sở"
+    required: true
+    questions:
+
+      - id: "DT_Q1"
+        question_text: "Anh/Chị hãy kể về một lần Anh/Chị đánh giá hiện trạng sử dụng công nghệ tại đơn vị/phòng ban mình phụ trách, nhận ra các điểm hạn chế và đề xuất một hoặc vài giải pháp số hóa để cải thiện năng suất hoặc trải nghiệm khách hàng."
+        question_text_en: "Tell me about a time when you assessed the current state of technology usage in your department, identified limitations, and proposed digital solutions to improve productivity or customer experience."
+        behavioral_indicator: "HV1"
+        time_limit_seconds: 180
+        star_focus:
+          situation: "Hiện trạng công nghệ, các điểm nghẽn"
+          task: "Mục tiêu cải thiện bằng số hóa"
+          action: "Phương pháp đánh giá, đề xuất giải pháp"
+          result: "Tác động đến năng suất/trải nghiệm KH"
+        evaluation_criteria:
+          - "Có phương pháp đánh giá hiện trạng số hóa rõ ràng"
+          - "Nhận diện đúng các điểm hạn chế và cơ hội cải tiến"
+          - "Đề xuất giải pháp phù hợp và khả thi"
+          - "Đo lường được tác động của giải pháp"
+
+      - id: "DT_Q2"
+        question_text: "Mô tả một tình huống Anh/Chị triển khai hoặc hỗ trợ triển khai một công nghệ/ứng dụng số mới (ví dụ: công cụ CRM, auto-report, ứng dụng AI chăm sóc khách hàng) trong đơn vị, và cách Anh/Chị đào tạo, thuyết phục và hỗ trợ đội ngũ sử dụng hiệu quả."
+        question_text_en: "Describe a situation where you implemented or supported the implementation of a new digital technology/application (e.g., CRM tools, auto-reports, AI customer service apps) in your unit, and how you trained, convinced, and supported the team to use it effectively."
+        behavioral_indicator: "HV1, HV2"
+        time_limit_seconds: 180
+        star_focus:
+          situation: "Công nghệ được triển khai, thách thức"
+          task: "Mục tiêu triển khai và adoption"
+          action: "Phương pháp đào tạo, thuyết phục, hỗ trợ"
+          result: "Mức độ sử dụng, tác động kinh doanh"
+        evaluation_criteria:
+          - "Lập kế hoạch triển khai bài bản"
+          - "Đào tạo đội ngũ hiệu quả"
+          - "Xử lý tốt các kháng cự/thách thức"
+          - "Theo dõi và hỗ trợ sau triển khai"
+
+      - id: "DT_Q3"
+        question_text: "Hãy kể về một lần Anh/Chị phải lựa chọn giữa nhiều giải pháp/công nghệ khác nhau (trong khuôn khổ NH đưa xuống hoặc trong nội bộ), và Anh/Chị đã phân biệt đâu là xu hướng nhất thời, đâu là giải pháp mang lại tác động lâu dài cho chi nhánh như thế nào."
+        question_text_en: "Tell me about a time when you had to choose between different solutions/technologies (within the bank's framework or internally), and how you distinguished between passing trends and solutions that would have long-term impact for the branch."
+        behavioral_indicator: "HV1"
+        time_limit_seconds: 180
+        star_focus:
+          situation: "Các lựa chọn công nghệ, bối cảnh quyết định"
+          task: "Mục tiêu chọn giải pháp phù hợp"
+          action: "Tiêu chí đánh giá, phân tích trade-off"
+          result: "Quyết định cuối cùng và tác động"
+        evaluation_criteria:
+          - "Có framework đánh giá công nghệ rõ ràng"
+          - "Phân biệt được xu hướng nhất thời vs. giải pháp bền vững"
+          - "Cân nhắc đa chiều (chi phí, lợi ích, rủi ro, tương thích)"
+          - "Quyết định có lý do thuyết phục"
+
+# Case Study Questions
+case_study_questions:
+  context:
+    branch: "VietinBank Chi nhánh Đông Sài Gòn"
+    scenario: "Lập kế hoạch chiến lược năm 2026"
+    key_metrics:
+      - name: "NPL"
+        current: "2.4%"
+        benchmark: "1.8%"
+        issue: "Tỷ lệ nợ xấu cao hơn trung bình ngành"
+      - name: "NPS"
+        current: "32"
+        benchmark: "45"
+        issue: "Điểm hài lòng khách hàng thấp hơn chuẩn"
+      - name: "Profit Margin"
+        status: "Declining"
+        issue: "Biên lợi nhuận đang giảm"
+
+  roles:
+    - code: "A"
+      name: "PGĐ Khách hàng Doanh nghiệp"
+      name_en: "Deputy Director - Corporate Banking"
+      focus: "Khách hàng doanh nghiệp lớn, SME, trade finance"
+
+    - code: "B"
+      name: "PGĐ Khách hàng Cá nhân"
+      name_en: "Deputy Director - Retail Banking"
+      focus: "Khách hàng cá nhân, tiền gửi, cho vay tiêu dùng"
+
+    - code: "C"
+      name: "Trưởng phòng Rủi ro"
+      name_en: "Head of Risk Management"
+      focus: "Quản lý rủi ro tín dụng, rủi ro vận hành"
+
+    - code: "D"
+      name: "Trưởng phòng Vận hành"
+      name_en: "Head of Operations"
+      focus: "Quy trình, hiệu suất vận hành, dịch vụ khách hàng"
+
+    - code: "E"
+      name: "Trưởng phòng Chuyển đổi số"
+      name_en: "Head of Digital Transformation"
+      focus: "Số hóa quy trình, công nghệ, đổi mới"
+
+  questions:
+    - id: "CS_Q1"
+      topic: "Customer Segment Prioritization"
+      topic_vi: "Ưu tiên Phân khúc Khách hàng"
+      question_text: "Với mục tiêu tăng trưởng tín dụng 15% trong năm 2026, chi nhánh nên ưu tiên phân khúc khách hàng nào? Giải thích lý do và đề xuất chiến lược tiếp cận phù hợp."
+      question_text_en: "With a credit growth target of 15% in 2026, which customer segments should the branch prioritize? Explain your reasoning and propose an appropriate approach strategy."
+      time_limit_minutes: 30
+      competencies:
+        - "strategic_thinking"
+        - "risk_balance"
+      evaluation_criteria:
+        - "Phân tích dữ liệu phân khúc khách hàng"
+        - "Cân nhắc giữa tăng trưởng và rủi ro"
+        - "Chiến lược tiếp cận cụ thể và khả thi"
+        - "Dự báo tác động đến các chỉ tiêu kinh doanh"
+      role_perspectives:
+        A: "Tập trung vào SME và doanh nghiệp lớn"
+        B: "Tập trung vào khách hàng cá nhân thu nhập cao"
+        C: "Cân nhắc rủi ro từng phân khúc"
+        D: "Khả năng phục vụ và quy trình"
+        E: "Kênh tiếp cận số"
+
+    - id: "CS_Q2"
+      topic: "Budget Allocation"
+      topic_vi: "Phân bổ Ngân sách"
+      question_text: "Chi nhánh được cấp ngân sách 5 tỷ đồng cho các hoạt động marketing và phát triển kinh doanh năm 2026. Hãy đề xuất phương án phân bổ ngân sách này."
+      question_text_en: "The branch is allocated a budget of 5 billion VND for marketing and business development activities in 2026. Propose a budget allocation plan."
+      time_limit_minutes: 20
+      competencies:
+        - "strategic_thinking"
+        - "innovation"
+      evaluation_criteria:
+        - "Phân bổ hợp lý theo mục tiêu chiến lược"
+        - "Đo lường ROI cho từng hoạt động"
+        - "Cân bằng giữa các kênh marketing"
+        - "Sáng tạo trong cách tiếp cận"
+      role_perspectives:
+        A: "Ngân sách cho events doanh nghiệp"
+        B: "Ngân sách digital marketing cá nhân"
+        C: "Ngân sách cho các công cụ quản lý rủi ro"
+        D: "Ngân sách cải thiện dịch vụ"
+        E: "Ngân sách chuyển đổi số"
+
+    - id: "CS_Q3"
+      topic: "Technology Projects Prioritization"
+      topic_vi: "Ưu tiên Dự án Công nghệ"
+      question_text: "Trong danh sách 5 dự án công nghệ được đề xuất, chi nhánh nên ưu tiên triển khai dự án nào trước? Giải thích tiêu chí đánh giá và lý do lựa chọn."
+      question_text_en: "Among the 5 proposed technology projects, which project should the branch prioritize first? Explain the evaluation criteria and reasoning for your choice."
+      time_limit_minutes: 25
+      competencies:
+        - "digital_transformation"
+        - "innovation"
+      tech_projects:
+        - name: "Core Banking Upgrade"
+          description: "Nâng cấp hệ thống core banking"
+          cost: "High"
+          impact: "High"
+          timeline: "18 months"
+        - name: "Mobile App Enhancement"
+          description: "Cải tiến ứng dụng mobile banking"
+          cost: "Medium"
+          impact: "High"
+          timeline: "6 months"
+        - name: "AI Chatbot"
+          description: "Triển khai chatbot AI cho CSKH"
+          cost: "Low"
+          impact: "Medium"
+          timeline: "3 months"
+        - name: "Data Analytics Platform"
+          description: "Nền tảng phân tích dữ liệu"
+          cost: "Medium"
+          impact: "High"
+          timeline: "12 months"
+        - name: "Process Automation"
+          description: "Tự động hóa quy trình (RPA)"
+          cost: "Low"
+          impact: "Medium"
+          timeline: "4 months"
+      evaluation_criteria:
+        - "Tiêu chí đánh giá rõ ràng (ROI, urgency, feasibility)"
+        - "Phân tích trade-off giữa các dự án"
+        - "Xem xét nguồn lực và timeline"
+        - "Phù hợp với chiến lược chuyển đổi số của NH"
+
+    - id: "CS_Q4"
+      topic: "NPL Management"
+      topic_vi: "Quản lý Nợ xấu"
+      question_text: "Đề xuất kế hoạch hành động cụ thể để giảm tỷ lệ NPL từ 2.4% xuống 1.8% trong vòng 12 tháng."
+      question_text_en: "Propose a specific action plan to reduce the NPL ratio from 2.4% to 1.8% within 12 months."
+      time_limit_minutes: 25
+      competencies:
+        - "risk_balance"
+        - "strategic_thinking"
+      evaluation_criteria:
+        - "Phân tích nguyên nhân NPL cao"
+        - "Kế hoạch hành động cụ thể và có timeline"
+        - "Cân bằng giữa thu hồi nợ và phát triển kinh doanh"
+        - "Các biện pháp phòng ngừa tương lai"
+      npl_categories:
+        - category: "Corporate"
+          current_ratio: "2.8%"
+          target: "2.0%"
+        - category: "SME"
+          current_ratio: "3.2%"
+          target: "2.2%"
+        - category: "Retail"
+          current_ratio: "1.5%"
+          target: "1.2%"
+
+# Group Discussion Configuration
+group_discussion:
+  duration_minutes: 60
+  max_participants: 5
+  evaluation_focus:
+    - "Khả năng trình bày và thuyết phục"
+    - "Kỹ năng lắng nghe và phản hồi"
+    - "Khả năng đạt được đồng thuận"
+    - "Đóng góp vào quyết định nhóm"
+    - "Thể hiện năng lực lãnh đạo"
+
+  competencies_assessed:
+    - "strategic_thinking"
+    - "innovation"
+    - "risk_balance"
+    - "digital_transformation"
+
+  group_tasks:
+    - id: "GD_T1"
+      task: "Tổng hợp các đề xuất cá nhân và đạt được đồng thuận nhóm về phân khúc khách hàng ưu tiên"
+      related_question: "CS_Q1"
+
+    - id: "GD_T2"
+      task: "Thống nhất phương án phân bổ ngân sách cho chi nhánh"
+      related_question: "CS_Q2"
+
+    - id: "GD_T3"
+      task: "Đạt được đồng thuận về thứ tự ưu tiên các dự án công nghệ"
+      related_question: "CS_Q3"
+
+    - id: "GD_T4"
+      task: "Xây dựng kế hoạch hành động giảm NPL với sự đóng góp của tất cả các vai trò"
+      related_question: "CS_Q4"
+
+# HiPo Self-Assessment Questionnaire
+hipo_questionnaire:
+  description: "Bảng Khảo Sát Self-Assessment cho Nhóm HiPo"
+  scale:
+    1: "Hoàn toàn không đồng ý"
+    2: "Không đồng ý"
+    3: "Trung lập"
+    4: "Đồng ý"
+    5: "Hoàn toàn đồng ý"
+
+  scoring:
+    max_per_section: 25
+    classification:
+      excellent: { min: 21, max: 25, label: "Xuất sắc" }
+      good: { min: 16, max: 20, label: "Tốt" }
+      average: { min: 11, max: 15, label: "Trung bình, cần cải thiện" }
+      needs_attention: { min: 0, max: 10, label: "Cần quan tâm đặc biệt" }
+
+  sections:
+    - id: "ability"
+      name: "ABILITY (NĂNG LỰC)"
+      name_vi: "Năng lực chuyên môn & Kỹ năng"
+      questions:
+        - id: "Q1"
+          text: "Tôi có đầy đủ kiến thức và kỹ năng cần thiết để thực hiện xuất sắc công việc hiện tại của mình tại Ngân hàng."
+        - id: "Q2"
+          text: "Tôi tự tin với khả năng giải quyết các vấn đề phức tạp và thách thức trong công việc."
+        - id: "Q3"
+          text: "Tôi thường xuyên chủ động học hỏi và cập nhật kiến thức mới trong lĩnh vực ngân hàng."
+        - id: "Q4"
+          text: "Tôi có khả năng thích ứng nhanh với những thay đổi và yêu cầu mới của tổ chức."
+        - id: "Q5"
+          text: "Tôi sẵn sàng và có khả năng đảm nhận các vai trò lãnh đạo cấp cao hơn trong tương lai."
+
+    - id: "aspiration"
+      name: "ASPIRATION (KHÁT VỌNG)"
+      name_vi: "Khát vọng thăng tiến & Mong muốn phát triển"
+      questions:
+        - id: "Q6"
+          text: "Tôi có khát vọng rõ ràng về việc thăng tiến lên các vị trí lãnh đạo cao hơn tại Ngân hàng."
+        - id: "Q7"
+          text: "Tôi luôn tìm kiếm cơ hội để đóng góp nhiều hơn cho sự phát triển của Ngân hàng."
+        - id: "Q8"
+          text: "Tôi sẵn sàng làm việc ngoài giờ hoặc đảm nhận thêm trách nhiệm để đạt được mục tiêu nghề nghiệp."
+        - id: "Q9"
+          text: "Tôi có kế hoạch phát triển nghề nghiệp rõ ràng trong 3-5 năm tới tại Ngân hàng."
+        - id: "Q10"
+          text: "Tôi mong muốn trở thành một nhà lãnh đạo có ảnh hưởng lớn trong ngành ngân hàng."
+
+    - id: "engagement"
+      name: "EMPLOYEE ENGAGEMENT (ĐỘ GẮN KẾT)"
+      name_vi: "Gắn kết với tổ chức & Cam kết lâu dài"
+      questions:
+        - id: "Q11"
+          text: "Tôi cảm thấy tự hào khi làm việc tại Ngân hàng và sẵn sàng giới thiệu đây là nơi làm việc tốt."
+        - id: "Q12"
+          text: "Tôi tin tưởng vào tầm nhìn, sứ mệnh và giá trị cốt lõi của Ngân hàng."
+        - id: "Q13"
+          text: "Tôi cảm thấy được ghi nhận và đánh giá đúng mức về những đóng góp của mình."
+        - id: "Q14"
+          text: "Tôi có mối quan hệ tốt với đồng nghiệp và cấp trên, tạo động lực để tôi gắn bó lâu dài."
+        - id: "Q15"
+          text: "Tôi có ý định gắn bó và phát triển sự nghiệp dài hạn tại Ngân hàng (ít nhất 5 năm trở lên)."
+
+    - id: "integrated"
+      name: "TÍCH HỢP 3 YẾU TỐ (HIPO TOÀN DIỆN)"
+      name_vi: "Sự kết hợp giữa Năng lực - Khát vọng - Gắn kết"
+      questions:
+        - id: "Q16"
+          text: "Ngân hàng tạo điều kiện tốt để tôi phát huy năng lực và đạt được khát vọng nghề nghiệp."
+        - id: "Q17"
+          text: "Tôi nhận được sự hỗ trợ và coaching phù hợp từ lãnh đạo để phát triển năng lực lãnh đạo."
+        - id: "Q18"
+          text: "Các chương trình đào tạo và phát triển của Ngân hàng đáp ứng tốt nhu cầu phát triển nghề nghiệp của tôi."
+        - id: "Q19"
+          text: "Tôi thấy lộ trình thăng tiến tại Ngân hàng rõ ràng và công bằng cho nhóm HiPo."
+        - id: "Q20"
+          text: "Nhìn chung, tôi tin rằng Ngân hàng là nơi lý tưởng để tôi phát triển thành nhà lãnh đạo tương lai."
+
+    - id: "open_questions"
+      name: "CÂU HỎI MỞ (Tùy chọn)"
+      name_vi: "Câu hỏi mở"
+      type: "open_text"
+      questions:
+        - id: "Q21"
+          text: "Những yếu tố nào quan trọng nhất để giúp anh/chị gắn bó lâu dài với Ngân hàng?"
+        - id: "Q22"
+          text: "Anh/chị có đề xuất gì để Ngân hàng hỗ trợ tốt hơn cho sự phát triển của nhóm HiPo?"
+
+# Interview Flow Configuration
+interview_flow:
+  tbei:
+    intro_script: |
+      Chào Anh/Chị, hôm nay chúng ta sẽ thực hiện phần phỏng vấn hành vi (TBEI - Targeted Behavioral Event Interview).
+
+      Trong phần này, tôi sẽ hỏi Anh/Chị về các tình huống thực tế mà Anh/Chị đã trải qua trong công việc.
+
+      Khi trả lời, Anh/Chị nên theo format STAR:
+      - Situation: Bối cảnh/tình huống cụ thể
+      - Task: Nhiệm vụ/mục tiêu của Anh/Chị
+      - Action: Hành động cụ thể Anh/Chị đã thực hiện
+      - Result: Kết quả đạt được
+
+      Anh/Chị có khoảng 3 phút cho mỗi câu hỏi. Sẵn sàng chưa?
+
+    follow_up_prompts:
+      situation:
+        - "Anh/Chị có thể mô tả cụ thể hơn về bối cảnh không?"
+        - "Lúc đó tình hình như thế nào?"
+        - "Ai là những người liên quan trong tình huống này?"
+      task:
+        - "Nhiệm vụ cụ thể của Anh/Chị là gì?"
+        - "Mục tiêu Anh/Chị cần đạt được là gì?"
+        - "Anh/Chị đóng vai trò gì trong tình huống này?"
+      action:
+        - "Anh/Chị đã làm gì cụ thể?"
+        - "Anh/Chị đã cân nhắc những lựa chọn nào?"
+        - "Tại sao Anh/Chị quyết định làm như vậy?"
+      result:
+        - "Kết quả cụ thể là gì?"
+        - "Có số liệu nào đo lường được không?"
+        - "Nếu làm lại, Anh/Chị sẽ làm gì khác?"
+
+    closing_script: |
+      Cảm ơn Anh/Chị đã chia sẻ. Phần phỏng vấn hành vi đã hoàn thành.
+      Anh/Chị còn câu hỏi nào về phần phỏng vấn này không?
+
+  case_study:
+    intro_script: |
+      Chào Anh/Chị, đây là phần Case Study của Assessment Center.
+
+      Anh/Chị sẽ đóng vai trò {role} tại VietinBank Chi nhánh Đông Sài Gòn.
+
+      Chi nhánh đang đối mặt với một số thách thức kinh doanh và cần xây dựng kế hoạch cho năm 2026.
+
+      Anh/Chị sẽ có 60 phút để đọc tài liệu và trả lời các câu hỏi cá nhân.
+      Sau đó sẽ là 60 phút thảo luận nhóm với các ứng viên khác.
+
+      Hãy đọc kỹ tài liệu case study trước khi bắt đầu.

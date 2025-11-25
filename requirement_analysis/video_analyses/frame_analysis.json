@@ -1,0 +1,591 @@
+{
+  "metadata": {
+    "analysis_date": "2025-11-21T14:59:31.528Z",
+    "total_frames": 25,
+    "source_video": "/Users/ha/projects/viettinbank-ai-interviewer/7232043183395.mp4",
+    "frames_directory": "/Users/ha/projects/viettinbank-ai-interviewer/requirement_analysis/frames",
+    "ai_model": "gemini-2.0-flash-exp"
+  },
+  "frame_analyses": [
+    {
+      "frame_name": "interval_001.jpg",
+      "frame_path": "/Users/ha/projects/viettinbank-ai-interviewer/requirement_analysis/frames/interval_001.jpg",
+      "frame_type": "interval",
+      "timestamp": "00:00:00",
+      "description": "Regular interval frame #001 (30-second intervals)",
+      "analysis": {
+        "error": "[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash-exp\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash-exp\nPlease retry in 45.535599186s. [{\"@type\":\"type.googleapis.com/google.rpc.Help\",\"links\":[{\"description\":\"Learn more about Gemini API quotas\",\"url\":\"https://ai.google.dev/gemini-api/docs/rate-limits\"}]},{\"@type\":\"type.googleapis.com/google.rpc.QuotaFailure\",\"violations\":[{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\"quotaId\":\"GenerateRequestsPerMinutePerProjectPerModel-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}},{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count\",\"quotaId\":\"GenerateContentInputTokensPerModelPerMinute-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}}]},{\"@type\":\"type.googleapis.com/google.rpc.RetryInfo\",\"retryDelay\":\"45s\"}]",
+        "ui_components": [],
+        "screen_content": "",
+        "user_flow_step": "",
+        "visible_features": [],
+        "design_notes": "",
+        "technical_details": "",
+        "key_insights": []
+      }
+    },
+    {
+      "frame_name": "interval_002.jpg",
+      "frame_path": "/Users/ha/projects/viettinbank-ai-interviewer/requirement_analysis/frames/interval_002.jpg",
+      "frame_type": "interval",
+      "timestamp": "00:00:30",
+      "description": "Regular interval frame #002 (30-second intervals)",
+      "analysis": {
+        "error": "[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash-exp\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash-exp\nPlease retry in 44.396038891s. [{\"@type\":\"type.googleapis.com/google.rpc.Help\",\"links\":[{\"description\":\"Learn more about Gemini API quotas\",\"url\":\"https://ai.google.dev/gemini-api/docs/rate-limits\"}]},{\"@type\":\"type.googleapis.com/google.rpc.QuotaFailure\",\"violations\":[{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count\",\"quotaId\":\"GenerateContentInputTokensPerModelPerMinute-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}},{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\"quotaId\":\"GenerateRequestsPerMinutePerProjectPerModel-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}}]},{\"@type\":\"type.googleapis.com/google.rpc.RetryInfo\",\"retryDelay\":\"44s\"}]",
+        "ui_components": [],
+        "screen_content": "",
+        "user_flow_step": "",
+        "visible_features": [],
+        "design_notes": "",
+        "technical_details": "",
+        "key_insights": []
+      }
+    },
+    {
+      "frame_name": "key_minute_1_01-00.jpg",
+      "frame_path": "/Users/ha/projects/viettinbank-ai-interviewer/requirement_analysis/frames/key_minute_1_01-00.jpg",
+      "frame_type": "key_moment",
+      "timestamp": "00:01",
+      "description": "Demo content at minute 1",
+      "analysis": {
+        "error": "[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash-exp\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash-exp\nPlease retry in 53.665228287s. [{\"@type\":\"type.googleapis.com/google.rpc.Help\",\"links\":[{\"description\":\"Learn more about Gemini API quotas\",\"url\":\"https://ai.google.dev/gemini-api/docs/rate-limits\"}]},{\"@type\":\"type.googleapis.com/google.rpc.QuotaFailure\",\"violations\":[{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\"quotaId\":\"GenerateRequestsPerMinutePerProjectPerModel-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}},{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count\",\"quotaId\":\"GenerateContentInputTokensPerModelPerMinute-FreeTier\",\"quotaDimensions\":{\"model\":\"gemini-2.0-flash-exp\",\"location\":\"global\"}}]},{\"@type\":\"type.googleapis.com/google.rpc.RetryInfo\",\"retryDelay\":\"53s\"}]",
+        "ui_components": [],
+        "screen_content": "",
+        "user_flow_step": "",
+        "visible_features": [],
+        "design_notes": "",
+        "technical_details": "",
+        "key_insights": []
+      }
+    },
+    {
+      "frame_name": "interval_003.jpg",
+      "frame_path": "/Users/ha/projects/viettinbank-ai-interviewer/requirement_analysis/frames/interval_003.jpg",
+      "frame_type": "interval",
+      "timestamp": "00:01:00",
+      "description": "Regular interval frame #003 (30-second intervals)",
+      "analysis": {
+        "error": "[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash-exp\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash-exp\nPlease retry in 43.266928162s. [{\"@type\":\"type.googleapis.com/google.rpc.Help\",\"links\":[{\"description\":\"Learn more about Gemini API quotas\",\"url\":\"https://ai.google.dev/gemini-api/docs/rate-limits\"}]},{\"@type\":\"type.googleapis.com/google.rpc.QuotaFailure\",\"violations\":[{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count\",\"quotaId\":\"GenerateContentInputTokensPerModelPerMinute-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}},{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\"quotaId\":\"GenerateRequestsPerMinutePerProjectPerModel-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}}]},{\"@type\":\"type.googleapis.com/google.rpc.RetryInfo\",\"retryDelay\":\"43s\"}]",
+        "ui_components": [],
+        "screen_content": "",
+        "user_flow_step": "",
+        "visible_features": [],
+        "design_notes": "",
+        "technical_details": "",
+        "key_insights": []
+      }
+    },
+    {
+      "frame_name": "interval_004.jpg",
+      "frame_path": "/Users/ha/projects/viettinbank-ai-interviewer/requirement_analysis/frames/interval_004.jpg",
+      "frame_type": "interval",
+      "timestamp": "00:01:30",
+      "description": "Regular interval frame #004 (30-second intervals)",
+      "analysis": {
+        "error": "[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash-exp\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash-exp\nPlease retry in 42.108286876s. [{\"@type\":\"type.googleapis.com/google.rpc.Help\",\"links\":[{\"description\":\"Learn more about Gemini API quotas\",\"url\":\"https://ai.google.dev/gemini-api/docs/rate-limits\"}]},{\"@type\":\"type.googleapis.com/google.rpc.QuotaFailure\",\"violations\":[{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count\",\"quotaId\":\"GenerateContentInputTokensPerModelPerMinute-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}},{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\"quotaId\":\"GenerateRequestsPerMinutePerProjectPerModel-FreeTier\",\"quotaDimensions\":{\"model\":\"gemini-2.0-flash-exp\",\"location\":\"global\"}}]},{\"@type\":\"type.googleapis.com/google.rpc.RetryInfo\",\"retryDelay\":\"42s\"}]",
+        "ui_components": [],
+        "screen_content": "",
+        "user_flow_step": "",
+        "visible_features": [],
+        "design_notes": "",
+        "technical_details": "",
+        "key_insights": []
+      }
+    },
+    {
+      "frame_name": "key_minute_2_02-00.jpg",
+      "frame_path": "/Users/ha/projects/viettinbank-ai-interviewer/requirement_analysis/frames/key_minute_2_02-00.jpg",
+      "frame_type": "key_moment",
+      "timestamp": "00:02",
+      "description": "Demo content at minute 2",
+      "analysis": {
+        "error": "[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash-exp\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash-exp\nPlease retry in 52.497089039s. [{\"@type\":\"type.googleapis.com/google.rpc.Help\",\"links\":[{\"description\":\"Learn more about Gemini API quotas\",\"url\":\"https://ai.google.dev/gemini-api/docs/rate-limits\"}]},{\"@type\":\"type.googleapis.com/google.rpc.QuotaFailure\",\"violations\":[{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count\",\"quotaId\":\"GenerateContentInputTokensPerModelPerMinute-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}},{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\"quotaId\":\"GenerateRequestsPerMinutePerProjectPerModel-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}}]},{\"@type\":\"type.googleapis.com/google.rpc.RetryInfo\",\"retryDelay\":\"52s\"}]",
+        "ui_components": [],
+        "screen_content": "",
+        "user_flow_step": "",
+        "visible_features": [],
+        "design_notes": "",
+        "technical_details": "",
+        "key_insights": []
+      }
+    },
+    {
+      "frame_name": "interval_005.jpg",
+      "frame_path": "/Users/ha/projects/viettinbank-ai-interviewer/requirement_analysis/frames/interval_005.jpg",
+      "frame_type": "interval",
+      "timestamp": "00:02:00",
+      "description": "Regular interval frame #005 (30-second intervals)",
+      "analysis": {
+        "error": "[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash-exp\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash-exp\nPlease retry in 40.965454825s. [{\"@type\":\"type.googleapis.com/google.rpc.Help\",\"links\":[{\"description\":\"Learn more about Gemini API quotas\",\"url\":\"https://ai.google.dev/gemini-api/docs/rate-limits\"}]},{\"@type\":\"type.googleapis.com/google.rpc.QuotaFailure\",\"violations\":[{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\"quotaId\":\"GenerateRequestsPerMinutePerProjectPerModel-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}},{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count\",\"quotaId\":\"GenerateContentInputTokensPerModelPerMinute-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}}]},{\"@type\":\"type.googleapis.com/google.rpc.RetryInfo\",\"retryDelay\":\"40s\"}]",
+        "ui_components": [],
+        "screen_content": "",
+        "user_flow_step": "",
+        "visible_features": [],
+        "design_notes": "",
+        "technical_details": "",
+        "key_insights": []
+      }
+    },
+    {
+      "frame_name": "interval_006.jpg",
+      "frame_path": "/Users/ha/projects/viettinbank-ai-interviewer/requirement_analysis/frames/interval_006.jpg",
+      "frame_type": "interval",
+      "timestamp": "00:02:30",
+      "description": "Regular interval frame #006 (30-second intervals)",
+      "analysis": {
+        "error": "[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash-exp\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash-exp\nPlease retry in 39.834359922s. [{\"@type\":\"type.googleapis.com/google.rpc.Help\",\"links\":[{\"description\":\"Learn more about Gemini API quotas\",\"url\":\"https://ai.google.dev/gemini-api/docs/rate-limits\"}]},{\"@type\":\"type.googleapis.com/google.rpc.QuotaFailure\",\"violations\":[{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count\",\"quotaId\":\"GenerateContentInputTokensPerModelPerMinute-FreeTier\",\"quotaDimensions\":{\"model\":\"gemini-2.0-flash-exp\",\"location\":\"global\"}},{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\"quotaId\":\"GenerateRequestsPerMinutePerProjectPerModel-FreeTier\",\"quotaDimensions\":{\"model\":\"gemini-2.0-flash-exp\",\"location\":\"global\"}}]},{\"@type\":\"type.googleapis.com/google.rpc.RetryInfo\",\"retryDelay\":\"39s\"}]",
+        "ui_components": [],
+        "screen_content": "",
+        "user_flow_step": "",
+        "visible_features": [],
+        "design_notes": "",
+        "technical_details": "",
+        "key_insights": []
+      }
+    },
+    {
+      "frame_name": "key_minute_3_03-00.jpg",
+      "frame_path": "/Users/ha/projects/viettinbank-ai-interviewer/requirement_analysis/frames/key_minute_3_03-00.jpg",
+      "frame_type": "key_moment",
+      "timestamp": "00:03",
+      "description": "Demo content at minute 3",
+      "analysis": {
+        "error": "[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash-exp\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash-exp\nPlease retry in 51.335315236s. [{\"@type\":\"type.googleapis.com/google.rpc.Help\",\"links\":[{\"description\":\"Learn more about Gemini API quotas\",\"url\":\"https://ai.google.dev/gemini-api/docs/rate-limits\"}]},{\"@type\":\"type.googleapis.com/google.rpc.QuotaFailure\",\"violations\":[{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\"quotaId\":\"GenerateRequestsPerMinutePerProjectPerModel-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}},{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count\",\"quotaId\":\"GenerateContentInputTokensPerModelPerMinute-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}}]},{\"@type\":\"type.googleapis.com/google.rpc.RetryInfo\",\"retryDelay\":\"51s\"}]",
+        "ui_components": [],
+        "screen_content": "",
+        "user_flow_step": "",
+        "visible_features": [],
+        "design_notes": "",
+        "technical_details": "",
+        "key_insights": []
+      }
+    },
+    {
+      "frame_name": "interval_007.jpg",
+      "frame_path": "/Users/ha/projects/viettinbank-ai-interviewer/requirement_analysis/frames/interval_007.jpg",
+      "frame_type": "interval",
+      "timestamp": "00:03:00",
+      "description": "Regular interval frame #007 (30-second intervals)",
+      "analysis": {
+        "error": "[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash-exp\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash-exp\nPlease retry in 38.684439527s. [{\"@type\":\"type.googleapis.com/google.rpc.Help\",\"links\":[{\"description\":\"Learn more about Gemini API quotas\",\"url\":\"https://ai.google.dev/gemini-api/docs/rate-limits\"}]},{\"@type\":\"type.googleapis.com/google.rpc.QuotaFailure\",\"violations\":[{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\"quotaId\":\"GenerateRequestsPerMinutePerProjectPerModel-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}},{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count\",\"quotaId\":\"GenerateContentInputTokensPerModelPerMinute-FreeTier\",\"quotaDimensions\":{\"model\":\"gemini-2.0-flash-exp\",\"location\":\"global\"}}]},{\"@type\":\"type.googleapis.com/google.rpc.RetryInfo\",\"retryDelay\":\"38s\"}]",
+        "ui_components": [],
+        "screen_content": "",
+        "user_flow_step": "",
+        "visible_features": [],
+        "design_notes": "",
+        "technical_details": "",
+        "key_insights": []
+      }
+    },
+    {
+      "frame_name": "interval_008.jpg",
+      "frame_path": "/Users/ha/projects/viettinbank-ai-interviewer/requirement_analysis/frames/interval_008.jpg",
+      "frame_type": "interval",
+      "timestamp": "00:03:30",
+      "description": "Regular interval frame #008 (30-second intervals)",
+      "analysis": {
+        "error": "[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash-exp\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash-exp\nPlease retry in 37.524751974s. [{\"@type\":\"type.googleapis.com/google.rpc.Help\",\"links\":[{\"description\":\"Learn more about Gemini API quotas\",\"url\":\"https://ai.google.dev/gemini-api/docs/rate-limits\"}]},{\"@type\":\"type.googleapis.com/google.rpc.QuotaFailure\",\"violations\":[{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count\",\"quotaId\":\"GenerateContentInputTokensPerModelPerMinute-FreeTier\",\"quotaDimensions\":{\"model\":\"gemini-2.0-flash-exp\",\"location\":\"global\"}},{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\"quotaId\":\"GenerateRequestsPerMinutePerProjectPerModel-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}}]},{\"@type\":\"type.googleapis.com/google.rpc.RetryInfo\",\"retryDelay\":\"37s\"}]",
+        "ui_components": [],
+        "screen_content": "",
+        "user_flow_step": "",
+        "visible_features": [],
+        "design_notes": "",
+        "technical_details": "",
+        "key_insights": []
+      }
+    },
+    {
+      "frame_name": "key_minute_4_04-00.jpg",
+      "frame_path": "/Users/ha/projects/viettinbank-ai-interviewer/requirement_analysis/frames/key_minute_4_04-00.jpg",
+      "frame_type": "key_moment",
+      "timestamp": "00:04",
+      "description": "Demo content at minute 4",
+      "analysis": {
+        "error": "[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash-exp\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash-exp\nPlease retry in 50.167249787s. [{\"@type\":\"type.googleapis.com/google.rpc.Help\",\"links\":[{\"description\":\"Learn more about Gemini API quotas\",\"url\":\"https://ai.google.dev/gemini-api/docs/rate-limits\"}]},{\"@type\":\"type.googleapis.com/google.rpc.QuotaFailure\",\"violations\":[{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count\",\"quotaId\":\"GenerateContentInputTokensPerModelPerMinute-FreeTier\",\"quotaDimensions\":{\"model\":\"gemini-2.0-flash-exp\",\"location\":\"global\"}},{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\"quotaId\":\"GenerateRequestsPerMinutePerProjectPerModel-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}}]},{\"@type\":\"type.googleapis.com/google.rpc.RetryInfo\",\"retryDelay\":\"50s\"}]",
+        "ui_components": [],
+        "screen_content": "",
+        "user_flow_step": "",
+        "visible_features": [],
+        "design_notes": "",
+        "technical_details": "",
+        "key_insights": []
+      }
+    },
+    {
+      "frame_name": "interval_009.jpg",
+      "frame_path": "/Users/ha/projects/viettinbank-ai-interviewer/requirement_analysis/frames/interval_009.jpg",
+      "frame_type": "interval",
+      "timestamp": "00:04:00",
+      "description": "Regular interval frame #009 (30-second intervals)",
+      "analysis": {
+        "error": "[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash-exp\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash-exp\nPlease retry in 36.388341213s. [{\"@type\":\"type.googleapis.com/google.rpc.Help\",\"links\":[{\"description\":\"Learn more about Gemini API quotas\",\"url\":\"https://ai.google.dev/gemini-api/docs/rate-limits\"}]},{\"@type\":\"type.googleapis.com/google.rpc.QuotaFailure\",\"violations\":[{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count\",\"quotaId\":\"GenerateContentInputTokensPerModelPerMinute-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}},{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\"quotaId\":\"GenerateRequestsPerMinutePerProjectPerModel-FreeTier\",\"quotaDimensions\":{\"model\":\"gemini-2.0-flash-exp\",\"location\":\"global\"}}]},{\"@type\":\"type.googleapis.com/google.rpc.RetryInfo\",\"retryDelay\":\"36s\"}]",
+        "ui_components": [],
+        "screen_content": "",
+        "user_flow_step": "",
+        "visible_features": [],
+        "design_notes": "",
+        "technical_details": "",
+        "key_insights": []
+      }
+    },
+    {
+      "frame_name": "interval_010.jpg",
+      "frame_path": "/Users/ha/projects/viettinbank-ai-interviewer/requirement_analysis/frames/interval_010.jpg",
+      "frame_type": "interval",
+      "timestamp": "00:04:30",
+      "description": "Regular interval frame #010 (30-second intervals)",
+      "analysis": {
+        "error": "[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash-exp\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash-exp\nPlease retry in 35.24288022s. [{\"@type\":\"type.googleapis.com/google.rpc.Help\",\"links\":[{\"description\":\"Learn more about Gemini API quotas\",\"url\":\"https://ai.google.dev/gemini-api/docs/rate-limits\"}]},{\"@type\":\"type.googleapis.com/google.rpc.QuotaFailure\",\"violations\":[{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\"quotaId\":\"GenerateRequestsPerMinutePerProjectPerModel-FreeTier\",\"quotaDimensions\":{\"model\":\"gemini-2.0-flash-exp\",\"location\":\"global\"}},{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count\",\"quotaId\":\"GenerateContentInputTokensPerModelPerMinute-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}}]},{\"@type\":\"type.googleapis.com/google.rpc.RetryInfo\",\"retryDelay\":\"35s\"}]",
+        "ui_components": [],
+        "screen_content": "",
+        "user_flow_step": "",
+        "visible_features": [],
+        "design_notes": "",
+        "technical_details": "",
+        "key_insights": []
+      }
+    },
+    {
+      "frame_name": "key_minute_5_05-00.jpg",
+      "frame_path": "/Users/ha/projects/viettinbank-ai-interviewer/requirement_analysis/frames/key_minute_5_05-00.jpg",
+      "frame_type": "key_moment",
+      "timestamp": "00:05",
+      "description": "Demo content at minute 5",
+      "analysis": {
+        "error": "[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash-exp\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash-exp\nPlease retry in 49.003088775s. [{\"@type\":\"type.googleapis.com/google.rpc.Help\",\"links\":[{\"description\":\"Learn more about Gemini API quotas\",\"url\":\"https://ai.google.dev/gemini-api/docs/rate-limits\"}]},{\"@type\":\"type.googleapis.com/google.rpc.QuotaFailure\",\"violations\":[{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count\",\"quotaId\":\"GenerateContentInputTokensPerModelPerMinute-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}},{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\"quotaId\":\"GenerateRequestsPerMinutePerProjectPerModel-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}}]},{\"@type\":\"type.googleapis.com/google.rpc.RetryInfo\",\"retryDelay\":\"49s\"}]",
+        "ui_components": [],
+        "screen_content": "",
+        "user_flow_step": "",
+        "visible_features": [],
+        "design_notes": "",
+        "technical_details": "",
+        "key_insights": []
+      }
+    },
+    {
+      "frame_name": "interval_011.jpg",
+      "frame_path": "/Users/ha/projects/viettinbank-ai-interviewer/requirement_analysis/frames/interval_011.jpg",
+      "frame_type": "interval",
+      "timestamp": "00:05:00",
+      "description": "Regular interval frame #011 (30-second intervals)",
+      "analysis": {
+        "error": "[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash-exp\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash-exp\nPlease retry in 34.084786324s. [{\"@type\":\"type.googleapis.com/google.rpc.Help\",\"links\":[{\"description\":\"Learn more about Gemini API quotas\",\"url\":\"https://ai.google.dev/gemini-api/docs/rate-limits\"}]},{\"@type\":\"type.googleapis.com/google.rpc.QuotaFailure\",\"violations\":[{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\"quotaId\":\"GenerateRequestsPerMinutePerProjectPerModel-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}},{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count\",\"quotaId\":\"GenerateContentInputTokensPerModelPerMinute-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}}]},{\"@type\":\"type.googleapis.com/google.rpc.RetryInfo\",\"retryDelay\":\"34s\"}]",
+        "ui_components": [],
+        "screen_content": "",
+        "user_flow_step": "",
+        "visible_features": [],
+        "design_notes": "",
+        "technical_details": "",
+        "key_insights": []
+      }
+    },
+    {
+      "frame_name": "interval_012.jpg",
+      "frame_path": "/Users/ha/projects/viettinbank-ai-interviewer/requirement_analysis/frames/interval_012.jpg",
+      "frame_type": "interval",
+      "timestamp": "00:05:30",
+      "description": "Regular interval frame #012 (30-second intervals)",
+      "analysis": {
+        "error": "[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash-exp\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash-exp\nPlease retry in 32.957576768s. [{\"@type\":\"type.googleapis.com/google.rpc.Help\",\"links\":[{\"description\":\"Learn more about Gemini API quotas\",\"url\":\"https://ai.google.dev/gemini-api/docs/rate-limits\"}]},{\"@type\":\"type.googleapis.com/google.rpc.QuotaFailure\",\"violations\":[{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\"quotaId\":\"GenerateRequestsPerMinutePerProjectPerModel-FreeTier\",\"quotaDimensions\":{\"model\":\"gemini-2.0-flash-exp\",\"location\":\"global\"}},{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count\",\"quotaId\":\"GenerateContentInputTokensPerModelPerMinute-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}}]},{\"@type\":\"type.googleapis.com/google.rpc.RetryInfo\",\"retryDelay\":\"32s\"}]",
+        "ui_components": [],
+        "screen_content": "",
+        "user_flow_step": "",
+        "visible_features": [],
+        "design_notes": "",
+        "technical_details": "",
+        "key_insights": []
+      }
+    },
+    {
+      "frame_name": "key_minute_6_06-00.jpg",
+      "frame_path": "/Users/ha/projects/viettinbank-ai-interviewer/requirement_analysis/frames/key_minute_6_06-00.jpg",
+      "frame_type": "key_moment",
+      "timestamp": "00:06",
+      "description": "Demo content at minute 6",
+      "analysis": {
+        "error": "[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash-exp\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash-exp\nPlease retry in 47.857335699s. [{\"@type\":\"type.googleapis.com/google.rpc.Help\",\"links\":[{\"description\":\"Learn more about Gemini API quotas\",\"url\":\"https://ai.google.dev/gemini-api/docs/rate-limits\"}]},{\"@type\":\"type.googleapis.com/google.rpc.QuotaFailure\",\"violations\":[{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\"quotaId\":\"GenerateRequestsPerMinutePerProjectPerModel-FreeTier\",\"quotaDimensions\":{\"model\":\"gemini-2.0-flash-exp\",\"location\":\"global\"}},{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count\",\"quotaId\":\"GenerateContentInputTokensPerModelPerMinute-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}}]},{\"@type\":\"type.googleapis.com/google.rpc.RetryInfo\",\"retryDelay\":\"47s\"}]",
+        "ui_components": [],
+        "screen_content": "",
+        "user_flow_step": "",
+        "visible_features": [],
+        "design_notes": "",
+        "technical_details": "",
+        "key_insights": []
+      }
+    },
+    {
+      "frame_name": "interval_013.jpg",
+      "frame_path": "/Users/ha/projects/viettinbank-ai-interviewer/requirement_analysis/frames/interval_013.jpg",
+      "frame_type": "interval",
+      "timestamp": "00:06:00",
+      "description": "Regular interval frame #013 (30-second intervals)",
+      "analysis": {
+        "error": "[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash-exp\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash-exp\nPlease retry in 31.794440343s. [{\"@type\":\"type.googleapis.com/google.rpc.Help\",\"links\":[{\"description\":\"Learn more about Gemini API quotas\",\"url\":\"https://ai.google.dev/gemini-api/docs/rate-limits\"}]},{\"@type\":\"type.googleapis.com/google.rpc.QuotaFailure\",\"violations\":[{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count\",\"quotaId\":\"GenerateContentInputTokensPerModelPerMinute-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}},{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\"quotaId\":\"GenerateRequestsPerMinutePerProjectPerModel-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}}]},{\"@type\":\"type.googleapis.com/google.rpc.RetryInfo\",\"retryDelay\":\"31s\"}]",
+        "ui_components": [],
+        "screen_content": "",
+        "user_flow_step": "",
+        "visible_features": [],
+        "design_notes": "",
+        "technical_details": "",
+        "key_insights": []
+      }
+    },
+    {
+      "frame_name": "interval_014.jpg",
+      "frame_path": "/Users/ha/projects/viettinbank-ai-interviewer/requirement_analysis/frames/interval_014.jpg",
+      "frame_type": "interval",
+      "timestamp": "00:06:30",
+      "description": "Regular interval frame #014 (30-second intervals)",
+      "analysis": {
+        "error": "[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash-exp\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash-exp\nPlease retry in 30.632616116s. [{\"@type\":\"type.googleapis.com/google.rpc.Help\",\"links\":[{\"description\":\"Learn more about Gemini API quotas\",\"url\":\"https://ai.google.dev/gemini-api/docs/rate-limits\"}]},{\"@type\":\"type.googleapis.com/google.rpc.QuotaFailure\",\"violations\":[{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count\",\"quotaId\":\"GenerateContentInputTokensPerModelPerMinute-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}},{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\"quotaId\":\"GenerateRequestsPerMinutePerProjectPerModel-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}}]},{\"@type\":\"type.googleapis.com/google.rpc.RetryInfo\",\"retryDelay\":\"30s\"}]",
+        "ui_components": [],
+        "screen_content": "",
+        "user_flow_step": "",
+        "visible_features": [],
+        "design_notes": "",
+        "technical_details": "",
+        "key_insights": []
+      }
+    },
+    {
+      "frame_name": "key_minute_7_07-00.jpg",
+      "frame_path": "/Users/ha/projects/viettinbank-ai-interviewer/requirement_analysis/frames/key_minute_7_07-00.jpg",
+      "frame_type": "key_moment",
+      "timestamp": "00:07",
+      "description": "Demo content at minute 7",
+      "analysis": {
+        "error": "[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash-exp\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash-exp\nPlease retry in 46.687600381s. [{\"@type\":\"type.googleapis.com/google.rpc.Help\",\"links\":[{\"description\":\"Learn more about Gemini API quotas\",\"url\":\"https://ai.google.dev/gemini-api/docs/rate-limits\"}]},{\"@type\":\"type.googleapis.com/google.rpc.QuotaFailure\",\"violations\":[{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count\",\"quotaId\":\"GenerateContentInputTokensPerModelPerMinute-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}},{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\"quotaId\":\"GenerateRequestsPerMinutePerProjectPerModel-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}}]},{\"@type\":\"type.googleapis.com/google.rpc.RetryInfo\",\"retryDelay\":\"46s\"}]",
+        "ui_components": [],
+        "screen_content": "",
+        "user_flow_step": "",
+        "visible_features": [],
+        "design_notes": "",
+        "technical_details": "",
+        "key_insights": []
+      }
+    },
+    {
+      "frame_name": "interval_015.jpg",
+      "frame_path": "/Users/ha/projects/viettinbank-ai-interviewer/requirement_analysis/frames/interval_015.jpg",
+      "frame_type": "interval",
+      "timestamp": "00:07:00",
+      "description": "Regular interval frame #015 (30-second intervals)",
+      "analysis": {
+        "error": "[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash-exp\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash-exp\nPlease retry in 29.479841052s. [{\"@type\":\"type.googleapis.com/google.rpc.Help\",\"links\":[{\"description\":\"Learn more about Gemini API quotas\",\"url\":\"https://ai.google.dev/gemini-api/docs/rate-limits\"}]},{\"@type\":\"type.googleapis.com/google.rpc.QuotaFailure\",\"violations\":[{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count\",\"quotaId\":\"GenerateContentInputTokensPerModelPerMinute-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}},{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\"quotaId\":\"GenerateRequestsPerMinutePerProjectPerModel-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}}]},{\"@type\":\"type.googleapis.com/google.rpc.RetryInfo\",\"retryDelay\":\"29s\"}]",
+        "ui_components": [],
+        "screen_content": "",
+        "user_flow_step": "",
+        "visible_features": [],
+        "design_notes": "",
+        "technical_details": "",
+        "key_insights": []
+      }
+    },
+    {
+      "frame_name": "key_intro_00-10.jpg",
+      "frame_path": "/Users/ha/projects/viettinbank-ai-interviewer/requirement_analysis/frames/key_intro_00-10.jpg",
+      "frame_type": "key_moment",
+      "timestamp": "00:10",
+      "description": "Introduction/opening of the demo",
+      "analysis": {
+        "error": "[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash-exp\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash-exp\nPlease retry in 54.803821688s. [{\"@type\":\"type.googleapis.com/google.rpc.Help\",\"links\":[{\"description\":\"Learn more about Gemini API quotas\",\"url\":\"https://ai.google.dev/gemini-api/docs/rate-limits\"}]},{\"@type\":\"type.googleapis.com/google.rpc.QuotaFailure\",\"violations\":[{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count\",\"quotaId\":\"GenerateContentInputTokensPerModelPerMinute-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}},{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\"quotaId\":\"GenerateRequestsPerMinutePerProjectPerModel-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}}]},{\"@type\":\"type.googleapis.com/google.rpc.RetryInfo\",\"retryDelay\":\"54s\"}]",
+        "ui_components": [],
+        "screen_content": "",
+        "user_flow_step": "",
+        "visible_features": [],
+        "design_notes": "",
+        "technical_details": "",
+        "key_insights": []
+      }
+    },
+    {
+      "frame_name": "key_ending_07-30.jpg",
+      "frame_path": "/Users/ha/projects/viettinbank-ai-interviewer/requirement_analysis/frames/key_ending_07-30.jpg",
+      "frame_type": "key_moment",
+      "timestamp": "07:30",
+      "description": "End of demo conversation",
+      "analysis": {
+        "error": "[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash-exp\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash-exp\nPlease retry in 55.94001116s. [{\"@type\":\"type.googleapis.com/google.rpc.Help\",\"links\":[{\"description\":\"Learn more about Gemini API quotas\",\"url\":\"https://ai.google.dev/gemini-api/docs/rate-limits\"}]},{\"@type\":\"type.googleapis.com/google.rpc.QuotaFailure\",\"violations\":[{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\"quotaId\":\"GenerateRequestsPerMinutePerProjectPerModel-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}},{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count\",\"quotaId\":\"GenerateContentInputTokensPerModelPerMinute-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}}]},{\"@type\":\"type.googleapis.com/google.rpc.RetryInfo\",\"retryDelay\":\"55s\"}]",
+        "ui_components": [],
+        "screen_content": "",
+        "user_flow_step": "",
+        "visible_features": [],
+        "design_notes": "",
+        "technical_details": "",
+        "key_insights": []
+      }
+    },
+    {
+      "frame_name": "thumbnail.jpg",
+      "frame_path": "/Users/ha/projects/viettinbank-ai-interviewer/requirement_analysis/frames/thumbnail.jpg",
+      "frame_type": "thumbnail",
+      "timestamp": "unknown",
+      "description": "Video thumbnail - representative image of the demo",
+      "analysis": {
+        "error": "[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash-exp\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash-exp\nPlease retry in 57.121326225s. [{\"@type\":\"type.googleapis.com/google.rpc.Help\",\"links\":[{\"description\":\"Learn more about Gemini API quotas\",\"url\":\"https://ai.google.dev/gemini-api/docs/rate-limits\"}]},{\"@type\":\"type.googleapis.com/google.rpc.QuotaFailure\",\"violations\":[{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count\",\"quotaId\":\"GenerateContentInputTokensPerModelPerMinute-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.0-flash-exp\"}},{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\"quotaId\":\"GenerateRequestsPerMinutePerProjectPerModel-FreeTier\",\"quotaDimensions\":{\"model\":\"gemini-2.0-flash-exp\",\"location\":\"global\"}}]},{\"@type\":\"type.googleapis.com/google.rpc.RetryInfo\",\"retryDelay\":\"57s\"}]",
+        "ui_components": [],
+        "screen_content": "",
+        "user_flow_step": "",
+        "visible_features": [],
+        "design_notes": "",
+        "technical_details": "",
+        "key_insights": []
+      }
+    }
+  ],
+  "summary": "Analyzed 25 frames from AI interview demo video.\nIdentified 0 unique features and 0 UI component types.\nThe demo shows a comprehensive AI-powered interview system with candidate assessment,\nreal-time transcription, scoring algorithms, and detailed reporting capabilities.",
+  "ui_patterns": [],
+  "features_identified": [],
+  "user_journey": [
+    {
+      "timestamp": "00:00:00",
+      "step": "Unknown step",
+      "description": "Regular interval frame #001 (30-second intervals)",
+      "key_action": "No specific action identified"
+    },
+    {
+      "timestamp": "00:00:30",
+      "step": "Unknown step",
+      "description": "Regular interval frame #002 (30-second intervals)",
+      "key_action": "No specific action identified"
+    },
+    {
+      "timestamp": "00:01",
+      "step": "Unknown step",
+      "description": "Demo content at minute 1",
+      "key_action": "No specific action identified"
+    },
+    {
+      "timestamp": "00:01:00",
+      "step": "Unknown step",
+      "description": "Regular interval frame #003 (30-second intervals)",
+      "key_action": "No specific action identified"
+    },
+    {
+      "timestamp": "00:01:30",
+      "step": "Unknown step",
+      "description": "Regular interval frame #004 (30-second intervals)",
+      "key_action": "No specific action identified"
+    },
+    {
+      "timestamp": "00:02",
+      "step": "Unknown step",
+      "description": "Demo content at minute 2",
+      "key_action": "No specific action identified"
+    },
+    {
+      "timestamp": "00:02:00",
+      "step": "Unknown step",
+      "description": "Regular interval frame #005 (30-second intervals)",
+      "key_action": "No specific action identified"
+    },
+    {
+      "timestamp": "00:02:30",
+      "step": "Unknown step",
+      "description": "Regular interval frame #006 (30-second intervals)",
+      "key_action": "No specific action identified"
+    },
+    {
+      "timestamp": "00:03",
+      "step": "Unknown step",
+      "description": "Demo content at minute 3",
+      "key_action": "No specific action identified"
+    },
+    {
+      "timestamp": "00:03:00",
+      "step": "Unknown step",
+      "description": "Regular interval frame #007 (30-second intervals)",
+      "key_action": "No specific action identified"
+    },
+    {
+      "timestamp": "00:03:30",
+      "step": "Unknown step",
+      "description": "Regular interval frame #008 (30-second intervals)",
+      "key_action": "No specific action identified"
+    },
+    {
+      "timestamp": "00:04",
+      "step": "Unknown step",
+      "description": "Demo content at minute 4",
+      "key_action": "No specific action identified"
+    },
+    {
+      "timestamp": "00:04:00",
+      "step": "Unknown step",
+      "description": "Regular interval frame #009 (30-second intervals)",
+      "key_action": "No specific action identified"
+    },
+    {
+      "timestamp": "00:04:30",
+      "step": "Unknown step",
+      "description": "Regular interval frame #010 (30-second intervals)",
+      "key_action": "No specific action identified"
+    },
+    {
+      "timestamp": "00:05",
+      "step": "Unknown step",
+      "description": "Demo content at minute 5",
+      "key_action": "No specific action identified"
+    },
+    {
+      "timestamp": "00:05:00",
+      "step": "Unknown step",
+      "description": "Regular interval frame #011 (30-second intervals)",
+      "key_action": "No specific action identified"
+    },
+    {
+      "timestamp": "00:05:30",
+      "step": "Unknown step",
+      "description": "Regular interval frame #012 (30-second intervals)",
+      "key_action": "No specific action identified"
+    },
+    {
+      "timestamp": "00:06",
+      "step": "Unknown step",
+      "description": "Demo content at minute 6",
+      "key_action": "No specific action identified"
+    },
+    {
+      "timestamp": "00:06:00",
+      "step": "Unknown step",
+      "description": "Regular interval frame #013 (30-second intervals)",
+      "key_action": "No specific action identified"
+    },
+    {
+      "timestamp": "00:06:30",
+      "step": "Unknown step",
+      "description": "Regular interval frame #014 (30-second intervals)",
+      "key_action": "No specific action identified"
+    },
+    {
+      "timestamp": "00:07",
+      "step": "Unknown step",
+      "description": "Demo content at minute 7",
+      "key_action": "No specific action identified"
+    },
+    {
+      "timestamp": "00:07:00",
+      "step": "Unknown step",
+      "description": "Regular interval frame #015 (30-second intervals)",
+      "key_action": "No specific action identified"
+    },
+    {
+      "timestamp": "00:10",
+      "step": "Unknown step",
+      "description": "Introduction/opening of the demo",
+      "key_action": "No specific action identified"
+    },
+    {
+      "timestamp": "07:30",
+      "step": "Unknown step",
+      "description": "End of demo conversation",
+      "key_action": "No specific action identified"
+    },
+    {
+      "timestamp": "unknown",
+      "step": "Unknown step",
+      "description": "Video thumbnail - representative image of the demo",
+      "key_action": "No specific action identified"
+    }
+  ]
+}
