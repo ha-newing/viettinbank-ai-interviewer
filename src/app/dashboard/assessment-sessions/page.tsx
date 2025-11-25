@@ -22,6 +22,7 @@ import {
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getAssessmentSessionStats } from './actions'
+import DeleteButton from '@/components/assessment-sessions/DeleteButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -299,22 +300,7 @@ export default async function AssessmentSessionsPage({ searchParams }: Assessmen
                       </Link>
 
                       {session.status === 'created' && (
-                        <form action="/dashboard/assessment-sessions/delete" method="post" className="inline">
-                          <input type="hidden" name="id" value={session.id} />
-                          <Button
-                            type="submit"
-                            variant="outline"
-                            size="sm"
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            onClick={(e) => {
-                              if (!confirm(`Xóa phiên "${session.name}"? Hành động này không thể hoàn tác.`)) {
-                                e.preventDefault()
-                              }
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </form>
+                        <DeleteButton sessionId={session.id} sessionName={session.name} />
                       )}
                     </div>
                   </CardContent>
