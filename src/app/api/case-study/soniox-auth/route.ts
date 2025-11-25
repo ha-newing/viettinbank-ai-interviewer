@@ -76,22 +76,22 @@ export async function POST(request: NextRequest) {
       }, { status: 500 })
     }
 
-    // Generate temporary API key from Soniox
-    const tempKeyResponse = await fetch('https://stt-rt.soniox.com/v1/auth/temporary-api-key', {
+    // Generate temporary API key from Soniox (using correct endpoint)
+    const tempKeyResponse = await fetch('https://api.soniox.com/v1/auth/temporary-api-key', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${sonioxApiKey}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        usage_type: 'websocket',
-        expires_in_seconds: 7200, // 2 hours (max session duration)
-        client_reference_id: `session-${sessionId}`
+        usage_type: 'transcribe_websocket',
+        expires_in_seconds: 7200 // 2 hours (max session duration)
       })
     })
 
     if (!tempKeyResponse.ok) {
-      console.error('Failed to generate temporary API key:', await tempKeyResponse.text())
+      const errorText = await tempKeyResponse.text()
+      console.error('Failed to generate temporary API key:', errorText)
       return NextResponse.json({
         success: false,
         error: 'Failed to generate temporary authentication credentials'
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
     }
 
     const tempKeyData = await tempKeyResponse.json()
-    const temporaryApiKey = tempKeyData.temporary_api_key
+    const temporaryApiKey = tempKeyData.api_key
 
     // Soniox WebSocket configuration for group discussion
     const sonioxConfig = {
