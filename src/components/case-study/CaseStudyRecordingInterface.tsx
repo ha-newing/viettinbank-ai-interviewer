@@ -404,9 +404,9 @@ export default function CaseStudyRecordingInterface({
       clearInterval(evaluationPollingRef.current)
     }
 
-    // Poll immediately, then every 8 seconds
+    // Poll immediately, then every 60 seconds
     pollEvaluations()
-    evaluationPollingRef.current = setInterval(pollEvaluations, 8000)
+    evaluationPollingRef.current = setInterval(pollEvaluations, 60000)
   }, [pollEvaluations])
 
   // Stop evaluation polling
@@ -565,16 +565,6 @@ export default function CaseStudyRecordingInterface({
             </div>
           </div>
 
-          {/* Progress bars */}
-          {isRecording && (
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs text-gray-600">
-                <span>Tiến độ chunk ({60 - nextChunkIn}/60s)</span>
-                <span>{Math.round(((60 - nextChunkIn) / 60) * 100)}%</span>
-              </div>
-              <Progress value={((60 - nextChunkIn) / 60) * 100} />
-            </div>
-          )}
         </CardContent>
       </Card>
 
@@ -824,9 +814,9 @@ export default function CaseStudyRecordingInterface({
 
             {evaluationData.evaluations.length === 0 && (
               <div className="text-center py-8 text-gray-500">
-                <div className="mb-2">🤖</div>
-                <p>Chưa có đánh giá năng lực nào.</p>
-                <p className="text-xs mt-1">Đánh giá sẽ xuất hiện sau khi có transcript chunk đầu tiên.</p>
+                <div className="mb-2">📊</div>
+                <p className="font-medium">Chưa có dữ liệu đánh giá</p>
+                <p className="text-xs mt-1">Hệ thống sẽ tự động đánh giá sau khi có đủ nội dung thảo luận</p>
               </div>
             )}
           </CardContent>
