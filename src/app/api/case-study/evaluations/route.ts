@@ -13,8 +13,8 @@ import { getCaseStudyCompetencies, getCompetencyInfo } from '@/lib/case-study-ev
 // Validation schema for evaluation polling
 const evaluationPollSchema = z.object({
   sessionId: z.string().min(1, 'Session ID is required'),
-  since: z.string().optional(), // ISO timestamp to get evaluations after
-  participantId: z.string().optional() // Filter by specific participant
+  since: z.string().nullish(), // ISO timestamp to get evaluations after
+  participantId: z.string().nullish() // Filter by specific participant
 })
 
 export async function GET(request: NextRequest) {
