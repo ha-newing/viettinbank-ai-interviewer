@@ -15,6 +15,13 @@
       "when": 1763744455152,
       "tag": "0001_material_wallflower",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1764039424667,
+      "tag": "0002_tan_blonde_phantom",
+      "breakpoints": true
     }
   ]
 }
