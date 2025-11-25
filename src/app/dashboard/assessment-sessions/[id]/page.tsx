@@ -34,7 +34,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { generateInterviewTokens, sendInterviewInvitations } from './actions'
+import { generateInterviewTokens, sendInterviewInvitations, startCaseStudy } from './actions'
 import DeleteButton from '@/components/assessment-sessions/DeleteButton'
 
 export const dynamic = 'force-dynamic'
@@ -447,14 +447,17 @@ export default async function AssessmentSessionViewPage({ params }: AssessmentSe
                 <CardTitle>Thao tác nhanh</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  disabled={session.status !== 'created'}
-                >
-                  <PlayCircle className="h-4 w-4 mr-2" />
-                  Bắt đầu case study
-                </Button>
+                <form action={startCaseStudy.bind(null, session.id)}>
+                  <Button
+                    type="submit"
+                    variant="outline"
+                    className="w-full justify-start"
+                    disabled={session.status !== 'created'}
+                  >
+                    <PlayCircle className="h-4 w-4 mr-2" />
+                    Bắt đầu case study
+                  </Button>
+                </form>
                 <Link
                   href={`/dashboard/assessment-sessions/${session.id}/case-study`}
                   className={session.status === 'case_study_in_progress' ? '' : 'pointer-events-none'}

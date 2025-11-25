@@ -145,3 +145,46 @@ export async function sendInterviewInvitations(sessionId: string) {
     throw error
   }
 }
+
+/**
+ * Start the case study by updating session status to 'case_study_in_progress'
+ */
+export async function startCaseStudy(sessionId: string) {
+  try {
+    const user = await requireAuth()
+
+    // Verify session belongs to user's organization and is in 'created' status
+    const session = await db
+      .select()
+      .from(assessmentSessions)
+      .where(
+        and(
+          eq(assessmentSessions.id, sessionId),
+          eq(assessmentSessions.organizationId, user.organizationId),
+          eq(assessmentSessions.status, 'created')
+        )
+      )
+      .limit(1)
+
+    if (!session[0]) {
+      throw new Error('Session not found or not in created status')
+    }
+
+    // Update session status to case_study_in_progress
+    await db
+      .update(assessmentSessions)
+      .set({
+        status: 'case_study_in_progress'
+      })
+      .where(eq(assessmentSessions.id, sessionId))
+
+    revalidatePath(`/dashboard/assessment-sessions/${sessionId}`)
+
+    // Redirect to case study monitoring page
+    redirect(`/dashboard/assessment-sessions/${sessionId}/case-study`)
+
+  } catch (error) {
+    console.error('Error starting case study:', error)
+    throw error
+  }
+}
