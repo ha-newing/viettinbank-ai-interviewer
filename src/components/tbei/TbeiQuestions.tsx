@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
+import LiveTranscriptionInput from '@/components/ui/LiveTranscriptionInput'
 import {
   Mic,
   MicOff,
@@ -650,21 +651,15 @@ export default function TbeiQuestions({
               </CardContent>
             </Card>
 
-            {/* Transcript */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Transcript (tùy chọn)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Textarea
-                  placeholder="Nhập transcript của câu trả lời (tùy chọn)..."
-                  value={transcript}
-                  onChange={(e) => setTranscript(e.target.value)}
-                  rows={6}
-                  className="resize-none"
-                />
-              </CardContent>
-            </Card>
+            {/* Live Transcription */}
+            <LiveTranscriptionInput
+              questionId={`${currentCompetency}_${selectedQuestion.questionId}`}
+              questionText={selectedQuestion.questionText}
+              placeholder="Live transcription sẽ hiển thị ở đây khi bạn ghi âm..."
+              value={transcript}
+              onChange={setTranscript}
+              sessionId="temp-tbei-session"
+            />
           </div>
 
           {/* Right Column - Structured Response Template */}
