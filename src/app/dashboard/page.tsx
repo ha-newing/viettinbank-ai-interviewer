@@ -6,7 +6,7 @@ import { logoutAction } from '@/app/auth/actions'
 import DashboardStats from '@/components/dashboard/DashboardStats'
 import CandidateList from '@/components/dashboard/CandidateList'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Users, FileText, BarChart, Settings, CheckCircle, AlertTriangle } from 'lucide-react'
+import { Users, FileText, BarChart, Settings, CheckCircle, AlertTriangle, Target } from 'lucide-react'
 import Link from 'next/link'
 
 // Force dynamic rendering for authentication
@@ -147,6 +147,25 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         <div className="mb-8">
           <h2 className="text-lg font-medium text-gray-900 mb-4">Tác vụ nhanh</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Link
+              href="/dashboard/assessment-sessions"
+              className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-orange-300 transition-all group"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900 group-hover:text-orange-600">
+                    Assessment Center
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Đánh giá năng lực theo mô hình AC
+                  </p>
+                </div>
+                <div className="bg-orange-100 rounded-lg p-2 group-hover:bg-orange-200 transition-colors">
+                  <Target className="h-5 w-5 text-orange-600" />
+                </div>
+              </div>
+            </Link>
+
             <Link
               href="/dashboard/interviews/create"
               className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-blue-300 transition-all group"

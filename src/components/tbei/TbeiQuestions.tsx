@@ -108,7 +108,7 @@ const RESPONSE_TEMPLATE = [
 ]
 
 type RecordingState = 'idle' | 'recording' | 'paused' | 'completed'
-type CompetencyStep = 'selection' | 'recording' | 'review'
+type CompetencyStep = 'selection' | 'guidance' | 'recording' | 'review'
 
 interface SelectedQuestion {
   competencyId: string
@@ -195,7 +195,7 @@ export default function TbeiQuestions({
       [currentCompetency]: selectedQuestion
     }))
 
-    setStep('recording')
+    setStep('guidance')
   }
 
   // Start recording
@@ -419,6 +419,127 @@ export default function TbeiQuestions({
     )
   }
 
+  // Pre-Recording Guidance UI
+  if (step === 'guidance') {
+    const selectedQuestion = selectedQuestions[currentCompetency]
+    if (!selectedQuestion) return null
+
+    const Icon = competencyData.icon
+
+    return (
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="text-center space-y-2">
+          <div className="flex items-center justify-center space-x-2">
+            <Icon className="h-6 w-6 text-blue-600" />
+            <h2 className="text-2xl font-bold text-gray-900">
+              Hướng dẫn chuẩn bị trả lời
+            </h2>
+          </div>
+          <p className="text-gray-600">
+            Chuẩn bị câu trả lời theo mẫu dàn ý sự kiện STAR
+          </p>
+        </div>
+
+        {/* Selected Question */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Câu hỏi đã chọn</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-800 leading-relaxed">
+              {selectedQuestion.questionText}
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* STAR Framework Guidance */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center space-x-2">
+              <FileText className="h-5 w-5 text-blue-600" />
+              <span>Mẫu dàn ý sự kiện (STAR)</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-4">
+              <div className="border-l-4 border-blue-500 pl-4">
+                <h3 className="font-semibold text-blue-900 mb-2">
+                  1. TỔNG QUAN CÂU CHUYỆN (Situation - Task)
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  • Bối cảnh tổng quan: Thời điểm, địa điểm, hoàn cảnh<br />
+                  • Nhiệm vụ được giao: Mục tiêu cần đạt được<br />
+                  • Các bên liên quan: Ai tham gia, vai trò như thế nào
+                </p>
+              </div>
+
+              <div className="border-l-4 border-green-500 pl-4">
+                <h3 className="font-semibold text-green-900 mb-2">
+                  2. BỐI CẢNH SỰ KIỆN (Action)
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  • Hành động cụ thể: Anh/chị đã làm gì?<br />
+                  • Quy trình thực hiện: Các bước tiến hành<br />
+                  • Thách thức gặp phải và cách giải quyết
+                </p>
+              </div>
+
+              <div className="border-l-4 border-orange-500 pl-4">
+                <h3 className="font-semibold text-orange-900 mb-2">
+                  3. KẾT QUẢ ĐỐI VỚI TỔ CHỨC (Result - Organization)
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  • Kết quả đo lường được: Số liệu, chỉ số cụ thể<br />
+                  • Tác động tích cực: Lợi ích cho tổ chức/phòng ban<br />
+                  • Sự công nhận: Phản hồi từ cấp trên/đồng nghiệp
+                </p>
+              </div>
+
+              <div className="border-l-4 border-purple-500 pl-4">
+                <h3 className="font-semibold text-purple-900 mb-2">
+                  4. KẾT QUẢ ĐỐI VỚI CÁ NHÂN (Result - Personal)
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  • Bài học kinh nghiệm: Điều gì đã học được?<br />
+                  • Kỹ năng phát triển: Năng lực nào được cải thiện?<br />
+                  • Ứng dụng tương lai: Sẽ áp dụng như thế nào?
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="flex items-start space-x-2">
+                <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-blue-900 mb-1">Lưu ý quan trọng:</h4>
+                  <ul className="text-sm text-blue-800 space-y-1">
+                    <li>• Thời gian trả lời: 3-5 phút cho mỗi câu hỏi</li>
+                    <li>• Tập trung vào vai trò và đóng góp cá nhân</li>
+                    <li>• Cung cấp ví dụ cụ thể, số liệu thực tế</li>
+                    <li>• Thể hiện sự học hỏi và phát triển liên tục</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Continue Button */}
+        <div className="flex justify-center">
+          <Button
+            onClick={() => setStep('recording')}
+            size="lg"
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <ArrowRight className="h-4 w-4 mr-2" />
+            Bắt đầu ghi âm
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   // Recording UI
   const selectedQuestion = selectedQuestions[currentCompetency]
   if (step === 'recording' && selectedQuestion) {
@@ -588,9 +709,8 @@ export default function TbeiQuestions({
         {(recordingState === 'completed' || transcript.trim() || Object.values(structuredResponse).some(v => v.trim())) && (
           <div className="flex justify-center">
             <Button
-              onClick={submitResponse}
+              onClick={() => setStep('review')}
               size="lg"
-              disabled={isSubmitting}
               className="bg-blue-600 hover:bg-blue-700 px-8"
             >
               {isSubmitting ? (
@@ -598,11 +718,143 @@ export default function TbeiQuestions({
               ) : (
                 <CheckCircle className="h-5 w-5 mr-2" />
               )}
-              {isSubmitting ? 'Đang gửi...' :
-               isLastCompetency ? 'Hoàn thành TBEI' : 'Chuyển sang năng lực tiếp theo'}
+              Xem lại & Gửi
             </Button>
           </div>
         )}
+      </div>
+    )
+  }
+
+  // Review & Submit UI
+  if (step === 'review') {
+    const selectedQuestion = selectedQuestions[currentCompetency]
+    if (!selectedQuestion) return null
+
+    const Icon = competencyData.icon
+    const isLastCompetency = currentCompetency === 'digital_transformation'
+
+    return (
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="text-center space-y-2">
+          <div className="flex items-center justify-center space-x-2">
+            <Icon className="h-6 w-6 text-green-600" />
+            <h2 className="text-2xl font-bold text-gray-900">
+              Xem lại câu trả lời
+            </h2>
+          </div>
+          <p className="text-gray-600">
+            Kiểm tra lại câu trả lời của bạn trước khi gửi
+          </p>
+        </div>
+
+        {/* Question Review */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center justify-between">
+              <span>Câu hỏi đã trả lời</span>
+              <Badge variant="outline" className="text-green-600 border-green-600">
+                {competencyData.title}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-800 leading-relaxed">
+              {selectedQuestion.questionText}
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Recording Summary */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center space-x-2">
+              <Mic className="h-5 w-5 text-blue-600" />
+              <span>Bản ghi âm của bạn</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="bg-blue-100 p-2 rounded-full">
+                  <Clock className="h-4 w-4 text-blue-600" />
+                </div>
+                <div>
+                  <p className="font-medium">Thời lượng ghi âm</p>
+                  <p className="text-sm text-gray-600">
+                    {Math.floor(recordingDuration / 60)}:{(recordingDuration % 60).toString().padStart(2, '0')}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-gray-500">
+                  {recordingDuration >= 180 ? '✅ Đủ thời gian' : '⚠️ Nên dài hơn 3 phút'}
+                </p>
+              </div>
+            </div>
+
+            {transcript && (
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="font-medium mb-2 text-blue-900">Nội dung phiên âm:</h4>
+                <p className="text-sm text-blue-800 leading-relaxed">
+                  {transcript}
+                </p>
+              </div>
+            )}
+
+            {Object.values(structuredResponse).some(v => v.trim()) && (
+              <div className="bg-green-50 p-4 rounded-lg">
+                <h4 className="font-medium mb-2 text-green-900">Ghi chú cá nhân:</h4>
+                <div className="space-y-2">
+                  {Object.entries(structuredResponse).map(([key, value]) => (
+                    value.trim() && (
+                      <div key={key} className="text-sm">
+                        <span className="font-medium text-green-900">{key}:</span>
+                        <span className="text-green-800 ml-2">{value}</span>
+                      </div>
+                    )
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Action Buttons */}
+        <div className="flex justify-center space-x-4">
+          <Button
+            onClick={() => {
+              setStep('recording')
+              setRecordingState('idle')
+              setRecordingDuration(0)
+              setTranscript('')
+              // Clear the recorded audio
+              audioChunksRef.current = []
+            }}
+            variant="outline"
+            size="lg"
+            className="px-6"
+          >
+            <RotateCcw className="h-4 w-4 mr-2" />
+            Ghi lại
+          </Button>
+
+          <Button
+            onClick={submitResponse}
+            size="lg"
+            disabled={isSubmitting}
+            className="bg-green-600 hover:bg-green-700 px-8"
+          >
+            {isSubmitting ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+            ) : (
+              <CheckCircle className="h-5 w-5 mr-2" />
+            )}
+            {isSubmitting ? 'Đang gửi...' :
+             isLastCompetency ? 'Hoàn thành TBEI' : 'Chuyển sang năng lực tiếp theo'}
+          </Button>
+        </div>
       </div>
     )
   }
