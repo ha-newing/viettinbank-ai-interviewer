@@ -29,7 +29,8 @@ import {
   MessageSquare,
   BarChart3,
   Mail,
-  Key
+  Key,
+  Monitor
 } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -186,6 +187,16 @@ export default async function AssessmentSessionViewPage({ params }: AssessmentSe
             </div>
 
             <div className="flex items-center space-x-2">
+              {/* Monitoring Button - Show when TBEI is active */}
+              {(session.status === 'tbei_in_progress' || session.status === 'completed') && (
+                <Link href={`/dashboard/assessment-sessions/${session.id}/monitor`}>
+                  <Button variant="outline" className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100">
+                    <Monitor className="h-4 w-4 mr-2" />
+                    Theo dõi tiến độ
+                  </Button>
+                </Link>
+              )}
+
               <Link href={`/dashboard/assessment-sessions/${session.id}/edit`}>
                 <Button variant="outline">
                   <Edit className="h-4 w-4 mr-2" />

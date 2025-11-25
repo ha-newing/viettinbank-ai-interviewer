@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { tbeiResponses, assessmentParticipants } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
+import { evaluateTbeiResponse } from '@/lib/tbei-evaluation'
 
 // Request validation schema
 const SubmitTbeiResponseSchema = z.object({
@@ -54,6 +55,8 @@ export async function POST(request: NextRequest) {
       .where(eq(tbeiResponses.competencyId, competencyId))
       .limit(1)
 
+    let responseId: string
+
     if (existingResponse[0]) {
       // Update existing response
       await db
@@ -70,9 +73,11 @@ export async function POST(request: NextRequest) {
           })
         })
         .where(eq(tbeiResponses.id, existingResponse[0].id))
+
+      responseId = existingResponse[0].id
     } else {
       // Create new response
-      await db
+      const insertedResponse = await db
         .insert(tbeiResponses)
         .values({
           participantId,
@@ -87,7 +92,16 @@ export async function POST(request: NextRequest) {
             submittedAt: new Date().toISOString()
           })
         })
+        .returning()
+
+      responseId = insertedResponse[0].id
     }
+
+    // Trigger AI evaluation asynchronously (don't wait for completion)
+    evaluateTbeiResponse(responseId).catch(error => {
+      console.error('Error triggering TBEI AI evaluation:', error)
+      // Don't fail the submission if evaluation fails
+    })
 
     // Update participant TBEI status if both competencies are completed
     const allResponses = await db
@@ -114,8 +128,10 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'TBEI response submitted successfully',
       data: {
+        responseId,
         competencyId,
-        isCompleted: hasDigitalTransformation && hasTalentDevelopment
+        isCompleted: hasDigitalTransformation && hasTalentDevelopment,
+        evaluationTriggered: true
       }
     })
 
