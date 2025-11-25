@@ -265,7 +265,6 @@ export default function TbeiQuestions({
     setRecordingState('idle')
     setRecordingDuration(0)
     setTranscript('')
-    setStructuredResponse({})
     audioChunksRef.current = []
   }
 
@@ -282,7 +281,7 @@ export default function TbeiQuestions({
         questionId: selectedQuestion.questionId,
         selectedQuestionIndex: selectedQuestion.questionIndex,
         transcript,
-        structuredResponse,
+        structuredResponse: {}, // Empty since we don't collect structured input anymore
         durationSeconds: recordingDuration
       }
 
@@ -296,7 +295,7 @@ export default function TbeiQuestions({
           questionId: selectedQuestion.questionId,
           selectedQuestionIndex: selectedQuestion.questionIndex,
           transcript,
-          structuredResponse,
+          structuredResponse: {}, // Empty since STAR framework is guidance-only now
           durationSeconds: recordingDuration
         })
       })
@@ -315,7 +314,6 @@ export default function TbeiQuestions({
       if (currentCompetency === 'talent_development') {
         setCurrentCompetency('digital_transformation')
         setStep('selection')
-        setStructuredResponse({})
         setTranscript('')
         setRecordingDuration(0)
         setRecordingState('idle')
@@ -662,46 +660,47 @@ export default function TbeiQuestions({
             />
           </div>
 
-          {/* Right Column - Structured Response Template */}
+          {/* Right Column - STAR Framework Guidance */}
           <div className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <FileText className="h-5 w-5 mr-2" />
-                  Mẫu dàn ý sự kiện
+                  Mẫu dàn ý sự kiện (STAR)
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="bg-yellow-50 rounded-lg p-3 text-sm text-yellow-800">
+                <div className="bg-blue-50 rounded-lg p-3 text-sm text-blue-800">
                   <AlertCircle className="h-4 w-4 inline mr-1" />
                   Hãy sử dụng mẫu dàn ý này để cấu trúc câu trả lời của Anh/Chị
                 </div>
 
-                {RESPONSE_TEMPLATE.map((section) => (
-                  <div key={section.id} className="space-y-2">
+                {RESPONSE_TEMPLATE.map((section, index) => (
+                  <div key={section.id} className="space-y-2 border-l-4 border-blue-500 pl-4 py-2">
                     <div>
-                      <h4 className="text-sm font-medium text-gray-900">{section.title}</h4>
-                      <p className="text-xs text-gray-600">{section.description}</p>
+                      <h4 className="text-sm font-medium text-blue-900">{section.title}</h4>
+                      <p className="text-xs text-blue-700 mt-1">{section.description}</p>
+                      <p className="text-xs text-gray-600 mt-2 italic">{section.placeholder}</p>
                     </div>
-                    <Textarea
-                      placeholder={section.placeholder}
-                      value={structuredResponse[section.id] || ''}
-                      onChange={(e) => setStructuredResponse(prev => ({
-                        ...prev,
-                        [section.id]: e.target.value
-                      }))}
-                      rows={3}
-                      className="resize-none text-sm"
-                    />
                   </div>
                 ))}
+
+                <div className="bg-green-50 rounded-lg p-3 text-sm text-green-800 mt-4">
+                  <div className="font-medium mb-2">💡 Mẹo trả lời hiệu quả:</div>
+                  <ul className="space-y-1 text-xs">
+                    <li>• Sử dụng Live Transcription để ghi âm tự động</li>
+                    <li>• Theo dõi 4 phần STAR trong khi trả lời</li>
+                    <li>• Đưa ra số liệu và kết quả cụ thể</li>
+                    <li>• Nhấn mạnh vai trò và đóng góp cá nhân</li>
+                  </ul>
+                </div>
               </CardContent>
             </Card>
           </div>
         </div>
 
         {/* Submit Button */}
-        {(recordingState === 'completed' || transcript.trim() || Object.values(structuredResponse).some(v => v.trim())) && (
+        {(recordingState === 'completed' || transcript.trim()) && (
           <div className="flex justify-center">
             <Button
               onClick={() => setStep('review')}
@@ -798,21 +797,13 @@ export default function TbeiQuestions({
               </div>
             )}
 
-            {Object.values(structuredResponse).some(v => v.trim()) && (
-              <div className="bg-green-50 p-4 rounded-lg">
-                <h4 className="font-medium mb-2 text-green-900">Ghi chú cá nhân:</h4>
-                <div className="space-y-2">
-                  {Object.entries(structuredResponse).map(([key, value]) => (
-                    value.trim() && (
-                      <div key={key} className="text-sm">
-                        <span className="font-medium text-green-900">{key}:</span>
-                        <span className="text-green-800 ml-2">{value}</span>
-                      </div>
-                    )
-                  ))}
-                </div>
+            <div className="bg-green-50 p-4 rounded-lg">
+              <h4 className="font-medium mb-2 text-green-900">📝 Hướng dẫn STAR đã được cung cấp:</h4>
+              <div className="text-sm text-green-800">
+                Bạn đã được hướng dẫn cấu trúc STAR (Situation-Task-Action-Result) trong phần dàn ý.
+                Câu trả lời của bạn sẽ được đánh giá dựa trên mức độ tuân thủ cấu trúc này.
               </div>
-            )}
+            </div>
           </CardContent>
         </Card>
 
