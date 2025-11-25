@@ -76,13 +76,38 @@ export async function POST(request: NextRequest) {
       }, { status: 500 })
     }
 
+    // Generate temporary API key from Soniox
+    const tempKeyResponse = await fetch('https://stt-rt.soniox.com/v1/auth/temporary-api-key', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${sonioxApiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        usage_type: 'websocket',
+        expires_in_seconds: 7200, // 2 hours (max session duration)
+        client_reference_id: `session-${sessionId}`
+      })
+    })
+
+    if (!tempKeyResponse.ok) {
+      console.error('Failed to generate temporary API key:', await tempKeyResponse.text())
+      return NextResponse.json({
+        success: false,
+        error: 'Failed to generate temporary authentication credentials'
+      }, { status: 500 })
+    }
+
+    const tempKeyData = await tempKeyResponse.json()
+    const temporaryApiKey = tempKeyData.temporary_api_key
+
     // Soniox WebSocket configuration for group discussion
     const sonioxConfig = {
       // WebSocket endpoint
       endpoint: 'wss://stt-rt.soniox.com/transcribe-websocket',
 
       // Authentication
-      api_key: sonioxApiKey, // Direct API key for WebSocket auth
+      api_key: temporaryApiKey, // Temporary API key for WebSocket auth
 
       // Audio processing config
       config: {
@@ -169,12 +194,14 @@ export async function POST(request: NextRequest) {
 
         // Security notes for client
         security: {
-          note: 'API key is provided for direct WebSocket connection to Soniox',
+          note: 'Temporary API key provided for secure WebSocket connection to Soniox',
           restrictions: [
+            'Temporary key expires in 2 hours',
             'Use only for this session',
             'Do not store permanently',
             'Connection expires when session ends'
-          ]
+          ],
+          expires_in_seconds: 7200
         }
       }
     })

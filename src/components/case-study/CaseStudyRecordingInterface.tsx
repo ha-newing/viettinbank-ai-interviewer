@@ -316,21 +316,31 @@ export default function CaseStudyRecordingInterface({
         await initializeSoniox()
       }
 
-      // Start MediaRecorder for audio streaming
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
-      })
-      mediaRecorderRef.current = mediaRecorder
+      // Start AudioContext for PCM audio streaming (like LiveTranscriptionInput)
+      const audioContext = new AudioContext({ sampleRate: 16000 })
+      const source = audioContext.createMediaStreamSource(stream)
+      const processor = audioContext.createScriptProcessor(4096, 1, 1)
 
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0 && websocketRef.current?.readyState === WebSocket.OPEN) {
-          // Send audio chunk to Soniox
-          websocketRef.current.send(event.data)
+      // Convert audio buffer to PCM 16-bit format for Soniox
+      const convertAudioBuffer = (audioBuffer: Float32Array) => {
+        const pcmBuffer = new Int16Array(audioBuffer.length)
+        for (let i = 0; i < audioBuffer.length; i++) {
+          const sample = Math.max(-1, Math.min(1, audioBuffer[i]))
+          pcmBuffer[i] = sample * 0x7FFF
+        }
+        return pcmBuffer.buffer
+      }
+
+      processor.onaudioprocess = (event) => {
+        if (websocketRef.current?.readyState === WebSocket.OPEN && isRecording) {
+          const inputBuffer = event.inputBuffer.getChannelData(0)
+          const audioData = convertAudioBuffer(inputBuffer)
+          websocketRef.current.send(audioData)
         }
       }
 
-      // Start recording in small chunks for real-time streaming
-      mediaRecorder.start(100) // 100ms chunks
+      source.connect(processor)
+      processor.connect(audioContext.destination)
 
       // Update session status to 'case_study_in_progress'
       await fetch('/api/case-study/update-status', {
