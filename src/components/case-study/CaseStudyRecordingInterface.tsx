@@ -61,6 +61,82 @@ interface TranscriptChunk {
   speakerMapping: Record<string, string> | null
 }
 
+interface CompetencyInfo {
+  id: string
+  name: string
+  nameEn: string
+}
+
+interface ParticipantInfo {
+  id: string
+  name: string
+  roleCode: string
+  roleName: string
+}
+
+interface EvaluationRecord {
+  id: string
+  participant: ParticipantInfo | null
+  competency: CompetencyInfo
+  transcript: {
+    id: string
+    sequenceNumber: number
+    durationSeconds: number
+  }
+  score: number
+  level: string
+  rationale: string
+  evidence: string[]
+  evidenceStrength: string
+  countTowardOverall: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+interface ParticipantSummary {
+  participant: ParticipantInfo
+  scores: Array<{
+    score: number
+    chunkSequence: number
+    evidenceStrength: string
+    createdAt: string
+  }>
+  averageScore: number
+  latestScore: number | null
+  evidenceCount: number
+  strongEvidenceCount: number
+  lastUpdated: string | null
+  trend: 'improving' | 'declining' | 'stable'
+}
+
+interface CompetencySummary {
+  competency: CompetencyInfo
+  participants: Record<string, ParticipantSummary>
+  overall: {
+    averageScore: number
+    totalEvaluations: number
+    evidenceCount: number
+    lastUpdated: string | null
+  }
+}
+
+interface EvaluationData {
+  evaluations: EvaluationRecord[]
+  competencySummaries: Record<string, CompetencySummary>
+  statistics: {
+    totalEvaluations: number
+    latestChunk: number
+    lastUpdated: string | null
+    competencyCount: number
+    participantCount: number
+  }
+  metadata: {
+    polledAt: string
+    hasMore: boolean
+    since: string | null
+  }
+}
+
 interface CaseStudyRecordingInterfaceProps {
   session: Session
   participants: Participant[]
@@ -93,6 +169,12 @@ export default function CaseStudyRecordingInterface({
   const [totalWords, setTotalWords] = useState(0)
   const [averageConfidence, setAverageConfidence] = useState(0)
 
+  // Evaluation state
+  const [evaluationData, setEvaluationData] = useState<EvaluationData | null>(null)
+  const [evaluationError, setEvaluationError] = useState<string | null>(null)
+  const [lastEvaluationPoll, setLastEvaluationPoll] = useState<string | null>(null)
+  const [showEvaluations, setShowEvaluations] = useState(false)
+
   // Refs
   const websocketRef = useRef<WebSocket | null>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
@@ -100,6 +182,7 @@ export default function CaseStudyRecordingInterface({
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null)
   const chunkTimerRef = useRef<NodeJS.Timeout | null>(null)
   const currentChunkTokensRef = useRef<SonioxToken[]>([])
+  const evaluationPollingRef = useRef<NodeJS.Timeout | null>(null)
 
   // Initialize Soniox connection
   const initializeSoniox = useCallback(async () => {
@@ -276,6 +359,9 @@ export default function CaseStudyRecordingInterface({
         })
       }, 1000)
 
+      // Start evaluation polling
+      startEvaluationPolling()
+
     } catch (error) {
       console.error('Error starting recording:', error)
       setConnectionError(error instanceof Error ? error.message : 'Failed to start recording')
@@ -298,6 +384,9 @@ export default function CaseStudyRecordingInterface({
         clearTimeout(chunkTimerRef.current)
         chunkTimerRef.current = null
       }
+
+      // Stop evaluation polling
+      stopEvaluationPolling()
 
       // Stop media recorder
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
@@ -406,11 +495,74 @@ export default function CaseStudyRecordingInterface({
     }))
   }, [])
 
+  // Poll for evaluation results
+  const pollEvaluations = useCallback(async () => {
+    if (!isRecording && !session.status.includes('case_study')) {
+      return
+    }
+
+    try {
+      setEvaluationError(null)
+
+      const params = new URLSearchParams({
+        sessionId: session.id
+      })
+
+      if (lastEvaluationPoll) {
+        params.append('since', lastEvaluationPoll)
+      }
+
+      const response = await fetch(`/api/case-study/evaluations?${params}`)
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch evaluations')
+      }
+
+      const result = await response.json()
+
+      if (result.success) {
+        setEvaluationData(result.data)
+        setLastEvaluationPoll(new Date().toISOString())
+
+        // Show evaluations section if we have data
+        if (result.data.evaluations.length > 0 && !showEvaluations) {
+          setShowEvaluations(true)
+        }
+      } else {
+        throw new Error(result.error || 'Failed to fetch evaluations')
+      }
+
+    } catch (error) {
+      console.error('Error polling evaluations:', error)
+      setEvaluationError(error instanceof Error ? error.message : 'Evaluation polling failed')
+    }
+  }, [session.id, isRecording, session.status, lastEvaluationPoll, showEvaluations])
+
+  // Start evaluation polling
+  const startEvaluationPolling = useCallback(() => {
+    if (evaluationPollingRef.current) {
+      clearInterval(evaluationPollingRef.current)
+    }
+
+    // Poll immediately, then every 8 seconds
+    pollEvaluations()
+    evaluationPollingRef.current = setInterval(pollEvaluations, 8000)
+  }, [pollEvaluations])
+
+  // Stop evaluation polling
+  const stopEvaluationPolling = useCallback(() => {
+    if (evaluationPollingRef.current) {
+      clearInterval(evaluationPollingRef.current)
+      evaluationPollingRef.current = null
+    }
+  }, [])
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (recordingTimerRef.current) clearInterval(recordingTimerRef.current)
       if (chunkTimerRef.current) clearTimeout(chunkTimerRef.current)
+      if (evaluationPollingRef.current) clearInterval(evaluationPollingRef.current)
       if (websocketRef.current) websocketRef.current.close()
       if (mediaStreamRef.current) {
         mediaStreamRef.current.getTracks().forEach(track => track.stop())
@@ -424,6 +576,39 @@ export default function CaseStudyRecordingInterface({
     const minutes = Math.floor((seconds % 3600) / 60)
     const secs = seconds % 60
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  }
+
+  // Get score color for badge display
+  const getScoreColor = (score: number) => {
+    if (score >= 4) return 'bg-green-100 text-green-800 border-green-300'
+    if (score >= 3) return 'bg-yellow-100 text-yellow-800 border-yellow-300'
+    return 'bg-red-100 text-red-800 border-red-300'
+  }
+
+  // Get trend icon and color
+  const getTrendDisplay = (trend: string) => {
+    switch (trend) {
+      case 'improving':
+        return { icon: '↗️', color: 'text-green-600', label: 'Cải thiện' }
+      case 'declining':
+        return { icon: '↘️', color: 'text-red-600', label: 'Giảm' }
+      default:
+        return { icon: '➡️', color: 'text-gray-600', label: 'Ổn định' }
+    }
+  }
+
+  // Get evidence strength display
+  const getEvidenceStrengthDisplay = (strength: string) => {
+    switch (strength) {
+      case 'strong':
+        return { label: 'Mạnh', color: 'text-green-600' }
+      case 'moderate':
+        return { label: 'Trung bình', color: 'text-yellow-600' }
+      case 'weak':
+        return { label: 'Yếu', color: 'text-orange-600' }
+      default:
+        return { label: 'Không đủ', color: 'text-red-600' }
+    }
   }
 
   return (
@@ -623,6 +808,183 @@ export default function CaseStudyRecordingInterface({
           )}
         </CardContent>
       </Card>
+
+      {/* Real-time Competency Evaluation */}
+      {showEvaluations && evaluationData && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span className="flex items-center">
+                <CheckCircle className="h-5 w-5 mr-2 text-blue-600" />
+                Đánh giá năng lực trực tiếp
+              </span>
+              <div className="flex items-center space-x-4 text-sm text-gray-600">
+                <span>Đánh giá: {evaluationData.statistics.totalEvaluations}</span>
+                <span>Chunk mới nhất: #{evaluationData.statistics.latestChunk}</span>
+                {evaluationData.statistics.lastUpdated && (
+                  <span>Cập nhật: {new Date(evaluationData.statistics.lastUpdated).toLocaleTimeString('vi-VN')}</span>
+                )}
+              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {/* Evaluation Error */}
+            {evaluationError && (
+              <Alert className="border-red-200 bg-red-50 mb-4">
+                <AlertTriangle className="h-4 w-4 text-red-600" />
+                <AlertDescription className="text-red-800">
+                  {evaluationError}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Competency Summary Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {Object.entries(evaluationData.competencySummaries).map(([competencyId, summary]) => (
+                <div key={competencyId} className="border rounded-lg p-4 bg-gray-50">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-medium text-gray-900">{summary.competency.name}</h3>
+                    <div className="text-xs text-gray-500">
+                      {summary.overall.totalEvaluations} đánh giá
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {participants.map(participant => {
+                      const participantSummary = summary.participants[participant.id]
+                      if (!participantSummary) return null
+
+                      const trendDisplay = getTrendDisplay(participantSummary.trend)
+
+                      return (
+                        <div key={participant.id} className="bg-white rounded p-3 border">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center space-x-2">
+                              <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                                <span className="text-xs font-semibold text-blue-600">
+                                  {participant.roleCode}
+                                </span>
+                              </div>
+                              <span className="font-medium text-sm">{participant.name}</span>
+                            </div>
+
+                            <div className="flex items-center space-x-2">
+                              {participantSummary.latestScore !== null && (
+                                <Badge className={`border text-xs ${getScoreColor(participantSummary.latestScore)}`}>
+                                  {participantSummary.latestScore.toFixed(1)}
+                                </Badge>
+                              )}
+                              <span className={`text-xs ${trendDisplay.color}`}>
+                                {trendDisplay.icon}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-3 gap-2 text-xs text-gray-600">
+                            <div>
+                              <span className="block">Trung bình</span>
+                              <span className="font-medium">{participantSummary.averageScore.toFixed(1)}</span>
+                            </div>
+                            <div>
+                              <span className="block">Bằng chứng</span>
+                              <span className="font-medium">
+                                {participantSummary.evidenceCount}
+                                {participantSummary.strongEvidenceCount > 0 &&
+                                  ` (${participantSummary.strongEvidenceCount} mạnh)`
+                                }
+                              </span>
+                            </div>
+                            <div>
+                              <span className="block">Xu hướng</span>
+                              <span className={`font-medium ${trendDisplay.color}`}>
+                                {trendDisplay.label}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Progress bar for average score */}
+                          <div className="mt-2">
+                            <Progress
+                              value={(participantSummary.averageScore / 5) * 100}
+                              className="h-1"
+                            />
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  {/* Overall competency stats */}
+                  <div className="mt-3 pt-3 border-t border-gray-200">
+                    <div className="flex justify-between text-xs text-gray-600">
+                      <span>Điểm trung bình nhóm: <strong>{summary.overall.averageScore.toFixed(1)}/5</strong></span>
+                      <span>Tổng bằng chứng: <strong>{summary.overall.evidenceCount}</strong></span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Recent Evaluations */}
+            {evaluationData.evaluations.length > 0 && (
+              <div className="mt-6">
+                <h3 className="font-medium text-gray-900 mb-3">Đánh giá gần nhất</h3>
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {evaluationData.evaluations.slice(0, 10).map((evaluation) => (
+                    <div key={evaluation.id} className="p-3 bg-gray-50 rounded border">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-xs font-medium text-blue-600">
+                            #{evaluation.transcript.sequenceNumber}
+                          </span>
+                          <span className="text-sm font-medium">
+                            {evaluation.participant?.name || 'Unknown'}
+                          </span>
+                          <span className="text-xs text-gray-600">
+                            • {evaluation.competency.name}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Badge className={`text-xs ${getScoreColor(evaluation.score)}`}>
+                            {evaluation.score}/5
+                          </Badge>
+                          <span className={`text-xs ${getEvidenceStrengthDisplay(evaluation.evidenceStrength).color}`}>
+                            {getEvidenceStrengthDisplay(evaluation.evidenceStrength).label}
+                          </span>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-gray-700 mb-2">{evaluation.rationale}</p>
+
+                      {evaluation.evidence.length > 0 && (
+                        <div className="mt-2">
+                          <span className="text-xs font-medium text-gray-600">Bằng chứng:</span>
+                          <ul className="list-disc list-inside text-xs text-gray-600 mt-1">
+                            {evaluation.evidence.slice(0, 2).map((evidence, index) => (
+                              <li key={index} className="truncate">&quot;{evidence}&quot;</li>
+                            ))}
+                            {evaluation.evidence.length > 2 && (
+                              <li className="text-gray-500">+{evaluation.evidence.length - 2} bằng chứng khác</li>
+                            )}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {evaluationData.evaluations.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <div className="mb-2">🤖</div>
+                <p>Chưa có đánh giá năng lực nào.</p>
+                <p className="text-xs mt-1">Đánh giá sẽ xuất hiện sau khi có transcript chunk đầu tiên.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Case Study Instructions */}
       {jobTemplate && (

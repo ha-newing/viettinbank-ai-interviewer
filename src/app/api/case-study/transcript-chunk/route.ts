@@ -4,9 +4,11 @@ import { db } from '@/lib/db'
 import {
   caseStudyTranscripts,
   assessmentSessions,
-  assessmentParticipants
+  assessmentParticipants,
+  caseStudyEvaluations
 } from '@/db/schema'
 import { eq, and, desc } from 'drizzle-orm'
+import { evaluateAllCompetencies, getCaseStudyCompetencies } from '@/lib/case-study-evaluation'
 
 // Validation schema for transcript chunk submission
 const transcriptChunkSchema = z.object({
@@ -128,6 +130,18 @@ export async function POST(request: NextRequest) {
       }, { status: 500 })
     }
 
+    // Trigger competency evaluation for this chunk (async, don't wait)
+    processChunkEvaluation({
+      transcriptId: newChunk.id,
+      sessionId,
+      sequenceNumber: nextSequenceNumber,
+      consolidatedTranscript,
+      participants,
+      session: session[0]
+    }).catch(error => {
+      console.error('Error processing chunk evaluation:', error)
+    })
+
     return NextResponse.json({
       success: true,
       message: 'Transcript chunk stored successfully',
@@ -137,7 +151,8 @@ export async function POST(request: NextRequest) {
         participantCount: participants.length,
         speakerCount: speakerMapping ? Object.keys(speakerMapping).length : 0,
         transcriptLength: rawTranscript.length,
-        durationSeconds
+        durationSeconds,
+        evaluationTriggered: true
       }
     })
 
@@ -225,5 +240,87 @@ export async function GET(request: NextRequest) {
       success: false,
       error: 'Internal server error while fetching transcript chunks'
     }, { status: 500 })
+  }
+}
+
+// Background evaluation processing function
+async function processChunkEvaluation({
+  transcriptId,
+  sessionId,
+  sequenceNumber,
+  consolidatedTranscript,
+  participants,
+  session
+}: {
+  transcriptId: string
+  sessionId: string
+  sequenceNumber: number
+  consolidatedTranscript: string
+  participants: any[]
+  session: any
+}) {
+  try {
+    console.log(`Starting evaluation for chunk #${sequenceNumber} of session ${sessionId}`)
+
+    // Skip evaluation if transcript is too short
+    if (consolidatedTranscript.trim().length < 50) {
+      console.log(`Skipping evaluation - transcript too short (${consolidatedTranscript.length} chars)`)
+      return
+    }
+
+    // Prepare evaluation request
+    const evaluationRequest = {
+      transcriptChunk: consolidatedTranscript,
+      participants: participants.map(p => ({
+        id: p.id,
+        name: p.name,
+        roleCode: p.roleCode,
+        roleName: p.roleName
+      })),
+      chunkSequence: sequenceNumber,
+      sessionContext: {
+        sessionId,
+        sessionName: session.name,
+        totalDuration: 120, // 120 minutes
+        caseStudyScenario: 'VietinBank Eastern Saigon branch - NPL 2.4%, NPS 32, strategic planning for 2026'
+      }
+    }
+
+    // Evaluate all case study competencies
+    const evaluationResults = await evaluateAllCompetencies(evaluationRequest)
+
+    // Store evaluation results in database
+    for (const competencyId of getCaseStudyCompetencies()) {
+      const competencyResult = evaluationResults[competencyId]
+
+      if (!competencyResult.success) {
+        console.error(`Evaluation failed for competency ${competencyId}:`, competencyResult.error)
+        continue
+      }
+
+      for (const evaluation of competencyResult.evaluations) {
+        try {
+          await db.insert(caseStudyEvaluations).values({
+            sessionId,
+            participantId: evaluation.participantId,
+            transcriptId,
+            competencyId: evaluation.competencyId,
+            score: evaluation.score,
+            level: evaluation.level,
+            rationale: evaluation.rationale,
+            evidence: JSON.stringify(evaluation.evidence),
+            evidenceStrength: evaluation.evidenceStrength,
+            countTowardOverall: evaluation.score > 0, // Only count if there's actual evidence
+          })
+        } catch (dbError) {
+          console.error('Error storing evaluation:', dbError)
+        }
+      }
+    }
+
+    console.log(`Completed evaluation for chunk #${sequenceNumber} of session ${sessionId}`)
+
+  } catch (error) {
+    console.error('Error in processChunkEvaluation:', error)
   }
 }
