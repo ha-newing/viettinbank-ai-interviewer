@@ -27,9 +27,13 @@ const transcriptChunkSchema = z.object({
 })
 
 export async function POST(request: NextRequest) {
+  // ⚠️ DEPRECATED: This endpoint is deprecated in favor of /api/case-study/consolidated-transcript
+  // The chunked approach has been replaced with a simplified consolidated transcript approach
+  console.warn('⚠️ DEPRECATED: /api/case-study/transcript-chunk endpoint is deprecated. Use /api/case-study/consolidated-transcript instead')
+
   try {
     const body = await request.json()
-    console.log('📥 Received transcript chunk request:', {
+    console.log('📥 Received transcript chunk request (DEPRECATED):', {
       sessionId: body.sessionId,
       transcriptLength: body.rawTranscript?.length || 0,
       speakerMappingKeys: body.speakerMapping ? Object.keys(body.speakerMapping) : [],

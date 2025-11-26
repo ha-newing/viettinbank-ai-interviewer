@@ -1,0 +1,1 @@
+SELECT 1; -- No changes needed for this migration

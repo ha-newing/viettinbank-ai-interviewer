@@ -258,7 +258,22 @@ export const assessmentParticipants = sqliteTable('assessment_participants', {
     .$defaultFn(() => new Date()),
 })
 
-// Case Study Transcripts - Real-time transcription chunks for group discussion
+// Case Study Transcript Versions - Simplified versioned full transcript storage
+export const caseStudyTranscriptVersions = sqliteTable('case_study_transcript_versions', {
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
+  sessionId: text('session_id')
+    .notNull()
+    .references(() => assessmentSessions.id, { onDelete: 'cascade' }),
+  version: integer('version').notNull(), // 1, 2, 3... incrementing versions
+  fullTranscript: text('full_transcript').notNull(), // Complete consolidated transcript
+  speakerMapping: text('speaker_mapping'), // JSON: {"Speaker 1": "participant_id", "Speaker 2": "participant_id"}
+  totalDurationSeconds: integer('total_duration_seconds'),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .$defaultFn(() => new Date()),
+})
+
+// Legacy Case Study Transcripts - Keep for backward compatibility during migration
 export const caseStudyTranscripts = sqliteTable('case_study_transcripts', {
   id: text('id').primaryKey().$defaultFn(() => nanoid()),
   sessionId: text('session_id')

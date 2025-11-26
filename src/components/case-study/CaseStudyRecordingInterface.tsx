@@ -44,9 +44,9 @@ interface JobTemplate {
   description: string | null
 }
 
-interface TranscriptChunk {
+interface TranscriptVersion {
   id: string
-  sequenceNumber: number
+  version: number
   rawTranscript: string
   consolidatedTranscript: string
   durationSeconds: number
@@ -73,7 +73,7 @@ interface EvaluationRecord {
   competency: CompetencyInfo
   transcript: {
     id: string
-    sequenceNumber: number
+    version: number
     durationSeconds: number
   }
   score: number
@@ -148,7 +148,7 @@ export default function CaseStudyRecordingInterface({
   const [microphoneActive, setMicrophoneActive] = useState(false)
 
   // Transcript state
-  const [transcriptChunks, setTranscriptChunks] = useState<TranscriptChunk[]>([])
+  const [transcriptVersions, setTranscriptVersions] = useState<TranscriptVersion[]>([])
   const [speakerSegments, setSpeakerSegments] = useState<SpeakerSegment[]>([])
   const [speakerMapping, setSpeakerMapping] = useState<Map<number, string>>(new Map())
 
@@ -165,7 +165,6 @@ export default function CaseStudyRecordingInterface({
   // Refs
   const mediaStreamRef = useRef<MediaStream | null>(null)
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null)
-  const chunkTimerRef = useRef<NodeJS.Timeout | null>(null)
   const evaluationPollingRef = useRef<NodeJS.Timeout | null>(null)
   const isSendingEvaluationRef = useRef<boolean>(false)
 
@@ -246,18 +245,18 @@ export default function CaseStudyRecordingInterface({
         setRecordingDuration(prev => prev + 1)
         setNextEvaluationIn(prev => {
           if (prev <= 1) {
-            // Time to send evaluation
-            console.log('⏰ 60-second timer fired, sending transcript for evaluation')
+            // Time to sync consolidated transcript
+            console.log('⏰ 60-second timer fired, syncing consolidated transcript')
             // Use current state values instead of potentially stale closure
             setSpeakerSegments(currentSegments => {
               setSpeakerMapping(currentMapping => {
-                // Send current transcript snapshot for evaluation
-                sendTranscriptSnapshotWithData(currentSegments, currentMapping)
+                // Send current consolidated transcript for evaluation
+                sendConsolidatedTranscript(currentSegments, currentMapping)
                 return currentMapping
               })
               return currentSegments
             })
-            return 60 // Reset for next evaluation
+            return 60 // Reset for next sync
           }
           return prev - 1
         })
@@ -281,10 +280,6 @@ export default function CaseStudyRecordingInterface({
         recordingTimerRef.current = null
       }
 
-      if (chunkTimerRef.current) {
-        clearTimeout(chunkTimerRef.current)
-        chunkTimerRef.current = null
-      }
 
       // Stop evaluation polling
       stopEvaluationPolling()
@@ -297,7 +292,7 @@ export default function CaseStudyRecordingInterface({
 
       setMicrophoneActive(false)
 
-      // Send final transcript chunk
+      // Send final consolidated transcript
       await sendTranscriptChunk()
 
       // Stop transcription using the hook
@@ -318,9 +313,9 @@ export default function CaseStudyRecordingInterface({
     }
   }, [session.id, stopTranscription])
 
-  // Send transcript chunk to backend with provided data
-  const sendTranscriptSnapshotWithData = useCallback(async (segments: SpeakerSegment[], mapping: Map<number, string>) => {
-    console.log('🔄 sendTranscriptSnapshot called:', {
+  // Send consolidated transcript to backend with provided data
+  const sendConsolidatedTranscript = useCallback(async (segments: SpeakerSegment[], mapping: Map<number, string>) => {
+    console.log('🔄 sendConsolidatedTranscript called:', {
       segmentsLength: segments.length,
       mappingSize: mapping.size,
       isRecording,
@@ -329,18 +324,18 @@ export default function CaseStudyRecordingInterface({
     })
 
     if (segments.length === 0) {
-      console.log('⏭️ No speaker segments to send, skipping evaluation snapshot')
+      console.log('⏭️ No speaker segments to send, skipping consolidated transcript sync')
       return
     }
 
     if (isSendingEvaluationRef.current) {
-      console.log('🔒 Already sending evaluation, skipping to prevent duplicates')
+      console.log('🔒 Already sending consolidated transcript, skipping to prevent duplicates')
       return
     }
 
     isSendingEvaluationRef.current = true
 
-    console.log('📤 Sending transcript snapshot for evaluation:', {
+    console.log('📤 Sending consolidated transcript for evaluation:', {
       segmentCount: segments.length,
       preview: segments.slice(0, 2).map(s => ({
         speaker: s.speaker,
@@ -349,13 +344,13 @@ export default function CaseStudyRecordingInterface({
     })
 
     try {
-      // Combine segments into transcript text
-      const rawTranscript = segments
+      // Build unified chronological transcript from speaker segments (following technical reference pattern)
+      const fullTranscript = segments
         .map(segment => {
           const speakerName = mapping.get(segment.speaker) || `Speaker ${segment.speaker}`
-          return `${speakerName}: ${segment.text}`
+          return `[${speakerName}]: ${segment.text}`
         })
-        .join(' ')
+        .join('\n')
 
       // Convert Map to Record for API
       const speakerMappingRecord: Record<string, string> = {}
@@ -363,18 +358,23 @@ export default function CaseStudyRecordingInterface({
         speakerMappingRecord[id.toString()] = name
       })
 
-      console.log('🚀 Making API request for evaluation snapshot')
+      // Calculate total duration from segments
+      const totalDurationSeconds = segments.length > 0
+        ? Math.round((segments[segments.length - 1].endMs - segments[0].startMs) / 1000)
+        : recordingDuration
 
-      // Send to backend
-      const response = await fetch('/api/case-study/transcript-chunk', {
+      console.log('🚀 Making API request for consolidated transcript sync')
+
+      // Send to consolidated transcript endpoint
+      const response = await fetch('/api/case-study/consolidated-transcript', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId: session.id,
-          rawTranscript,
+          fullTranscript,
           speakerMapping: speakerMappingRecord,
-          durationSeconds: 60,
-          tokens: segments.flatMap(segment => segment.tokens)
+          totalDurationSeconds,
+          timestamp: Date.now()
         })
       })
 
@@ -382,40 +382,40 @@ export default function CaseStudyRecordingInterface({
 
       if (response.ok) {
         const result = await response.json()
-        console.log('✅ Evaluation snapshot sent successfully:', result.success)
+        console.log('✅ Consolidated transcript sent successfully:', result.success)
         if (result.success) {
           setTotalEvaluations(prev => prev + 1)
 
-          // Add to transcript snapshots display
-          const newSnapshot: TranscriptChunk = {
+          // Add to transcript versions display (updated for consolidated approach)
+          const newVersion: TranscriptVersion = {
             id: result.data.id,
-            sequenceNumber: result.data.sequenceNumber,
-            rawTranscript,
-            consolidatedTranscript: rawTranscript, // Will be processed by backend
-            durationSeconds: 60,
+            version: result.data.version,
+            rawTranscript: fullTranscript,
+            consolidatedTranscript: fullTranscript,
+            durationSeconds: totalDurationSeconds,
             createdAt: new Date(),
             speakerMapping: speakerMappingRecord
           }
-          setTranscriptChunks(prev => [newSnapshot, ...prev])
-          console.log('📋 Evaluation snapshot added to display')
+          setTranscriptVersions(prev => [newVersion, ...prev])
+          console.log('📋 Consolidated transcript version added to display')
         }
       } else {
-        console.error('❌ Evaluation snapshot failed with status:', response.status)
+        console.error('❌ Consolidated transcript sync failed with status:', response.status)
         const errorText = await response.text()
         console.error('❌ Error response:', errorText)
       }
 
     } catch (error) {
-      console.error('❌ Error sending evaluation snapshot:', error)
+      console.error('❌ Error sending consolidated transcript:', error)
     } finally {
       isSendingEvaluationRef.current = false
     }
-  }, [session.id, isRecording])
+  }, [session.id, isRecording, recordingDuration])
 
-  // Send transcript snapshot to backend (wrapper for backward compatibility)
+  // Send consolidated transcript to backend (updated for new approach)
   const sendTranscriptChunk = useCallback(async () => {
-    return sendTranscriptSnapshotWithData(speakerSegments, speakerMapping)
-  }, [sendTranscriptSnapshotWithData, speakerSegments, speakerMapping])
+    return sendConsolidatedTranscript(speakerSegments, speakerMapping)
+  }, [sendConsolidatedTranscript, speakerSegments, speakerMapping])
 
 
   // Poll for evaluation results
@@ -484,7 +484,6 @@ export default function CaseStudyRecordingInterface({
   useEffect(() => {
     return () => {
       if (recordingTimerRef.current) clearInterval(recordingTimerRef.current)
-      if (chunkTimerRef.current) clearTimeout(chunkTimerRef.current)
       if (evaluationPollingRef.current) clearInterval(evaluationPollingRef.current)
       if (mediaStreamRef.current) {
         mediaStreamRef.current.getTracks().forEach(track => track.stop())
@@ -622,7 +621,7 @@ export default function CaseStudyRecordingInterface({
               {isRecording && (
                 <div className="flex items-center">
                   <Clock className="h-4 w-4 mr-1" />
-                  Đánh giá tiếp theo: {formatTime(nextEvaluationIn)}
+                  Đồng bộ tiếp theo: {formatTime(nextEvaluationIn)}
                 </div>
               )}
             </div>
@@ -720,7 +719,7 @@ export default function CaseStudyRecordingInterface({
               </span>
               <div className="flex items-center space-x-4 text-sm text-gray-600">
                 <span>Đánh giá: {evaluationData.statistics.totalEvaluations}</span>
-                <span>Đánh giá mới nhất: #{evaluationData.statistics.latestChunk}</span>
+                <span>Phiên bản mới nhất: #{evaluationData.statistics.latestChunk}</span>
                 {evaluationData.statistics.lastUpdated && (
                   <span>Cập nhật: {new Date(evaluationData.statistics.lastUpdated).toLocaleTimeString('vi-VN')}</span>
                 )}
@@ -835,7 +834,7 @@ export default function CaseStudyRecordingInterface({
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center space-x-2">
                           <span className="text-xs font-medium text-blue-600">
-                            #{evaluation.transcript.sequenceNumber}
+                            #{evaluation.transcript.version}
                           </span>
                           <span className="text-sm font-medium">
                             {evaluation.participant?.name || 'Unknown'}

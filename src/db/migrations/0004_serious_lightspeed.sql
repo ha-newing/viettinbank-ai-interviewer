@@ -1,0 +1,1 @@
+SELECT 1; -- Empty migration placeholder
