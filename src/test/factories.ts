@@ -333,7 +333,7 @@ export function createAIEvaluationResult(overrides?: Partial<{
       'Kiểm tra references từ công ty cũ'
     ],
     processing_time_ms: 2500,
-    ai_model_used: 'gpt-4',
+    ai_model_used: 'gpt-5-mini',
     evaluation_timestamp: new Date(),
     ...overrides
   }

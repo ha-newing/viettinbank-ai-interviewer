@@ -162,7 +162,7 @@ Focus on:
 `
 
     const completion = await getOpenAIClient().chat.completions.create({
-      model: 'gpt-4',
+      model: 'gpt-5-mini',
       messages: [
         {
           role: 'system',
@@ -173,7 +173,7 @@ Focus on:
           content: prompt
         }
       ],
-      temperature: 0.3,
+      temperature: 1,
       response_format: { type: 'json_object' }
     })
 

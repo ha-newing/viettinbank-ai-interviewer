@@ -96,7 +96,7 @@ export async function evaluateTranscriptChunk(
 
     // Call OpenAI for evaluation
     const completion = await getOpenAIClient().chat.completions.create({
-      model: 'gpt-4',
+      model: 'gpt-5-mini',
       messages: [
         {
           role: 'system',

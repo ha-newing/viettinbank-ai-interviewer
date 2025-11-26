@@ -50,7 +50,7 @@ export class AIScoringEngine {
   private openai: OpenAI
   private model: string
 
-  constructor(apiKey?: string, model: string = 'gpt-4') {
+  constructor(apiKey?: string, model: string = 'gpt-5-mini') {
     const key = apiKey || process.env.OPENAI_API_KEY
     if (!key) {
       throw new Error('OpenAI API key is required')

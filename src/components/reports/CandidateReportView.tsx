@@ -183,7 +183,7 @@ export function CandidateReportView({ data }: CandidateReportViewProps) {
                 {interview.processingCompletedAt && (
                   <>
                     <div className="text-sm font-medium">
-                      {aiEvaluation?.ai_model_used || 'GPT-4'}
+                      {aiEvaluation?.ai_model_used || 'GPT-5-mini'}
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">
                       AI đánh giá {formatDistanceToNow(new Date(interview.processingCompletedAt), {
