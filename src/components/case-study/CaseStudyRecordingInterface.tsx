@@ -146,7 +146,6 @@ export default function CaseStudyRecordingInterface({
   const [recordingDuration, setRecordingDuration] = useState(0)
   const [nextEvaluationIn, setNextEvaluationIn] = useState(60)
   const [microphoneActive, setMicrophoneActive] = useState(false)
-  const [isSendingEvaluation, setIsSendingEvaluation] = useState(false)
 
   // Transcript state
   const [transcriptChunks, setTranscriptChunks] = useState<TranscriptChunk[]>([])
@@ -168,6 +167,7 @@ export default function CaseStudyRecordingInterface({
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null)
   const chunkTimerRef = useRef<NodeJS.Timeout | null>(null)
   const evaluationPollingRef = useRef<NodeJS.Timeout | null>(null)
+  const isSendingEvaluationRef = useRef<boolean>(false)
 
   // Speaker Diarization Hook
   const {
@@ -324,7 +324,7 @@ export default function CaseStudyRecordingInterface({
       segmentsLength: segments.length,
       mappingSize: mapping.size,
       isRecording,
-      isSendingEvaluation,
+      isSendingEvaluation: isSendingEvaluationRef.current,
       sessionId: session.id
     })
 
@@ -333,12 +333,12 @@ export default function CaseStudyRecordingInterface({
       return
     }
 
-    if (isSendingEvaluation) {
+    if (isSendingEvaluationRef.current) {
       console.log('🔒 Already sending evaluation, skipping to prevent duplicates')
       return
     }
 
-    setIsSendingEvaluation(true)
+    isSendingEvaluationRef.current = true
 
     console.log('📤 Sending transcript snapshot for evaluation:', {
       segmentCount: segments.length,
@@ -408,9 +408,9 @@ export default function CaseStudyRecordingInterface({
     } catch (error) {
       console.error('❌ Error sending evaluation snapshot:', error)
     } finally {
-      setIsSendingEvaluation(false)
+      isSendingEvaluationRef.current = false
     }
-  }, [session.id, isRecording, isSendingEvaluation])
+  }, [session.id, isRecording])
 
   // Send transcript snapshot to backend (wrapper for backward compatibility)
   const sendTranscriptChunk = useCallback(async () => {
