@@ -15,9 +15,20 @@ const updateStatusSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    console.log('📥 Received status update request:', {
+      sessionId: body.sessionId,
+      status: body.status,
+      bodyKeys: Object.keys(body)
+    })
+
     const result = updateStatusSchema.safeParse(body)
 
     if (!result.success) {
+      console.error('❌ Status update schema validation failed:', {
+        sessionId: body.sessionId,
+        status: body.status,
+        errors: result.error.errors
+      })
       return NextResponse.json({
         success: false,
         error: 'Invalid input data',
@@ -25,6 +36,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
+    console.log('✅ Status update schema validation passed')
     const { sessionId, status } = result.data
 
     // Verify the session exists
@@ -46,6 +58,12 @@ export async function POST(request: NextRequest) {
     }
 
     const currentStatus = existingSession[0].status
+    console.log('🔍 Session status check:', {
+      sessionId,
+      sessionName: existingSession[0].name,
+      currentStatus,
+      requestedStatus: status
+    })
 
     // Validate status transition
     const allowedTransitions: Record<string, string[]> = {
@@ -56,13 +74,29 @@ export async function POST(request: NextRequest) {
       'completed': [] // No transitions from completed
     }
 
-    if (!allowedTransitions[currentStatus]?.includes(status)) {
+    const allowedForCurrentStatus = allowedTransitions[currentStatus] || []
+    console.log('🔄 Status transition validation:', {
+      currentStatus,
+      requestedStatus: status,
+      allowedTransitions: allowedForCurrentStatus,
+      isAllowed: allowedForCurrentStatus.includes(status)
+    })
+
+    if (!allowedForCurrentStatus.includes(status)) {
+      console.error('❌ Invalid status transition:', {
+        sessionId,
+        currentStatus,
+        requestedStatus: status,
+        allowedTransitions: allowedForCurrentStatus
+      })
       return NextResponse.json({
         success: false,
         error: `Cannot transition from '${currentStatus}' to '${status}'`,
-        allowedTransitions: allowedTransitions[currentStatus] || []
+        allowedTransitions: allowedForCurrentStatus
       }, { status: 400 })
     }
+
+    console.log('✅ Status transition validation passed')
 
     // Update the session status
     const updateData: any = { status }

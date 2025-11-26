@@ -29,9 +29,21 @@ const transcriptChunkSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    console.log('📥 Received transcript chunk request:', {
+      sessionId: body.sessionId,
+      transcriptLength: body.rawTranscript?.length || 0,
+      speakerMappingKeys: body.speakerMapping ? Object.keys(body.speakerMapping) : [],
+      durationSeconds: body.durationSeconds,
+      tokenCount: body.tokens?.length || 0
+    })
+
     const result = transcriptChunkSchema.safeParse(body)
 
     if (!result.success) {
+      console.error('❌ Schema validation failed:', {
+        sessionId: body.sessionId,
+        errors: result.error.errors
+      })
       return NextResponse.json({
         success: false,
         error: 'Invalid input data',
@@ -39,9 +51,11 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
+    console.log('✅ Schema validation passed')
     const { sessionId, rawTranscript, speakerMapping, durationSeconds, tokens } = result.data
 
     // Verify the session exists and is in the correct state for case study recording
+    console.log('🔍 Looking up session:', sessionId)
     const session = await db
       .select({
         id: assessmentSessions.id,
@@ -53,14 +67,26 @@ export async function POST(request: NextRequest) {
       .limit(1)
 
     if (!session[0]) {
+      console.error('❌ Session not found:', sessionId)
       return NextResponse.json({
         success: false,
         error: 'Assessment session not found'
       }, { status: 404 })
     }
 
+    console.log('✅ Session found:', {
+      id: session[0].id,
+      status: session[0].status,
+      organizationId: session[0].organizationId
+    })
+
     // Check if session is in case study phase
     if (session[0].status !== 'case_study_in_progress') {
+      console.error('❌ Session not in case study phase:', {
+        sessionId,
+        currentStatus: session[0].status,
+        expectedStatus: 'case_study_in_progress'
+      })
       return NextResponse.json({
         success: false,
         error: 'Session is not in case study phase',
@@ -68,7 +94,10 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
+    console.log('✅ Session status verified - case study in progress')
+
     // Get the next sequence number for this session
+    console.log('🔍 Getting last chunk sequence number for session:', sessionId)
     const lastChunk = await db
       .select({ sequenceNumber: caseStudyTranscripts.sequenceNumber })
       .from(caseStudyTranscripts)
@@ -77,8 +106,13 @@ export async function POST(request: NextRequest) {
       .limit(1)
 
     const nextSequenceNumber = lastChunk[0]?.sequenceNumber ? lastChunk[0].sequenceNumber + 1 : 1
+    console.log('📊 Sequence number calculated:', {
+      lastSequence: lastChunk[0]?.sequenceNumber || 'none',
+      nextSequence: nextSequenceNumber
+    })
 
     // Get participants for speaker mapping consolidation
+    console.log('👥 Getting participants for session:', sessionId)
     const participants = await db
       .select({
         id: assessmentParticipants.id,
@@ -89,16 +123,29 @@ export async function POST(request: NextRequest) {
       .from(assessmentParticipants)
       .where(eq(assessmentParticipants.sessionId, sessionId))
 
+    console.log('✅ Participants found:', {
+      count: participants.length,
+      participants: participants.map(p => ({ id: p.id, name: p.name, roleCode: p.roleCode }))
+    })
+
     // Create consolidated transcript with participant names
+    console.log('🔄 Processing speaker mapping and consolidating transcript')
     let consolidatedTranscript = rawTranscript
     const participantMap: Record<string, string> = {}
 
+    console.log('📝 Raw transcript preview:', {
+      length: rawTranscript.length,
+      preview: rawTranscript.substring(0, 200) + (rawTranscript.length > 200 ? '...' : '')
+    })
+
     if (speakerMapping && participants.length > 0) {
+      console.log('🔗 Building speaker mapping:', speakerMapping)
       // Build participant mapping from speaker IDs to names
       for (const [speakerId, participantId] of Object.entries(speakerMapping)) {
         const participant = participants.find(p => p.id === participantId)
         if (participant) {
           participantMap[speakerId] = `${participant.name} (${participant.roleCode})`
+          console.log(`✅ Mapped speaker ${speakerId} -> ${participant.name} (${participant.roleCode})`)
 
           // Replace speaker labels in transcript
           const speakerPattern = new RegExp(`\\b${speakerId}\\b`, 'g')
@@ -106,31 +153,73 @@ export async function POST(request: NextRequest) {
             speakerPattern,
             participant.name
           )
+        } else {
+          console.warn(`⚠️ No participant found for speaker ${speakerId} with participantId ${participantId}`)
         }
       }
+    } else {
+      console.log('ℹ️ No speaker mapping or participants available')
     }
 
+    console.log('📝 Consolidated transcript preview:', {
+      length: consolidatedTranscript.length,
+      preview: consolidatedTranscript.substring(0, 200) + (consolidatedTranscript.length > 200 ? '...' : ''),
+      participantMapCount: Object.keys(participantMap).length
+    })
+
     // Store the transcript chunk
-    const [newChunk] = await db
-      .insert(caseStudyTranscripts)
-      .values({
+    console.log('💾 Attempting to store transcript chunk in database')
+    let newChunk
+    try {
+      const insertValues = {
         sessionId,
         sequenceNumber: nextSequenceNumber,
         rawTranscript,
         consolidatedTranscript,
         speakerMapping: speakerMapping ? JSON.stringify(speakerMapping) : null,
         durationSeconds
-      })
-      .returning()
+      }
 
-    if (!newChunk) {
+      console.log('📋 Insert values:', {
+        sessionId: insertValues.sessionId,
+        sequenceNumber: insertValues.sequenceNumber,
+        rawTranscriptLength: insertValues.rawTranscript.length,
+        consolidatedTranscriptLength: insertValues.consolidatedTranscript.length,
+        hasSpeakerMapping: !!insertValues.speakerMapping,
+        durationSeconds: insertValues.durationSeconds
+      })
+
+      const result = await db
+        .insert(caseStudyTranscripts)
+        .values(insertValues)
+        .returning()
+
+      newChunk = result[0]
+
+      if (!newChunk) {
+        console.error('❌ Database insert returned no chunk')
+        return NextResponse.json({
+          success: false,
+          error: 'Failed to store transcript chunk'
+        }, { status: 500 })
+      }
+
+      console.log('✅ Transcript chunk stored successfully:', {
+        id: newChunk.id,
+        sequenceNumber: newChunk.sequenceNumber,
+        createdAt: newChunk.createdAt
+      })
+    } catch (dbError) {
+      console.error('❌ Database insert failed:', dbError)
       return NextResponse.json({
         success: false,
-        error: 'Failed to store transcript chunk'
+        error: 'Database error while storing transcript chunk',
+        details: dbError instanceof Error ? dbError.message : String(dbError)
       }, { status: 500 })
     }
 
     // Trigger competency evaluation for this chunk (async, don't wait)
+    console.log('🚀 Triggering competency evaluation for chunk:', newChunk.id)
     processChunkEvaluation({
       transcriptId: newChunk.id,
       sessionId,
@@ -139,10 +228,10 @@ export async function POST(request: NextRequest) {
       participants,
       session: session[0]
     }).catch(error => {
-      console.error('Error processing chunk evaluation:', error)
+      console.error('❌ Error processing chunk evaluation:', error)
     })
 
-    return NextResponse.json({
+    const responseData = {
       success: true,
       message: 'Transcript chunk stored successfully',
       data: {
@@ -154,13 +243,28 @@ export async function POST(request: NextRequest) {
         durationSeconds,
         evaluationTriggered: true
       }
+    }
+
+    console.log('🎉 Sending successful response:', {
+      chunkId: responseData.data.id,
+      sequenceNumber: responseData.data.sequenceNumber,
+      participantCount: responseData.data.participantCount,
+      speakerCount: responseData.data.speakerCount,
+      transcriptLength: responseData.data.transcriptLength
     })
 
+    return NextResponse.json(responseData)
+
   } catch (error) {
-    console.error('Error storing transcript chunk:', error)
+    console.error('💥 Unexpected error in transcript chunk route:', {
+      error,
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    })
     return NextResponse.json({
       success: false,
-      error: 'Internal server error while storing transcript chunk'
+      error: 'Internal server error while storing transcript chunk',
+      details: error instanceof Error ? error.message : String(error)
     }, { status: 500 })
   }
 }

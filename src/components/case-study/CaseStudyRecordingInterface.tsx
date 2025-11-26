@@ -179,6 +179,18 @@ export default function CaseStudyRecordingInterface({
   } = useSpeakerDiarization({
     sessionId: session.id,
     onTranscriptUpdate: (segments, mapping) => {
+      console.log('🎤 Transcript update received:', {
+        segmentCount: segments.length,
+        mappingSize: mapping.size,
+        newSegments: segments.slice(-2).map(s => ({
+          speaker: s.speaker,
+          text: s.text.substring(0, 50) + (s.text.length > 50 ? '...' : ''),
+          startMs: s.startMs,
+          endMs: s.endMs
+        })),
+        speakers: Array.from(mapping.keys()).map(key => ({ id: key, name: mapping.get(key) }))
+      })
+
       setSpeakerSegments(segments)
       setSpeakerMapping(mapping)
 
@@ -234,7 +246,16 @@ export default function CaseStudyRecordingInterface({
         setNextChunkIn(prev => {
           if (prev <= 1) {
             // Time to send chunk
-            sendTranscriptChunk()
+            console.log('⏰ 60-second timer fired, attempting to send chunk')
+            // Use current state values instead of potentially stale closure
+            setSpeakerSegments(currentSegments => {
+              setSpeakerMapping(currentMapping => {
+                // Call sendTranscriptChunk with current values
+                sendTranscriptChunkWithData(currentSegments, currentMapping)
+                return currentMapping
+              })
+              return currentSegments
+            })
             return 60 // Reset for next chunk
           }
           return prev - 1
@@ -296,26 +317,44 @@ export default function CaseStudyRecordingInterface({
     }
   }, [session.id, stopTranscription])
 
-  // Send transcript chunk to backend
-  const sendTranscriptChunk = useCallback(async () => {
-    if (speakerSegments.length === 0) {
+  // Send transcript chunk to backend with provided data
+  const sendTranscriptChunkWithData = useCallback(async (segments: SpeakerSegment[], mapping: Map<number, string>) => {
+    console.log('🔄 sendTranscriptChunkWithData called:', {
+      segmentsLength: segments.length,
+      mappingSize: mapping.size,
+      isRecording,
+      sessionId: session.id
+    })
+
+    if (segments.length === 0) {
+      console.log('⏭️ No speaker segments to send, skipping chunk submission')
       return
     }
 
+    console.log('📤 Sending transcript chunk with segments:', {
+      segmentCount: segments.length,
+      preview: segments.slice(0, 2).map(s => ({
+        speaker: s.speaker,
+        text: s.text.substring(0, 100) + (s.text.length > 100 ? '...' : '')
+      }))
+    })
+
     try {
       // Combine segments into transcript text
-      const rawTranscript = speakerSegments
+      const rawTranscript = segments
         .map(segment => {
-          const speakerName = speakerMapping.get(segment.speaker) || `Speaker ${segment.speaker}`
+          const speakerName = mapping.get(segment.speaker) || `Speaker ${segment.speaker}`
           return `${speakerName}: ${segment.text}`
         })
         .join(' ')
 
       // Convert Map to Record for API
       const speakerMappingRecord: Record<string, string> = {}
-      speakerMapping.forEach((name, id) => {
+      mapping.forEach((name, id) => {
         speakerMappingRecord[id.toString()] = name
       })
+
+      console.log('🚀 Making API request to /api/case-study/transcript-chunk')
 
       // Send to backend
       const response = await fetch('/api/case-study/transcript-chunk', {
@@ -326,12 +365,15 @@ export default function CaseStudyRecordingInterface({
           rawTranscript,
           speakerMapping: speakerMappingRecord,
           durationSeconds: 60,
-          tokens: speakerSegments.flatMap(segment => segment.tokens)
+          tokens: segments.flatMap(segment => segment.tokens)
         })
       })
 
+      console.log('📥 API response status:', response.status)
+
       if (response.ok) {
         const result = await response.json()
+        console.log('✅ API response success:', result.success)
         if (result.success) {
           setTotalChunks(prev => prev + 1)
 
@@ -346,13 +388,23 @@ export default function CaseStudyRecordingInterface({
             speakerMapping: speakerMappingRecord
           }
           setTranscriptChunks(prev => [newChunk, ...prev])
+          console.log('📋 Chunk added to UI display')
         }
+      } else {
+        console.error('❌ API request failed with status:', response.status)
+        const errorText = await response.text()
+        console.error('❌ Error response:', errorText)
       }
 
     } catch (error) {
-      console.error('Error sending transcript chunk:', error)
+      console.error('❌ Error sending transcript chunk:', error)
     }
-  }, [session.id, speakerSegments, speakerMapping])
+  }, [session.id, isRecording])
+
+  // Send transcript chunk to backend (wrapper for backward compatibility)
+  const sendTranscriptChunk = useCallback(async () => {
+    return sendTranscriptChunkWithData(speakerSegments, speakerMapping)
+  }, [sendTranscriptChunkWithData, speakerSegments, speakerMapping])
 
 
   // Poll for evaluation results
