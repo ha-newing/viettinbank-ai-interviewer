@@ -154,7 +154,7 @@ export default function CaseStudyRecordingInterface({
   const [speakerMapping, setSpeakerMapping] = useState<Map<number, string>>(new Map())
 
   // Statistics
-  const [totalChunks, setTotalChunks] = useState(0)
+  const [totalEvaluations, setTotalEvaluations] = useState(0)
   const [totalWords, setTotalWords] = useState(0)
 
   // Evaluation state
@@ -384,7 +384,7 @@ export default function CaseStudyRecordingInterface({
         const result = await response.json()
         console.log('✅ Evaluation snapshot sent successfully:', result.success)
         if (result.success) {
-          setTotalChunks(prev => prev + 1) // TODO: Rename to setTotalEvaluations
+          setTotalEvaluations(prev => prev + 1)
 
           // Add to transcript snapshots display
           const newSnapshot: TranscriptChunk = {
@@ -664,7 +664,7 @@ export default function CaseStudyRecordingInterface({
           <CardTitle className="flex items-center justify-between">
             <span>Transcript trực tiếp</span>
             <div className="text-sm text-gray-600 space-x-4">
-              <span>Chunks: {totalChunks}</span>
+              <span>Đánh giá: {totalEvaluations}</span>
               <span>Words: {totalWords}</span>
               {connectionStatus === 'connected' && (
                 <Badge className="bg-green-100 text-green-800">
@@ -720,7 +720,7 @@ export default function CaseStudyRecordingInterface({
               </span>
               <div className="flex items-center space-x-4 text-sm text-gray-600">
                 <span>Đánh giá: {evaluationData.statistics.totalEvaluations}</span>
-                <span>Chunk mới nhất: #{evaluationData.statistics.latestChunk}</span>
+                <span>Đánh giá mới nhất: #{evaluationData.statistics.latestChunk}</span>
                 {evaluationData.statistics.lastUpdated && (
                   <span>Cập nhật: {new Date(evaluationData.statistics.lastUpdated).toLocaleTimeString('vi-VN')}</span>
                 )}

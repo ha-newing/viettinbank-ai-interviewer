@@ -200,7 +200,7 @@ export async function POST(request: NextRequest) {
         console.error('❌ Database insert returned no chunk')
         return NextResponse.json({
           success: false,
-          error: 'Failed to store transcript chunk'
+          error: 'Failed to store transcript snapshot'
         }, { status: 500 })
       }
 
@@ -213,7 +213,7 @@ export async function POST(request: NextRequest) {
       console.error('❌ Database insert failed:', dbError)
       return NextResponse.json({
         success: false,
-        error: 'Database error while storing transcript chunk',
+        error: 'Database error while storing transcript snapshot',
         details: dbError instanceof Error ? dbError.message : String(dbError)
       }, { status: 500 })
     }
@@ -233,7 +233,7 @@ export async function POST(request: NextRequest) {
 
     const responseData = {
       success: true,
-      message: 'Transcript chunk stored successfully',
+      message: 'Transcript snapshot stored successfully',
       data: {
         id: newChunk.id,
         sequenceNumber: nextSequenceNumber,
@@ -263,7 +263,7 @@ export async function POST(request: NextRequest) {
     })
     return NextResponse.json({
       success: false,
-      error: 'Internal server error while storing transcript chunk',
+      error: 'Internal server error while storing transcript snapshot',
       details: error instanceof Error ? error.message : String(error)
     }, { status: 500 })
   }
