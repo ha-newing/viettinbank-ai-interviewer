@@ -144,8 +144,9 @@ export default function CaseStudyRecordingInterface({
   // Recording state
   const [isRecording, setIsRecording] = useState(false)
   const [recordingDuration, setRecordingDuration] = useState(0)
-  const [nextChunkIn, setNextChunkIn] = useState(60)
+  const [nextEvaluationIn, setNextEvaluationIn] = useState(60)
   const [microphoneActive, setMicrophoneActive] = useState(false)
+  const [isSendingEvaluation, setIsSendingEvaluation] = useState(false)
 
   // Transcript state
   const [transcriptChunks, setTranscriptChunks] = useState<TranscriptChunk[]>([])
@@ -201,7 +202,7 @@ export default function CaseStudyRecordingInterface({
     onSessionStarted: () => {
       setIsRecording(true)
       setRecordingDuration(0)
-      setNextChunkIn(60)
+      setNextEvaluationIn(60)
     },
     onSessionFinished: () => {
       setIsRecording(false)
@@ -243,20 +244,20 @@ export default function CaseStudyRecordingInterface({
       // Start timers
       recordingTimerRef.current = setInterval(() => {
         setRecordingDuration(prev => prev + 1)
-        setNextChunkIn(prev => {
+        setNextEvaluationIn(prev => {
           if (prev <= 1) {
-            // Time to send chunk
-            console.log('⏰ 60-second timer fired, attempting to send chunk')
+            // Time to send evaluation
+            console.log('⏰ 60-second timer fired, sending transcript for evaluation')
             // Use current state values instead of potentially stale closure
             setSpeakerSegments(currentSegments => {
               setSpeakerMapping(currentMapping => {
-                // Call sendTranscriptChunk with current values
-                sendTranscriptChunkWithData(currentSegments, currentMapping)
+                // Send current transcript snapshot for evaluation
+                sendTranscriptSnapshotWithData(currentSegments, currentMapping)
                 return currentMapping
               })
               return currentSegments
             })
-            return 60 // Reset for next chunk
+            return 60 // Reset for next evaluation
           }
           return prev - 1
         })
@@ -318,20 +319,28 @@ export default function CaseStudyRecordingInterface({
   }, [session.id, stopTranscription])
 
   // Send transcript chunk to backend with provided data
-  const sendTranscriptChunkWithData = useCallback(async (segments: SpeakerSegment[], mapping: Map<number, string>) => {
-    console.log('🔄 sendTranscriptChunkWithData called:', {
+  const sendTranscriptSnapshotWithData = useCallback(async (segments: SpeakerSegment[], mapping: Map<number, string>) => {
+    console.log('🔄 sendTranscriptSnapshot called:', {
       segmentsLength: segments.length,
       mappingSize: mapping.size,
       isRecording,
+      isSendingEvaluation,
       sessionId: session.id
     })
 
     if (segments.length === 0) {
-      console.log('⏭️ No speaker segments to send, skipping chunk submission')
+      console.log('⏭️ No speaker segments to send, skipping evaluation snapshot')
       return
     }
 
-    console.log('📤 Sending transcript chunk with segments:', {
+    if (isSendingEvaluation) {
+      console.log('🔒 Already sending evaluation, skipping to prevent duplicates')
+      return
+    }
+
+    setIsSendingEvaluation(true)
+
+    console.log('📤 Sending transcript snapshot for evaluation:', {
       segmentCount: segments.length,
       preview: segments.slice(0, 2).map(s => ({
         speaker: s.speaker,
@@ -354,7 +363,7 @@ export default function CaseStudyRecordingInterface({
         speakerMappingRecord[id.toString()] = name
       })
 
-      console.log('🚀 Making API request to /api/case-study/transcript-chunk')
+      console.log('🚀 Making API request for evaluation snapshot')
 
       // Send to backend
       const response = await fetch('/api/case-study/transcript-chunk', {
@@ -373,12 +382,12 @@ export default function CaseStudyRecordingInterface({
 
       if (response.ok) {
         const result = await response.json()
-        console.log('✅ API response success:', result.success)
+        console.log('✅ Evaluation snapshot sent successfully:', result.success)
         if (result.success) {
-          setTotalChunks(prev => prev + 1)
+          setTotalChunks(prev => prev + 1) // TODO: Rename to setTotalEvaluations
 
-          // Add to transcript chunks display
-          const newChunk: TranscriptChunk = {
+          // Add to transcript snapshots display
+          const newSnapshot: TranscriptChunk = {
             id: result.data.id,
             sequenceNumber: result.data.sequenceNumber,
             rawTranscript,
@@ -387,24 +396,26 @@ export default function CaseStudyRecordingInterface({
             createdAt: new Date(),
             speakerMapping: speakerMappingRecord
           }
-          setTranscriptChunks(prev => [newChunk, ...prev])
-          console.log('📋 Chunk added to UI display')
+          setTranscriptChunks(prev => [newSnapshot, ...prev])
+          console.log('📋 Evaluation snapshot added to display')
         }
       } else {
-        console.error('❌ API request failed with status:', response.status)
+        console.error('❌ Evaluation snapshot failed with status:', response.status)
         const errorText = await response.text()
         console.error('❌ Error response:', errorText)
       }
 
     } catch (error) {
-      console.error('❌ Error sending transcript chunk:', error)
+      console.error('❌ Error sending evaluation snapshot:', error)
+    } finally {
+      setIsSendingEvaluation(false)
     }
-  }, [session.id, isRecording])
+  }, [session.id, isRecording, isSendingEvaluation])
 
-  // Send transcript chunk to backend (wrapper for backward compatibility)
+  // Send transcript snapshot to backend (wrapper for backward compatibility)
   const sendTranscriptChunk = useCallback(async () => {
-    return sendTranscriptChunkWithData(speakerSegments, speakerMapping)
-  }, [sendTranscriptChunkWithData, speakerSegments, speakerMapping])
+    return sendTranscriptSnapshotWithData(speakerSegments, speakerMapping)
+  }, [sendTranscriptSnapshotWithData, speakerSegments, speakerMapping])
 
 
   // Poll for evaluation results
@@ -610,8 +621,8 @@ export default function CaseStudyRecordingInterface({
               </div>
               {isRecording && (
                 <div className="flex items-center">
-                  <Volume2 className="h-4 w-4 mr-1" />
-                  Chunk tiếp theo: {formatTime(nextChunkIn)}
+                  <Clock className="h-4 w-4 mr-1" />
+                  Đánh giá tiếp theo: {formatTime(nextEvaluationIn)}
                 </div>
               )}
             </div>

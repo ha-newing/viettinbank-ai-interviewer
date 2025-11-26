@@ -173,7 +173,7 @@ export class AIScoringEngine {
             content: prompt
           }
         ],
-        temperature: 0.1, // Low temperature for consistent evaluation
+        temperature: 1, // Low temperature for consistent evaluation
         max_tokens: 1000
       })
 
@@ -251,8 +251,8 @@ export class AIScoringEngine {
             content: prompt
           }
         ],
-        temperature: 0.2,
-        max_tokens: 1500
+        temperature: 1,
+        max_tokens: 3500
       })
 
       const responseText = completion.choices[0]?.message?.content

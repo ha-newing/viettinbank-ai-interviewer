@@ -107,7 +107,7 @@ export async function evaluateTranscriptChunk(
           content: prompt
         }
       ],
-      temperature: 0.1, // Low temperature for consistent evaluation
+      temperature: 1, // Low temperature for consistent evaluation
       response_format: { type: 'json_object' }
     })
 
