@@ -9,8 +9,8 @@ export default async function Home() {
   const user = await getCurrentUser()
 
   if (user) {
-    // User is authenticated, redirect to dashboard
-    redirect('/dashboard')
+    // User is authenticated, redirect to assessment center
+    redirect('/dashboard/assessment-sessions')
   } else {
     // User is not authenticated, redirect to login
     redirect('/auth/login')

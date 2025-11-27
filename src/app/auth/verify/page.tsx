@@ -51,8 +51,8 @@ export default async function VerifyPage({ searchParams }: VerifyPageProps) {
       if ('redirect' in result) {
         redirect(result.redirect)
       } else {
-        // Existing organization - redirect to dashboard
-        redirect('/dashboard')
+        // Existing organization - redirect to assessment center
+        redirect('/dashboard/assessment-sessions')
       }
     }
 

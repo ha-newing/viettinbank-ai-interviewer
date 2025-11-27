@@ -9,7 +9,7 @@ export default async function LoginPage() {
   // Check if user is already authenticated
   const user = await getCurrentUser()
   if (user) {
-    redirect('/dashboard')
+    redirect('/dashboard/assessment-sessions')
   }
 
   return (
