@@ -5,7 +5,7 @@ import {
   caseStudyEvaluations,
   assessmentSessions,
   assessmentParticipants,
-  caseStudyTranscripts
+  caseStudyTranscriptVersions
 } from '@/db/schema'
 import { eq, and, desc, sql } from 'drizzle-orm'
 import { getCaseStudyCompetencies, getCompetencyInfo } from '@/lib/case-study-evaluation'
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
       ) || conditions
     }
 
-    // Get evaluations with transcript info
+    // Get evaluations with transcript version info
     const evaluations = await db
       .select({
         id: caseStudyEvaluations.id,
@@ -97,12 +97,12 @@ export async function GET(request: NextRequest) {
         countTowardOverall: caseStudyEvaluations.countTowardOverall,
         createdAt: caseStudyEvaluations.createdAt,
         updatedAt: caseStudyEvaluations.updatedAt,
-        // Transcript info
-        transcriptSequence: caseStudyTranscripts.sequenceNumber,
-        transcriptDuration: caseStudyTranscripts.durationSeconds
+        // Transcript version info
+        transcriptSequence: caseStudyTranscriptVersions.version,
+        transcriptDuration: caseStudyTranscriptVersions.totalDurationSeconds
       })
       .from(caseStudyEvaluations)
-      .leftJoin(caseStudyTranscripts, eq(caseStudyEvaluations.transcriptId, caseStudyTranscripts.id))
+      .leftJoin(caseStudyTranscriptVersions, eq(caseStudyEvaluations.transcriptId, caseStudyTranscriptVersions.id))
       .where(conditions)
       .orderBy(desc(caseStudyEvaluations.updatedAt))
 
@@ -143,15 +143,15 @@ export async function GET(request: NextRequest) {
     // Calculate competency summaries
     const competencySummaries = calculateCompetencySummaries(enrichedEvaluations, participants)
 
-    // Get latest chunk info
-    const latestChunk = await db
+    // Get latest transcript version info
+    const latestVersion = await db
       .select({
-        sequenceNumber: caseStudyTranscripts.sequenceNumber,
-        createdAt: caseStudyTranscripts.createdAt
+        version: caseStudyTranscriptVersions.version,
+        createdAt: caseStudyTranscriptVersions.createdAt
       })
-      .from(caseStudyTranscripts)
-      .where(eq(caseStudyTranscripts.sessionId, sessionId))
-      .orderBy(desc(caseStudyTranscripts.sequenceNumber))
+      .from(caseStudyTranscriptVersions)
+      .where(eq(caseStudyTranscriptVersions.sessionId, sessionId))
+      .orderBy(desc(caseStudyTranscriptVersions.version))
       .limit(1)
 
     return NextResponse.json({
@@ -163,7 +163,7 @@ export async function GET(request: NextRequest) {
         competencySummaries,
         statistics: {
           totalEvaluations: evaluations.length,
-          latestChunk: latestChunk[0]?.sequenceNumber || 0,
+          latestChunk: latestVersion[0]?.version || 0,
           lastUpdated: evaluations[0]?.updatedAt || null,
           competencyCount: getCaseStudyCompetencies().length,
           participantCount: participants.length
