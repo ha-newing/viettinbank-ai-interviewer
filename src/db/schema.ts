@@ -300,7 +300,7 @@ export const caseStudyEvaluations = sqliteTable('case_study_evaluations', {
     .references(() => assessmentParticipants.id, { onDelete: 'cascade' }),
   transcriptId: text('transcript_id')
     .notNull()
-    .references(() => caseStudyTranscripts.id, { onDelete: 'cascade' }),
+    .references(() => caseStudyTranscriptVersions.id, { onDelete: 'cascade' }),
   competencyId: text('competency_id').notNull(), // strategic_thinking, innovation, risk_balance, digital_transformation
   score: integer('score'), // 1-5 or null if insufficient evidence
   level: text('level').$type<CompetencyLevel>(), // needs_improvement, meets_requirements, exceeds_requirements
