@@ -68,7 +68,8 @@ export function createVerificationEmailContent({
   isNewOrganization: boolean
 }) {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  const verificationUrl = `${baseUrl}/auth/verify?token=${token}`
+  // Use API route for verification to allow setting cookies
+  const verificationUrl = `${baseUrl}/api/auth/verify?token=${token}`
 
   const subject = isNewOrganization
     ? 'Xác thực tài khoản VietinBank AI Interviewer'
