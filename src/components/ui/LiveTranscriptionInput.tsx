@@ -7,8 +7,6 @@ import { Textarea } from '@/components/ui/textarea'
 import {
   Mic,
   MicOff,
-  Play,
-  Pause,
   RotateCcw,
   CheckCircle,
   Clock,
@@ -16,6 +14,13 @@ import {
   Volume2
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import {
+  SonioxClient,
+  type ErrorStatus,
+  type RecorderState,
+  type Token,
+  isActiveState,
+} from '@soniox/speech-to-text-web'
 
 interface LiveTranscriptionInputProps {
   questionId: string
@@ -25,25 +30,10 @@ interface LiveTranscriptionInputProps {
   onChange: (value: string) => void
   sessionId?: string
   disabled?: boolean
+  onDurationChange?: (duration: number) => void
 }
 
-type RecordingState = 'idle' | 'connecting' | 'recording' | 'paused' | 'processing' | 'completed' | 'error'
-
-interface SonioxToken {
-  text: string
-  is_final: boolean
-  speaker?: string
-  language?: string
-  start_time?: number
-  duration?: number
-}
-
-interface SonioxResponse {
-  tokens?: SonioxToken[]
-  finished?: boolean
-  error_code?: string
-  error_message?: string
-}
+type RecordingState = 'idle' | 'connecting' | 'recording' | 'processing' | 'completed' | 'error'
 
 export default function LiveTranscriptionInput({
   questionId,
@@ -52,7 +42,8 @@ export default function LiveTranscriptionInput({
   value,
   onChange,
   sessionId,
-  disabled = false
+  disabled = false,
+  onDurationChange
 }: LiveTranscriptionInputProps) {
   // State management
   const [recordingState, setRecordingState] = useState<RecordingState>('idle')
@@ -61,81 +52,15 @@ export default function LiveTranscriptionInput({
   const [finalTranscript, setFinalTranscript] = useState('')
   const [error, setError] = useState<string | null>(null)
 
-  // Refs for WebSocket and media
-  const wsRef = useRef<WebSocket | null>(null)
+  // Refs for SDK and media
+  const clientRef = useRef<SonioxClient | null>(null)
   const mediaStreamRef = useRef<MediaStream | null>(null)
-  const audioContextRef = useRef<AudioContext | null>(null)
-  const processorRef = useRef<ScriptProcessorNode | null>(null)
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const allTokensRef = useRef<Token[]>([])
 
-  // Cleanup function
-  const cleanup = useCallback(() => {
-    // Stop recording timer
-    if (recordingTimerRef.current) {
-      clearInterval(recordingTimerRef.current)
-      recordingTimerRef.current = null
-    }
-
-    // Close WebSocket
-    if (wsRef.current) {
-      wsRef.current.close()
-      wsRef.current = null
-    }
-
-    // Stop media stream
-    if (mediaStreamRef.current) {
-      mediaStreamRef.current.getTracks().forEach(track => track.stop())
-      mediaStreamRef.current = null
-    }
-
-    // Close audio context
-    if (audioContextRef.current) {
-      audioContextRef.current.close()
-      audioContextRef.current = null
-    }
-
-    if (processorRef.current) {
-      processorRef.current.disconnect()
-      processorRef.current = null
-    }
-  }, [])
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return cleanup
-  }, [cleanup])
-
-  // Update recording duration timer
-  useEffect(() => {
-    if (recordingState === 'recording') {
-      recordingTimerRef.current = setInterval(() => {
-        setRecordingDuration(prev => prev + 1)
-      }, 1000)
-    } else {
-      if (recordingTimerRef.current) {
-        clearInterval(recordingTimerRef.current)
-        recordingTimerRef.current = null
-      }
-    }
-
-    return () => {
-      if (recordingTimerRef.current) {
-        clearInterval(recordingTimerRef.current)
-      }
-    }
-  }, [recordingState])
-
-  // Format time display
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60)
-    const remainingSeconds = seconds % 60
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
-  }
-
-  // Get Soniox configuration for single-question transcription
-  const getSonioxConfig = async () => {
+  // Get API key function using existing endpoint
+  const getApiKey = useCallback(async (): Promise<string> => {
     try {
-      // Use the dedicated interview transcription endpoint
       // Detect context type based on sessionId
       const contextType = sessionId?.includes('hipo') ? 'hipo' : 'tbei'
 
@@ -156,33 +81,94 @@ export default function LiveTranscriptionInput({
       }
 
       const data = await response.json()
-      return data.data.soniox
+      return data.data.soniox.api_key
     } catch (error) {
       console.error('Error getting Soniox config:', error)
       throw error
     }
-  }
+  }, [questionId, questionText, sessionId])
 
-  // Convert audio buffer to proper format for Soniox
-  const convertAudioBuffer = (audioBuffer: Float32Array, sampleRate: number) => {
-    // Convert float32 to PCM 16-bit
-    const pcmBuffer = new Int16Array(audioBuffer.length)
-    for (let i = 0; i < audioBuffer.length; i++) {
-      // Clamp to [-1, 1] and convert to 16-bit
-      const sample = Math.max(-1, Math.min(1, audioBuffer[i]))
-      pcmBuffer[i] = sample * 0x7FFF
+  // Initialize Soniox client
+  useEffect(() => {
+    if (!clientRef.current) {
+      clientRef.current = new SonioxClient({
+        apiKey: getApiKey,
+      })
     }
-    return pcmBuffer.buffer
+
+    return () => {
+      if (clientRef.current) {
+        clientRef.current.cancel()
+        clientRef.current = null
+      }
+    }
+  }, [getApiKey])
+
+  // Update recording duration timer
+  useEffect(() => {
+    if (recordingState === 'recording') {
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingDuration(prev => {
+          const newDuration = prev + 1
+          onDurationChange?.(newDuration)
+          return newDuration
+        })
+      }, 1000)
+    } else {
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current)
+        recordingTimerRef.current = null
+      }
+    }
+
+    return () => {
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current)
+      }
+    }
+  }, [recordingState, onDurationChange])
+
+  // Process tokens into transcript text
+  const processTokensToText = useCallback((tokens: Token[]): { final: string; live: string } => {
+    let finalText = ''
+    let liveText = ''
+
+    for (const token of tokens) {
+      if (token.text && token.text !== '<end>' && token.text !== '<start>') {
+        if (token.is_final) {
+          finalText += token.text
+        } else {
+          liveText += token.text
+        }
+      }
+    }
+
+    return { final: finalText, live: liveText }
+  }, [])
+
+  // Format time display
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60)
+    const remainingSeconds = seconds % 60
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
   }
 
-  // Start live transcription
+  // Start live transcription using Soniox SDK
   const startTranscription = async () => {
+    if (!clientRef.current) {
+      setError('Soniox client not initialized')
+      setRecordingState('error')
+      return
+    }
+
     try {
       setRecordingState('connecting')
       setError(null)
       setLiveTranscript('')
       setFinalTranscript('')
       setRecordingDuration(0)
+      allTokensRef.current = []
+      onChange('')
 
       // Get microphone access
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -196,133 +182,76 @@ export default function LiveTranscriptionInput({
 
       mediaStreamRef.current = stream
 
-      // Set up audio processing
-      const audioContext = new AudioContext({ sampleRate: 16000 })
-      audioContextRef.current = audioContext
-      const source = audioContext.createMediaStreamSource(stream)
-      const processor = audioContext.createScriptProcessor(4096, 1, 1)
-      processorRef.current = processor
+      // Start transcription using the SDK
+      await clientRef.current.start({
+        model: 'stt-rt-preview-v2',
+        languageHints: ['vi', 'en'], // Vietnamese and English
+        enableLanguageIdentification: true,
+        enableSpeakerDiarization: false, // Single speaker for questions
+        enableEndpointDetection: true,
+        stream: stream, // Let SDK handle audio processing
 
-      // Get Soniox configuration
-      const sonioxConfig = await getSonioxConfig()
+        onStarted: () => {
+          console.log('Soniox transcription started')
+          setRecordingState('recording')
+        },
 
-      // Connect to Soniox WebSocket
-      const ws = new WebSocket('wss://stt-rt.soniox.com/transcribe-websocket')
-      wsRef.current = ws
-
-      ws.onopen = () => {
-        console.log('🎙️ Connected to Soniox WebSocket')
-
-        // Send configuration optimized for single-question transcription
-        const config = {
-          api_key: sonioxConfig.api_key,
-          model: 'stt-rt-v3',
-          language_hints: ['vi', 'en'], // Vietnamese primary, English fallback
-          enable_language_identification: true,
-          enable_speaker_diarization: false, // Single speaker for questions
-          enable_endpoint_detection: true,
-          enable_punctuation: true,
-          enable_partial_results: true,
-          audio_format: 'pcm_s16le',
-          sample_rate: 16000,
-          num_channels: 1,
-
-          // Context for better accuracy on assessment questions
-          context: {
-            general: [
-              { key: 'domain', value: 'assessment_interview' },
-              { key: 'topic', value: 'hipo_evaluation' },
-              { key: 'organization', value: 'VietinBank' }
-            ],
-            terms: [
-              'VietinBank', 'Ngân hàng', 'HiPo', 'lãnh đạo',
-              'phát triển', 'năng lực', 'khát vọng', 'gắn kết',
-              'tích hợp', 'nghề nghiệp', 'tổ chức'
-            ]
-          }
-        }
-
-        ws.send(JSON.stringify(config))
-        setRecordingState('recording')
-      }
-
-      ws.onmessage = (event) => {
-        try {
-          const response: SonioxResponse = JSON.parse(event.data)
-
-          if (response.error_code) {
-            console.error('Soniox error:', response.error_message)
-            setError(`Transcription error: ${response.error_message}`)
-            setRecordingState('error')
-            return
-          }
-
-          if (response.tokens) {
-            let currentLive = ''
-            let newFinal = finalTranscript
-
-            for (const token of response.tokens) {
-              if (token.text) {
-                if (token.is_final) {
-                  // Add final token to final transcript
-                  newFinal += token.text
-                } else {
-                  // Add non-final token to live transcript
-                  currentLive += token.text
-                }
-              }
-            }
-
-            setFinalTranscript(newFinal)
-            setLiveTranscript(currentLive)
-
-            // Update the parent component with combined transcript
-            const combinedTranscript = (newFinal + currentLive).trim()
-            if (combinedTranscript !== value) {
-              onChange(combinedTranscript)
-            }
-          }
-
-          if (response.finished) {
-            console.log('🎙️ Transcription session finished')
-            setRecordingState('completed')
-            setLiveTranscript('')
-          }
-        } catch (error) {
-          console.error('Error processing WebSocket message:', error)
-        }
-      }
-
-      ws.onerror = (error) => {
-        console.error('WebSocket error:', error)
-        setError('Connection error occurred')
-        setRecordingState('error')
-      }
-
-      ws.onclose = () => {
-        console.log('🎙️ WebSocket connection closed')
-        if (recordingState === 'recording') {
+        onFinished: () => {
+          console.log('Soniox transcription finished')
           setRecordingState('completed')
-        }
-      }
+          setLiveTranscript('')
+        },
 
-      // Set up audio processing
-      processor.onaudioprocess = (event) => {
-        if (ws.readyState === WebSocket.OPEN && recordingState === 'recording') {
-          const inputBuffer = event.inputBuffer.getChannelData(0)
-          const audioData = convertAudioBuffer(inputBuffer, 16000)
-          ws.send(audioData)
-        }
-      }
+        onError: (status: ErrorStatus, message: string, errorCode: number | undefined) => {
+          console.error('Soniox transcription error:', { status, message, errorCode })
+          setRecordingState('error')
+          setError(`Transcription error: ${message}`)
+        },
 
-      source.connect(processor)
-      processor.connect(audioContext.destination)
+        onStateChange: ({ newState }) => {
+          console.log('Soniox state change:', newState)
+        },
+
+        onPartialResult: (result) => {
+          // Collect tokens (both final and non-final)
+          const newFinalTokens: Token[] = []
+          const newNonFinalTokens: Token[] = []
+
+          for (const token of result.tokens) {
+            if (token.is_final) {
+              newFinalTokens.push(token)
+            } else {
+              newNonFinalTokens.push(token)
+            }
+          }
+
+          // Update all tokens (keep existing final tokens, add new ones, replace non-final)
+          const existingFinalTokens = allTokensRef.current.filter(t => t.is_final)
+          allTokensRef.current = [...existingFinalTokens, ...newFinalTokens, ...newNonFinalTokens]
+
+          // Process tokens into text
+          const { final, live } = processTokensToText(allTokensRef.current)
+          setFinalTranscript(final)
+          setLiveTranscript(live)
+
+          // Update the parent component with combined transcript
+          const combinedTranscript = (final + live).trim()
+          if (combinedTranscript !== value) {
+            onChange(combinedTranscript)
+          }
+        },
+      })
 
     } catch (error) {
       console.error('Error starting transcription:', error)
       setError(error instanceof Error ? error.message : 'Failed to start recording')
       setRecordingState('error')
-      cleanup()
+
+      // Cleanup media stream on error
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach(track => track.stop())
+        mediaStreamRef.current = null
+      }
     }
   }
 
@@ -330,57 +259,60 @@ export default function LiveTranscriptionInput({
   const stopTranscription = () => {
     setRecordingState('processing')
 
-    // Send end-of-audio signal
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send('') // Empty string signals end of audio
+    // Stop the Soniox client
+    if (clientRef.current) {
+      clientRef.current.stop()
     }
 
-    cleanup()
+    // Stop media stream
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach(track => track.stop())
+      mediaStreamRef.current = null
+    }
+
+    // Finalize the transcript
     setTimeout(() => {
+      const { final } = processTokensToText(allTokensRef.current)
+      setFinalTranscript(final)
+      setLiveTranscript('')
+      onChange(final.trim())
       setRecordingState('completed')
-    }, 1000)
-  }
-
-  // Pause transcription
-  const pauseTranscription = () => {
-    setRecordingState('paused')
-    // Keep WebSocket open but stop audio processing
-    if (processorRef.current) {
-      processorRef.current.onaudioprocess = null
-    }
-  }
-
-  // Resume transcription
-  const resumeTranscription = () => {
-    setRecordingState('recording')
-    // Restore audio processing
-    if (processorRef.current && wsRef.current) {
-      processorRef.current.onaudioprocess = (event) => {
-        if (wsRef.current!.readyState === WebSocket.OPEN) {
-          const inputBuffer = event.inputBuffer.getChannelData(0)
-          const audioData = convertAudioBuffer(inputBuffer, 16000)
-          wsRef.current!.send(audioData)
-        }
-      }
-    }
+    }, 500)
   }
 
   // Reset transcription
   const resetTranscription = () => {
-    cleanup()
+    // Cancel any ongoing transcription
+    if (clientRef.current) {
+      clientRef.current.cancel()
+    }
+
+    // Stop media stream
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach(track => track.stop())
+      mediaStreamRef.current = null
+    }
+
+    // Re-initialize the client
+    clientRef.current = new SonioxClient({
+      apiKey: getApiKey,
+    })
+
+    // Reset state
     setRecordingState('idle')
     setRecordingDuration(0)
     setLiveTranscript('')
     setFinalTranscript('')
     setError(null)
+    allTokensRef.current = []
     onChange('')
+    onDurationChange?.(0)
   }
 
   // Get status color
   const getStatusColor = () => {
     switch (recordingState) {
       case 'recording': return 'text-red-600'
-      case 'paused': return 'text-yellow-600'
       case 'completed': return 'text-green-600'
       case 'error': return 'text-red-600'
       default: return 'text-gray-600'
@@ -393,7 +325,6 @@ export default function LiveTranscriptionInput({
       case 'idle': return 'Sẵn sàng ghi âm'
       case 'connecting': return 'Đang kết nối...'
       case 'recording': return 'Đang ghi âm và phiên âm'
-      case 'paused': return 'Tạm dừng'
       case 'processing': return 'Đang xử lý...'
       case 'completed': return `Hoàn thành (${formatTime(recordingDuration)})`
       case 'error': return 'Lỗi kết nối'
@@ -437,29 +368,17 @@ export default function LiveTranscriptionInput({
           )}
 
           {recordingState === 'recording' && (
-            <>
-              <Button onClick={pauseTranscription} variant="outline">
-                <Pause className="h-4 w-4 mr-2" />
-                Tạm dừng
-              </Button>
-              <Button onClick={stopTranscription} className="bg-green-600 hover:bg-green-700">
-                <MicOff className="h-4 w-4 mr-2" />
-                Dừng ghi âm
-              </Button>
-            </>
+            <Button onClick={stopTranscription} className="bg-green-600 hover:bg-green-700">
+              <MicOff className="h-4 w-4 mr-2" />
+              Dừng ghi âm
+            </Button>
           )}
 
-          {recordingState === 'paused' && (
-            <>
-              <Button onClick={resumeTranscription} className="bg-blue-600 hover:bg-blue-700">
-                <Play className="h-4 w-4 mr-2" />
-                Tiếp tục
-              </Button>
-              <Button onClick={stopTranscription} className="bg-green-600 hover:bg-green-700">
-                <MicOff className="h-4 w-4 mr-2" />
-                Dừng ghi âm
-              </Button>
-            </>
+          {recordingState === 'processing' && (
+            <Button disabled className="bg-gray-500 text-white">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Đang xử lý...
+            </Button>
           )}
 
           {(recordingState === 'completed' || recordingState === 'error') && (
@@ -486,24 +405,24 @@ export default function LiveTranscriptionInput({
           </div>
         </div>
 
-        {/* Live Transcript Display */}
-        {(recordingState === 'recording' || recordingState === 'paused') && (liveTranscript || finalTranscript) && (
-          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-            <h4 className="text-sm font-medium text-blue-900 mb-2">Phiên âm trực tiếp:</h4>
-            <div className="text-sm leading-relaxed">
-              <span className="text-blue-800">{finalTranscript}</span>
-              <span className="text-blue-600 italic">{liveTranscript}</span>
-              {liveTranscript && <span className="inline-block w-2 h-4 bg-blue-400 animate-pulse ml-1"></span>}
-            </div>
-          </div>
-        )}
-
         {/* Error Display */}
         {error && (
           <div className="bg-red-50 rounded-lg p-4 border border-red-200">
             <div className="flex items-center space-x-2 text-red-800">
               <AlertCircle className="h-4 w-4" />
               <span className="text-sm">{error}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Live Transcript Display */}
+        {recordingState === 'recording' && (liveTranscript || finalTranscript) && (
+          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+            <h4 className="text-sm font-medium text-blue-900 mb-2">Phiên âm trực tiếp:</h4>
+            <div className="text-sm leading-relaxed">
+              <span className="text-blue-800">{finalTranscript}</span>
+              <span className="text-blue-600 italic">{liveTranscript}</span>
+              {liveTranscript && <span className="inline-block w-2 h-4 bg-blue-400 animate-pulse ml-1"></span>}
             </div>
           </div>
         )}
@@ -519,7 +438,7 @@ export default function LiveTranscriptionInput({
             onChange={(e) => onChange(e.target.value)}
             rows={6}
             className="resize-none"
-            disabled={recordingState === 'recording' || recordingState === 'paused'}
+            disabled={recordingState === 'recording'}
           />
           <div className="mt-2 text-sm text-gray-500">
             {value.length} ký tự

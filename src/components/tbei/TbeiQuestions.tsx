@@ -1,24 +1,20 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Textarea } from '@/components/ui/textarea'
 import LiveTranscriptionInput from '@/components/ui/LiveTranscriptionInput'
 import {
-  Mic,
-  MicOff,
-  Play,
-  Pause,
-  RotateCcw,
   CheckCircle,
   Clock,
   Users,
   Cpu,
   ArrowRight,
   FileText,
-  AlertCircle
+  AlertCircle,
+  Mic,
+  RotateCcw
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -108,7 +104,6 @@ const RESPONSE_TEMPLATE = [
   }
 ]
 
-type RecordingState = 'idle' | 'recording' | 'paused' | 'completed'
 type CompetencyStep = 'selection' | 'guidance' | 'recording' | 'review'
 
 interface SelectedQuestion {
@@ -138,41 +133,14 @@ export default function TbeiQuestions({
   const [step, setStep] = useState<CompetencyStep>('selection')
   const [selectedQuestions, setSelectedQuestions] = useState<Record<string, SelectedQuestion>>({})
   const [responses, setResponses] = useState<Record<string, Response>>({})
-  const [structuredResponse, setStructuredResponse] = useState<Record<string, string>>({})
-  const [recordingState, setRecordingState] = useState<RecordingState>('idle')
   const [recordingDuration, setRecordingDuration] = useState(0)
   const [transcript, setTranscript] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-
-  // Recording refs
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
-  const audioChunksRef = useRef<Blob[]>([])
-  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   // Get current competency data
   const competencyData = TBEI_QUESTIONS[currentCompetency]
   const isLastCompetency = currentCompetency === 'digital_transformation'
   const isCompetencyCompleted = responses[currentCompetency] !== undefined
-
-  // Timer for recording duration
-  useEffect(() => {
-    if (recordingState === 'recording') {
-      recordingTimerRef.current = setInterval(() => {
-        setRecordingDuration(prev => prev + 1)
-      }, 1000)
-    } else {
-      if (recordingTimerRef.current) {
-        clearInterval(recordingTimerRef.current)
-        recordingTimerRef.current = null
-      }
-    }
-
-    return () => {
-      if (recordingTimerRef.current) {
-        clearInterval(recordingTimerRef.current)
-      }
-    }
-  }, [recordingState])
 
   // Format time display
   const formatTime = (seconds: number) => {
@@ -197,75 +165,6 @@ export default function TbeiQuestions({
     }))
 
     setStep('guidance')
-  }
-
-  // Start recording
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm'
-      })
-
-      mediaRecorderRef.current = mediaRecorder
-      audioChunksRef.current = []
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data)
-        }
-      }
-
-      mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
-        // TODO: Upload audio blob to storage and get URL
-        console.log('Audio recorded:', audioBlob)
-      }
-
-      mediaRecorder.start(1000) // Record in 1-second intervals
-      setRecordingState('recording')
-      setRecordingDuration(0)
-    } catch (error) {
-      console.error('Error starting recording:', error)
-      alert('Không thể truy cập microphone. Vui lòng kiểm tra quyền truy cập.')
-    }
-  }
-
-  // Stop recording
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && recordingState === 'recording') {
-      mediaRecorderRef.current.stop()
-      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop())
-      setRecordingState('completed')
-    }
-  }
-
-  // Pause/Resume recording
-  const pauseRecording = () => {
-    if (mediaRecorderRef.current && recordingState === 'recording') {
-      mediaRecorderRef.current.pause()
-      setRecordingState('paused')
-    }
-  }
-
-  const resumeRecording = () => {
-    if (mediaRecorderRef.current && recordingState === 'paused') {
-      mediaRecorderRef.current.resume()
-      setRecordingState('recording')
-    }
-  }
-
-  // Reset recording
-  const resetRecording = () => {
-    if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.stop()
-      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop())
-    }
-    setRecordingState('idle')
-    setRecordingDuration(0)
-    setTranscript('')
-    audioChunksRef.current = []
   }
 
   // Submit response for current competency
@@ -316,7 +215,6 @@ export default function TbeiQuestions({
         setStep('selection')
         setTranscript('')
         setRecordingDuration(0)
-        setRecordingState('idle')
       } else {
         // Both competencies completed
         onComplete()
@@ -545,7 +443,7 @@ export default function TbeiQuestions({
     const Icon = competencyData.icon
 
     return (
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
           <div className="flex items-center justify-center space-x-2">
@@ -556,151 +454,51 @@ export default function TbeiQuestions({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Column - Recording Controls */}
-          <div className="space-y-6">
-            {/* Selected Question */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Câu hỏi đã chọn</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-900 leading-relaxed">
-                  {selectedQuestion.questionText}
-                </p>
-              </CardContent>
-            </Card>
+        {/* Selected Question */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Câu hỏi đã chọn</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-900 leading-relaxed">
+              {selectedQuestion.questionText}
+            </p>
+          </CardContent>
+        </Card>
 
-            {/* Recording Controls */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>Ghi âm câu trả lời</span>
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <Clock className="h-4 w-4" />
-                    <span>{formatTime(recordingDuration)}</span>
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-center space-x-4">
-                  {recordingState === 'idle' && (
-                    <Button
-                      onClick={startRecording}
-                      size="lg"
-                      className="bg-red-500 hover:bg-red-600 text-white"
-                    >
-                      <Mic className="h-5 w-5 mr-2" />
-                      Bắt đầu ghi âm
-                    </Button>
-                  )}
-
-                  {recordingState === 'recording' && (
-                    <>
-                      <Button onClick={pauseRecording} size="lg" variant="outline">
-                        <Pause className="h-5 w-5 mr-2" />
-                        Tạm dừng
-                      </Button>
-                      <Button onClick={stopRecording} size="lg" className="bg-green-600 hover:bg-green-700">
-                        <MicOff className="h-5 w-5 mr-2" />
-                        Dừng ghi âm
-                      </Button>
-                    </>
-                  )}
-
-                  {recordingState === 'paused' && (
-                    <>
-                      <Button onClick={resumeRecording} size="lg" className="bg-blue-600 hover:bg-blue-700">
-                        <Play className="h-5 w-5 mr-2" />
-                        Tiếp tục
-                      </Button>
-                      <Button onClick={stopRecording} size="lg" className="bg-green-600 hover:bg-green-700">
-                        <MicOff className="h-5 w-5 mr-2" />
-                        Dừng ghi âm
-                      </Button>
-                    </>
-                  )}
-
-                  {recordingState === 'completed' && (
-                    <Button onClick={resetRecording} size="lg" variant="outline">
-                      <RotateCcw className="h-5 w-5 mr-2" />
-                      Ghi âm lại
-                    </Button>
-                  )}
+        {/* STAR Framework Guidance - Collapsible */}
+        <Card className="bg-blue-50/50">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center text-base">
+              <FileText className="h-5 w-5 mr-2 text-blue-600" />
+              Mẫu dàn ý sự kiện (STAR)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {RESPONSE_TEMPLATE.map((section) => (
+                <div key={section.id} className="bg-white rounded-lg p-3 border-l-4 border-blue-500">
+                  <h4 className="text-sm font-medium text-blue-900">{section.title}</h4>
+                  <p className="text-xs text-gray-600 mt-1">{section.description}</p>
                 </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
-                {recordingState === 'recording' && (
-                  <div className="flex items-center justify-center">
-                    <div className="flex items-center space-x-2 text-red-600">
-                      <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                      <span className="text-sm font-medium">Đang ghi âm...</span>
-                    </div>
-                  </div>
-                )}
-
-                {recordingState === 'completed' && (
-                  <div className="text-center">
-                    <div className="flex items-center justify-center text-green-600 mb-4">
-                      <CheckCircle className="h-5 w-5 mr-2" />
-                      <span>Ghi âm hoàn thành ({formatTime(recordingDuration)})</span>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Live Transcription */}
-            <LiveTranscriptionInput
-              questionId={`${currentCompetency}_${selectedQuestion.questionId}`}
-              questionText={selectedQuestion.questionText}
-              placeholder="Live transcription sẽ hiển thị ở đây khi bạn ghi âm..."
-              value={transcript}
-              onChange={setTranscript}
-              sessionId="temp-tbei-session"
-            />
-          </div>
-
-          {/* Right Column - STAR Framework Guidance */}
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <FileText className="h-5 w-5 mr-2" />
-                  Mẫu dàn ý sự kiện (STAR)
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="bg-blue-50 rounded-lg p-3 text-sm text-blue-800">
-                  <AlertCircle className="h-4 w-4 inline mr-1" />
-                  Hãy sử dụng mẫu dàn ý này để cấu trúc câu trả lời của Anh/Chị
-                </div>
-
-                {RESPONSE_TEMPLATE.map((section, index) => (
-                  <div key={section.id} className="space-y-2 border-l-4 border-blue-500 pl-4 py-2">
-                    <div>
-                      <h4 className="text-sm font-medium text-blue-900">{section.title}</h4>
-                      <p className="text-xs text-blue-700 mt-1">{section.description}</p>
-                      <p className="text-xs text-gray-600 mt-2 italic">{section.placeholder}</p>
-                    </div>
-                  </div>
-                ))}
-
-                <div className="bg-green-50 rounded-lg p-3 text-sm text-green-800 mt-4">
-                  <div className="font-medium mb-2">💡 Mẹo trả lời hiệu quả:</div>
-                  <ul className="space-y-1 text-xs">
-                    <li>• Sử dụng Live Transcription để ghi âm tự động</li>
-                    <li>• Theo dõi 4 phần STAR trong khi trả lời</li>
-                    <li>• Đưa ra số liệu và kết quả cụ thể</li>
-                    <li>• Nhấn mạnh vai trò và đóng góp cá nhân</li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+        {/* Live Transcription - Main recording interface */}
+        <LiveTranscriptionInput
+          questionId={`${currentCompetency}_${selectedQuestion.questionId}`}
+          questionText={selectedQuestion.questionText}
+          placeholder="Live transcription sẽ hiển thị ở đây khi bạn ghi âm..."
+          value={transcript}
+          onChange={setTranscript}
+          sessionId="temp-tbei-session"
+          onDurationChange={setRecordingDuration}
+        />
 
         {/* Submit Button */}
-        {(recordingState === 'completed' || transcript.trim()) && (
+        {transcript.trim() && (
           <div className="flex justify-center">
             <Button
               onClick={() => setStep('review')}
@@ -812,11 +610,8 @@ export default function TbeiQuestions({
           <Button
             onClick={() => {
               setStep('recording')
-              setRecordingState('idle')
               setRecordingDuration(0)
               setTranscript('')
-              // Clear the recorded audio
-              audioChunksRef.current = []
             }}
             variant="outline"
             size="lg"

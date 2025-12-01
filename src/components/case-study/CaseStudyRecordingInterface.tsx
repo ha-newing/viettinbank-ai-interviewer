@@ -179,17 +179,17 @@ export default function CaseStudyRecordingInterface({
   } = useSpeakerDiarization({
     sessionId: session.id,
     onTranscriptUpdate: (segments, mapping) => {
-      console.log('🎤 Transcript update received:', {
-        segmentCount: segments.length,
-        mappingSize: mapping.size,
-        newSegments: segments.slice(-2).map(s => ({
-          speaker: s.speaker,
-          text: s.text.substring(0, 50) + (s.text.length > 50 ? '...' : ''),
-          startMs: s.startMs,
-          endMs: s.endMs
-        })),
-        speakers: Array.from(mapping.keys()).map(key => ({ id: key, name: mapping.get(key) }))
-      })
+      // console.log('🎤 Transcript update received:', {
+      //   segmentCount: segments.length,
+      //   mappingSize: mapping.size,
+      //   newSegments: segments.slice(-2).map(s => ({
+      //     speaker: s.speaker,
+      //     text: s.text.substring(0, 50) + (s.text.length > 50 ? '...' : ''),
+      //     startMs: s.startMs,
+      //     endMs: s.endMs
+      //   })),
+      //   speakers: Array.from(mapping.keys()).map(key => ({ id: key, name: mapping.get(key) }))
+      // })
 
       setSpeakerSegments(segments)
       setSpeakerMapping(mapping)
