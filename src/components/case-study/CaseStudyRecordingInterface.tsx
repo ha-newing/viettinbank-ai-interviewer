@@ -3,6 +3,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from '@/components/ui/tooltip'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
@@ -17,7 +24,8 @@ import {
   AlertTriangle,
   CheckCircle,
   Wifi,
-  WifiOff
+  WifiOff,
+  Info
 } from 'lucide-react'
 import useSpeakerDiarization, { type SpeakerSegment } from '@/hooks/useSpeakerDiarization'
 import SpeakerDiarizedTranscript from './SpeakerDiarizedTranscript'
@@ -737,144 +745,172 @@ export default function CaseStudyRecordingInterface({
               </Alert>
             )}
 
-            {/* Competency Summary Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {Object.entries(evaluationData.competencySummaries).map(([competencyId, summary]) => (
-                <div key={competencyId} className="border rounded-lg p-4 bg-gray-50">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-medium text-gray-900">{summary.competency.name}</h3>
-                    <div className="text-xs text-gray-500">
-                      {summary.overall.totalEvaluations} đánh giá
-                    </div>
-                  </div>
+            {/* Competency Tabs */}
+            {Object.keys(evaluationData.competencySummaries).length > 0 ? (
+              <TooltipProvider>
+                <Tabs defaultValue={Object.keys(evaluationData.competencySummaries)[0]} className="w-full">
+                  <TabsList className="w-full flex flex-wrap h-auto gap-1 mb-4">
+                    {Object.entries(evaluationData.competencySummaries).map(([competencyId, summary]) => (
+                      <TabsTrigger
+                        key={competencyId}
+                        value={competencyId}
+                        className="flex-1 min-w-fit text-xs sm:text-sm"
+                      >
+                        {summary.competency.name}
+                        <Badge className="ml-2 text-xs" variant="secondary">
+                          {summary.overall.averageScore.toFixed(1)}
+                        </Badge>
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
 
-                  <div className="space-y-3">
-                    {participants.map(participant => {
-                      const participantSummary = summary.participants[participant.id]
-                      if (!participantSummary) return null
+                  {Object.entries(evaluationData.competencySummaries).map(([competencyId, summary]) => {
+                    // Get all evidence for this competency from evaluations
+                    const competencyEvaluations = evaluationData.evaluations.filter(
+                      e => e.competency.id === competencyId
+                    )
 
-                      const trendDisplay = getTrendDisplay(participantSummary.trend)
-
-                      return (
-                        <div key={participant.id} className="bg-white rounded p-3 border">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center space-x-2">
-                              <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-                                <span className="text-xs font-semibold text-blue-600">
-                                  {participant.roleCode}
-                                </span>
-                              </div>
-                              <span className="font-medium text-sm">{participant.name}</span>
-                            </div>
-
-                            <div className="flex items-center space-x-2">
-                              {participantSummary.latestScore !== null && (
-                                <Badge className={`border text-xs ${getScoreColor(participantSummary.latestScore)}`}>
-                                  {participantSummary.latestScore.toFixed(1)}
-                                </Badge>
-                              )}
-                              <span className={`text-xs ${trendDisplay.color}`}>
-                                {trendDisplay.icon}
-                              </span>
+                    return (
+                      <TabsContent key={competencyId} value={competencyId}>
+                        <div className="border rounded-lg p-4 bg-gray-50">
+                          <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-medium text-gray-900">{summary.competency.name}</h3>
+                            <div className="text-xs text-gray-500">
+                              {summary.overall.totalEvaluations} đánh giá
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-3 gap-2 text-xs text-gray-600">
-                            <div>
-                              <span className="block">Trung bình</span>
-                              <span className="font-medium">{participantSummary.averageScore.toFixed(1)}</span>
-                            </div>
-                            <div>
-                              <span className="block">Bằng chứng</span>
-                              <span className="font-medium">
-                                {participantSummary.evidenceCount}
-                                {participantSummary.strongEvidenceCount > 0 &&
-                                  ` (${participantSummary.strongEvidenceCount} mạnh)`
-                                }
-                              </span>
-                            </div>
-                            <div>
-                              <span className="block">Xu hướng</span>
-                              <span className={`font-medium ${trendDisplay.color}`}>
-                                {trendDisplay.label}
-                              </span>
-                            </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {participants.map(participant => {
+                              const participantSummary = summary.participants[participant.id]
+                              if (!participantSummary) return null
+
+                              const trendDisplay = getTrendDisplay(participantSummary.trend)
+
+                              // Get evidence for this participant in this competency
+                              const participantEvidence = competencyEvaluations
+                                .filter(e => e.participant?.id === participant.id)
+                                .flatMap(e => e.evidence)
+
+                              const participantRationale = competencyEvaluations
+                                .filter(e => e.participant?.id === participant.id)
+                                .map(e => e.rationale)
+                                .filter(Boolean)
+
+                              return (
+                                <div key={participant.id} className="bg-white rounded p-3 border">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center space-x-2">
+                                      <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <span className="text-xs font-semibold text-blue-600">
+                                          {participant.roleCode}
+                                        </span>
+                                      </div>
+                                      <span className="font-medium text-sm">{participant.name}</span>
+                                    </div>
+
+                                    <div className="flex items-center space-x-2">
+                                      {participantSummary.latestScore !== null && (
+                                        <Badge className={`border text-xs ${getScoreColor(participantSummary.latestScore)}`}>
+                                          {participantSummary.latestScore.toFixed(1)}
+                                        </Badge>
+                                      )}
+                                      <span className={`text-xs ${trendDisplay.color}`}>
+                                        {trendDisplay.icon}
+                                      </span>
+                                      {/* Evidence tooltip */}
+                                      {participantEvidence.length > 0 && (
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <button className="p-1 hover:bg-gray-100 rounded-full transition-colors">
+                                              <Info className="h-4 w-4 text-blue-500" />
+                                            </button>
+                                          </TooltipTrigger>
+                                          <TooltipContent
+                                            side="left"
+                                            className="max-w-sm bg-white text-gray-900 border shadow-lg p-3"
+                                          >
+                                            <div className="space-y-2">
+                                              {participantRationale.length > 0 && (
+                                                <div>
+                                                  <p className="font-medium text-xs mb-1">Nhận xét:</p>
+                                                  <p className="text-xs text-gray-700">
+                                                    {participantRationale[participantRationale.length - 1]}
+                                                  </p>
+                                                </div>
+                                              )}
+                                              <div>
+                                                <p className="font-medium text-xs mb-1">
+                                                  Bằng chứng ({participantEvidence.length}):
+                                                </p>
+                                                <ul className="list-disc list-inside text-xs text-gray-600 space-y-1">
+                                                  {participantEvidence.slice(0, 5).map((evidence, index) => (
+                                                    <li key={index} className="line-clamp-2">
+                                                      &quot;{evidence}&quot;
+                                                    </li>
+                                                  ))}
+                                                  {participantEvidence.length > 5 && (
+                                                    <li className="text-gray-500 italic">
+                                                      +{participantEvidence.length - 5} bằng chứng khác
+                                                    </li>
+                                                  )}
+                                                </ul>
+                                              </div>
+                                            </div>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  <div className="grid grid-cols-3 gap-2 text-xs text-gray-600">
+                                    <div>
+                                      <span className="block">Trung bình</span>
+                                      <span className="font-medium">{participantSummary.averageScore.toFixed(1)}</span>
+                                    </div>
+                                    <div>
+                                      <span className="block">Bằng chứng</span>
+                                      <span className="font-medium">
+                                        {participantSummary.evidenceCount}
+                                        {participantSummary.strongEvidenceCount > 0 &&
+                                          ` (${participantSummary.strongEvidenceCount} mạnh)`
+                                        }
+                                      </span>
+                                    </div>
+                                    <div>
+                                      <span className="block">Xu hướng</span>
+                                      <span className={`font-medium ${trendDisplay.color}`}>
+                                        {trendDisplay.label}
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  {/* Progress bar for average score */}
+                                  <div className="mt-2">
+                                    <Progress
+                                      value={(participantSummary.averageScore / 5) * 100}
+                                      className="h-1"
+                                    />
+                                  </div>
+                                </div>
+                              )
+                            })}
                           </div>
 
-                          {/* Progress bar for average score */}
-                          <div className="mt-2">
-                            <Progress
-                              value={(participantSummary.averageScore / 5) * 100}
-                              className="h-1"
-                            />
+                          {/* Overall competency stats */}
+                          <div className="mt-4 pt-3 border-t border-gray-200">
+                            <div className="flex justify-between text-xs text-gray-600">
+                              <span>Điểm trung bình nhóm: <strong>{summary.overall.averageScore.toFixed(1)}/5</strong></span>
+                              <span>Tổng bằng chứng: <strong>{summary.overall.evidenceCount}</strong></span>
+                            </div>
                           </div>
                         </div>
-                      )
-                    })}
-                  </div>
-
-                  {/* Overall competency stats */}
-                  <div className="mt-3 pt-3 border-t border-gray-200">
-                    <div className="flex justify-between text-xs text-gray-600">
-                      <span>Điểm trung bình nhóm: <strong>{summary.overall.averageScore.toFixed(1)}/5</strong></span>
-                      <span>Tổng bằng chứng: <strong>{summary.overall.evidenceCount}</strong></span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Recent Evaluations */}
-            {evaluationData.evaluations.length > 0 && (
-              <div className="mt-6">
-                <h3 className="font-medium text-gray-900 mb-3">Đánh giá gần nhất</h3>
-                <div className="space-y-3 max-h-64 overflow-y-auto">
-                  {evaluationData.evaluations.slice(0, 10).map((evaluation) => (
-                    <div key={evaluation.id} className="p-3 bg-gray-50 rounded border">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-xs font-medium text-blue-600">
-                            #{evaluation.transcript.version}
-                          </span>
-                          <span className="text-sm font-medium">
-                            {evaluation.participant?.name || 'Unknown'}
-                          </span>
-                          <span className="text-xs text-gray-600">
-                            • {evaluation.competency.name}
-                          </span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge className={`text-xs ${getScoreColor(evaluation.score)}`}>
-                            {evaluation.score}/5
-                          </Badge>
-                          <span className={`text-xs ${getEvidenceStrengthDisplay(evaluation.evidenceStrength).color}`}>
-                            {getEvidenceStrengthDisplay(evaluation.evidenceStrength).label}
-                          </span>
-                        </div>
-                      </div>
-
-                      <p className="text-xs text-gray-700 mb-2">{evaluation.rationale}</p>
-
-                      {evaluation.evidence.length > 0 && (
-                        <div className="mt-2">
-                          <span className="text-xs font-medium text-gray-600">Bằng chứng:</span>
-                          <ul className="list-disc list-inside text-xs text-gray-600 mt-1">
-                            {evaluation.evidence.slice(0, 2).map((evidence, index) => (
-                              <li key={index} className="truncate">&quot;{evidence}&quot;</li>
-                            ))}
-                            {evaluation.evidence.length > 2 && (
-                              <li className="text-gray-500">+{evaluation.evidence.length - 2} bằng chứng khác</li>
-                            )}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {evaluationData.evaluations.length === 0 && (
+                      </TabsContent>
+                    )
+                  })}
+                </Tabs>
+              </TooltipProvider>
+            ) : (
               <div className="text-center py-8 text-gray-500">
                 <div className="mb-2">📊</div>
                 <p className="font-medium">Chưa có dữ liệu đánh giá</p>
