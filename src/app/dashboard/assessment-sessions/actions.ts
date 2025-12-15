@@ -97,14 +97,16 @@ export async function createAssessmentSession(formData: FormData): Promise<Asses
     const data = result.data
 
     // Check if job template exists and belongs to organization (if provided)
+    // "default" means no template selected (use standard Assessment Center framework)
     let jobTemplate = null
-    if (data.jobTemplateId) {
+    const jobTemplateId = data.jobTemplateId && data.jobTemplateId !== 'default' ? data.jobTemplateId : null
+    if (jobTemplateId) {
       const jobTemplateResult = await db
         .select()
         .from(jobTemplates)
         .where(
           and(
-            eq(jobTemplates.id, data.jobTemplateId),
+            eq(jobTemplates.id, jobTemplateId),
             eq(jobTemplates.organizationId, user.organizationId)
           )
         )
@@ -127,7 +129,7 @@ export async function createAssessmentSession(formData: FormData): Promise<Asses
         .values({
           organizationId: user.organizationId,
           name: data.name,
-          jobTemplateId: data.jobTemplateId || null,
+          jobTemplateId: jobTemplateId,
           status: 'created'
         })
         .returning()
