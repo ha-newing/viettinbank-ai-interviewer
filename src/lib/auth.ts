@@ -4,6 +4,7 @@ import { eq, and } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import crypto from 'crypto'
 import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 
 // Session management
 export const SESSION_COOKIE_NAME = 'vb-session'
@@ -306,12 +307,12 @@ export async function findUserByEmail(email: string) {
 }
 
 /**
- * Require authentication - throws redirect if not authenticated
+ * Require authentication - redirects to login if not authenticated
  */
 export async function requireAuth(): Promise<AuthUser> {
   const user = await getCurrentUser()
   if (!user) {
-    throw new Error('Authentication required')
+    redirect('/auth/login')
   }
   return user
 }
