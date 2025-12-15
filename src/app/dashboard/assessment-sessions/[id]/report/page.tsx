@@ -32,7 +32,7 @@ import {
   TrendingUp
 } from 'lucide-react'
 import Link from 'next/link'
-import PrintButton from './PrintButton'
+import ReportActions from './PrintButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -204,7 +204,7 @@ export default async function AssessmentReportPage({ params }: ReportPageProps) 
             <p className="text-gray-600">{session[0].name}</p>
           </div>
         </div>
-        <PrintButton />
+        <ReportActions sessionId={sessionId} />
       </div>
 
       {/* Print Header */}
