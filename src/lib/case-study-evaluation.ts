@@ -96,18 +96,18 @@ export async function evaluateTranscriptChunk(
 
     // Call OpenAI for evaluation
     const completion = await getOpenAIClient().chat.completions.create({
-      model: 'gpt-5-mini',
+      model: 'gpt-4o-mini',
       messages: [
         {
           role: 'system',
-          content: 'You are an expert HR assessor for VietinBank, specialized in evaluating leadership competencies through case study discussions. Analyze transcript segments and provide detailed competency evaluations.'
+          content: 'You are a strict HR assessor for VietinBank, specialized in evaluating leadership competencies through case study discussions. You are known for rigorous evaluations - most candidates score 2-3 unless they provide exceptional insights with concrete examples. Score 5 is extremely rare. Focus on evidence-based scoring.'
         },
         {
           role: 'user',
           content: prompt
         }
       ],
-      temperature: 1, // Low temperature for consistent evaluation
+      temperature: 0.3, // Low temperature for consistent evaluation
       response_format: { type: 'json_object' }
     })
 
@@ -232,18 +232,30 @@ Return a JSON object with evaluations for each participant:
 }
 \`\`\`
 
-## Evaluation Guidelines
+## Evaluation Guidelines (BE STRICT - Avoid over-rating)
 
-- **Score 0**: If no evidence of competency demonstration in this chunk
-- **Score 1-2**: Basic or limited demonstration with weak evidence
-- **Score 3**: Clear demonstration meeting expectations
-- **Score 4-5**: Exceptional demonstration exceeding expectations
+- **Score 0**: No evidence of competency demonstration in this chunk
+- **Score 1**: Very weak - superficial comments, no substance, just agreeing with others
+- **Score 2**: Weak - basic contribution but lacks depth, no concrete examples or data
+- **Score 3**: Average - adequate contribution with some insight, meets basic expectations
+- **Score 4**: Good - strong contribution with concrete examples, clear thinking, but not exceptional
+- **Score 5**: Excellent - RARE, only for exceptional insights with specific data, innovative solutions, measurable proposals
+
+### CALIBRATION GUIDANCE (IMPORTANT):
+- Score 5 should be given to LESS THAN 5% of evaluations - truly exceptional only
+- Score 4 requires specific examples, data, or innovative thinking
+- Score 3 is the baseline for "acceptable" - don't inflate without strong justification
+- Most contributions score 2-3 unless they clearly exceed expectations
+- Vague statements like "we should improve" without specifics should cap at score 2
+- Simply agreeing with others or repeating points should score 1-2
+
+### Evidence Requirements:
 - **Evidence**: Use direct quotes from transcript as evidence
 - **Vietnamese**: Provide rationale in Vietnamese for cultural context
 - **Role Context**: Consider how competency relates to their banking role
 - **Confidence**: Rate your confidence in the evaluation (0.0-1.0)
 
-Focus on **quality over quantity** - a brief but insightful contribution may score higher than lengthy but shallow discussion.
+Focus on **quality over quantity** - a brief but insightful contribution with concrete examples scores higher than lengthy but shallow discussion.
 `
 }
 

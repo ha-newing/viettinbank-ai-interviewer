@@ -44,8 +44,9 @@ export async function POST(request: NextRequest) {
       }, { status: 404 })
     }
 
-    // Check if session is in case study phase
-    if (session[0].status !== 'case_study_in_progress') {
+    // Check if session is in case study phase (allow both in_progress and completed for restart)
+    const allowedStatuses = ['case_study_in_progress', 'case_study_completed']
+    if (!allowedStatuses.includes(session[0].status)) {
       return NextResponse.json({
         success: false,
         error: 'Session is not in case study phase',

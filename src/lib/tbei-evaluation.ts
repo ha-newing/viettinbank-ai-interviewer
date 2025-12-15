@@ -148,32 +148,43 @@ Please evaluate this response and provide a JSON object with the following struc
   "developmentSuggestions": ["array of specific suggestions for improvement"]
 }
 
-EVALUATION GUIDELINES:
-1. Score 1-2: Needs Improvement - Weak examples, vague responses, missing STAR elements
-2. Score 3: Meets Requirements - Adequate examples, some behavioral indicators present
-3. Score 4-5: Exceeds Requirements - Strong examples, clear behavioral indicators, complete STAR format
+EVALUATION GUIDELINES (BE STRICT - Avoid over-rating):
+1. Score 1: Very Weak - No concrete example, extremely vague, missing most STAR elements, no relevant behavioral indicators
+2. Score 2: Weak - Generic example, lacks specificity, missing 2+ STAR elements, minimal behavioral indicators
+3. Score 3: Average - Adequate example with some detail, 2-3 STAR elements present but could be stronger, some behavioral indicators shown
+4. Score 4: Good - Specific example with clear context, all STAR elements present with reasonable quality, clear behavioral indicators demonstrated
+5. Score 5: Excellent - Highly specific example with rich detail, exceptional STAR quality, strong evidence of all behavioral indicators, measurable results
+
+CALIBRATION GUIDANCE (IMPORTANT):
+- Score 5 should be RARE - only for truly exceptional responses with measurable business impact
+- Score 4 requires ALL STAR elements to be present AND demonstrate clear leadership/initiative
+- Score 3 is the baseline for "acceptable" - don't inflate to 4 without strong justification
+- Most candidates should score 2-3 unless their response clearly exceeds expectations
+- Vague language like "improved results" without specifics should cap the score at 3
+- Lack of quantifiable results or clear outcomes should reduce the score by at least 1 point
 
 Focus on:
-- Specificity and concreteness of the example
+- Specificity and concreteness of the example (vague = lower score)
 - Presence and quality of STAR (Situation-Task-Action-Result) elements
-- Demonstration of behavioral indicators
-- Impact and results achieved
-- Leadership and decision-making capabilities
+- Demonstration of behavioral indicators with specific evidence
+- Measurable impact and results achieved (numbers, percentages, outcomes)
+- Leadership and decision-making capabilities shown through actions
+- Personal accountability (use of "I" vs "we" for actions taken)
 `
 
     const completion = await getOpenAIClient().chat.completions.create({
-      model: 'gpt-5-mini',
+      model: 'gpt-4o-mini',
       messages: [
         {
           role: 'system',
-          content: 'You are an expert HR assessor specializing in competency-based interviews for banking leadership positions. Provide accurate, fair, and constructive evaluations.'
+          content: 'You are a strict HR assessor specializing in competency-based interviews for banking leadership positions. You are known for your rigorous and fair evaluations. You DO NOT inflate scores - most candidates score 2-3 unless they provide exceptional responses with measurable results. Score 5 is extremely rare.'
         },
         {
           role: 'user',
           content: prompt
         }
       ],
-      temperature: 1,
+      temperature: 0.3, // Lower temperature for more consistent scoring
       response_format: { type: 'json_object' }
     })
 

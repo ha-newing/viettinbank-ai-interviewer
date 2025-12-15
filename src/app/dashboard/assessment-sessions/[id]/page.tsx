@@ -34,7 +34,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { generateInterviewTokens, sendInterviewInvitations, startCaseStudy } from './actions'
+import { generateInterviewTokens, sendInterviewInvitations, startCaseStudy, startTbeiPhase } from './actions'
 import DeleteButton from '@/components/assessment-sessions/DeleteButton'
 
 export const dynamic = 'force-dynamic'
@@ -404,6 +404,87 @@ export default async function AssessmentSessionViewPage({ params }: AssessmentSe
           {/* Sidebar */}
           <div className="lg:col-span-1 space-y-6">
 
+            {/* Admin Guidance - Contextual Next Steps */}
+            {(() => {
+              const allTbeiComplete = participants.length > 0 && participants.every(p => p.tbeiStatus === 'completed')
+              const allHipoComplete = participants.length > 0 && participants.every(p => p.hipoStatus === 'completed')
+              const allQuizComplete = participants.length > 0 && participants.every(p => p.quizStatus === 'completed')
+              const allAssessmentsComplete = allTbeiComplete && allHipoComplete && allQuizComplete
+
+              if (session.status === 'created') {
+                return (
+                  <Alert className="border-blue-200 bg-blue-50">
+                    <PlayCircle className="h-4 w-4 text-blue-600" />
+                    <AlertDescription className="text-blue-800">
+                      <strong>Bước tiếp theo:</strong> Bấm &quot;Bắt đầu case study&quot; để bắt đầu ghi âm thảo luận nhóm. Đảm bảo tất cả thí sinh đã sẵn sàng.
+                    </AlertDescription>
+                  </Alert>
+                )
+              }
+
+              if (session.status === 'case_study_in_progress') {
+                return (
+                  <Alert className="border-blue-200 bg-blue-50">
+                    <Monitor className="h-4 w-4 text-blue-600" />
+                    <AlertDescription className="text-blue-800">
+                      <strong>Đang thảo luận:</strong> Case study đang diễn ra. Bấm &quot;Theo dõi Case Study (Live)&quot; để xem transcript trực tiếp và đánh giá.
+                    </AlertDescription>
+                  </Alert>
+                )
+              }
+
+              if (session.status === 'case_study_completed') {
+                const hasTokens = participants.every(p => p.interviewToken)
+                return (
+                  <Alert className="border-yellow-200 bg-yellow-50">
+                    <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                    <AlertDescription className="text-yellow-800">
+                      <strong>Bước tiếp theo:</strong>
+                      {!hasTokens ? (
+                        <> Bấm &quot;Tạo link phỏng vấn&quot; để tạo link cho các ứng viên, sau đó gửi email mời.</>
+                      ) : (
+                        <> Bấm &quot;Mở TBEI interview&quot; để chuyển sang giai đoạn phỏng vấn cá nhân. Các ứng viên sẽ nhận được email với link phỏng vấn.</>
+                      )}
+                    </AlertDescription>
+                  </Alert>
+                )
+              }
+
+              if (session.status === 'tbei_in_progress') {
+                if (allAssessmentsComplete) {
+                  return (
+                    <Alert className="border-green-200 bg-green-50">
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <AlertDescription className="text-green-800">
+                        <strong>Hoàn thành!</strong> Tất cả ứng viên đã hoàn thành đánh giá. Bấm &quot;Xuất báo cáo&quot; để xem kết quả chi tiết hoặc truy cập trang &quot;Theo dõi tiến độ&quot;.
+                      </AlertDescription>
+                    </Alert>
+                  )
+                }
+                return (
+                  <Alert className="border-blue-200 bg-blue-50">
+                    <Users className="h-4 w-4 text-blue-600" />
+                    <AlertDescription className="text-blue-800">
+                      <strong>Đang phỏng vấn:</strong> Các ứng viên đang thực hiện phần đánh giá cá nhân. Bấm &quot;Theo dõi tiến độ&quot; để xem tiến độ từng người.
+                    </AlertDescription>
+                  </Alert>
+                )
+              }
+
+              if (session.status === 'completed') {
+                return (
+                  <Alert className="border-green-200 bg-green-50">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <AlertDescription className="text-green-800">
+                      <strong>Đã hoàn thành!</strong> Phiên đánh giá đã kết thúc. Bấm &quot;Xuất báo cáo&quot; để tải kết quả đánh giá chi tiết cho từng ứng viên.
+                    </AlertDescription>
+                  </Alert>
+                )
+              }
+
+              return null
+            })()}
+
             {/* Quick Actions */}
             <Card>
               <CardHeader>
@@ -434,14 +515,17 @@ export default async function AssessmentSessionViewPage({ params }: AssessmentSe
                     Theo dõi Case Study (Live)
                   </Button>
                 </Link>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  disabled={session.status !== 'case_study_completed'}
-                >
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Mở TBEI interview
-                </Button>
+                <form action={startTbeiPhase.bind(null, session.id)}>
+                  <Button
+                    type="submit"
+                    variant="outline"
+                    className="w-full justify-start"
+                    disabled={session.status !== 'case_study_completed'}
+                  >
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Mở TBEI interview
+                  </Button>
+                </form>
                 <Button variant="outline" className="w-full justify-start">
                   <FileText className="h-4 w-4 mr-2" />
                   Xuất báo cáo
@@ -455,39 +539,76 @@ export default async function AssessmentSessionViewPage({ params }: AssessmentSe
                 <CardTitle>Các giai đoạn đánh giá</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
-                <div className="flex items-center space-x-2">
-                  <div className={`w-3 h-3 rounded-full ${
-                    session.status === 'case_study_in_progress' || session.status === 'case_study_completed' ||
-                    session.status === 'tbei_in_progress' || session.status === 'completed'
-                      ? 'bg-green-500'
-                      : 'bg-gray-300'
-                  }`} />
-                  <span>Case Study (120 phút)</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className={`w-3 h-3 rounded-full ${
-                    session.status === 'tbei_in_progress' || session.status === 'completed'
-                      ? 'bg-green-500'
-                      : 'bg-gray-300'
-                  }`} />
-                  <span>TBEI Interview (15 phút/người)</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className={`w-3 h-3 rounded-full ${
+                {(() => {
+                  // Calculate phase completion based on actual participant data
+                  const caseStudyComplete = session.status === 'case_study_in_progress' ||
+                    session.status === 'case_study_completed' ||
+                    session.status === 'tbei_in_progress' ||
                     session.status === 'completed'
-                      ? 'bg-green-500'
-                      : 'bg-gray-300'
-                  }`} />
-                  <span>HiPo Questionnaire (20 phút)</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className={`w-3 h-3 rounded-full ${
-                    session.status === 'completed'
-                      ? 'bg-green-500'
-                      : 'bg-gray-300'
-                  }`} />
-                  <span>Quiz (15 phút)</span>
-                </div>
+
+                  const tbeiComplete = participants.length > 0 &&
+                    participants.every(p => p.tbeiStatus === 'completed')
+                  const tbeiInProgress = participants.some(p => p.tbeiStatus === 'in_progress' || p.tbeiStatus === 'completed')
+
+                  const hipoComplete = participants.length > 0 &&
+                    participants.every(p => p.hipoStatus === 'completed')
+                  const hipoInProgress = participants.some(p => p.hipoStatus === 'in_progress' || p.hipoStatus === 'completed')
+
+                  const quizComplete = participants.length > 0 &&
+                    participants.every(p => p.quizStatus === 'completed')
+                  const quizInProgress = participants.some(p => p.quizStatus === 'in_progress' || p.quizStatus === 'completed')
+
+                  // Count completions for each phase
+                  const tbeiCompleteCount = participants.filter(p => p.tbeiStatus === 'completed').length
+                  const hipoCompleteCount = participants.filter(p => p.hipoStatus === 'completed').length
+                  const quizCompleteCount = participants.filter(p => p.quizStatus === 'completed').length
+
+                  return (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div className={`w-3 h-3 rounded-full ${
+                            caseStudyComplete ? 'bg-green-500' : 'bg-gray-300'
+                          }`} />
+                          <span>Case Study (120 phút)</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div className={`w-3 h-3 rounded-full ${
+                            tbeiComplete ? 'bg-green-500' : tbeiInProgress ? 'bg-yellow-500' : 'bg-gray-300'
+                          }`} />
+                          <span>TBEI Interview (15 phút/người)</span>
+                        </div>
+                        {tbeiInProgress && !tbeiComplete && (
+                          <span className="text-xs text-gray-500">{tbeiCompleteCount}/{participants.length}</span>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div className={`w-3 h-3 rounded-full ${
+                            hipoComplete ? 'bg-green-500' : hipoInProgress ? 'bg-yellow-500' : 'bg-gray-300'
+                          }`} />
+                          <span>HiPo Questionnaire (20 phút)</span>
+                        </div>
+                        {hipoInProgress && !hipoComplete && (
+                          <span className="text-xs text-gray-500">{hipoCompleteCount}/{participants.length}</span>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div className={`w-3 h-3 rounded-full ${
+                            quizComplete ? 'bg-green-500' : quizInProgress ? 'bg-yellow-500' : 'bg-gray-300'
+                          }`} />
+                          <span>Quiz (15 phút)</span>
+                        </div>
+                        {quizInProgress && !quizComplete && (
+                          <span className="text-xs text-gray-500">{quizCompleteCount}/{participants.length}</span>
+                        )}
+                      </div>
+                    </>
+                  )
+                })()}
               </CardContent>
             </Card>
           </div>

@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { db } from '@/lib/db'
 import { assessmentParticipants, assessmentSessions } from '@/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, inArray } from 'drizzle-orm'
 import { requireAuth } from '@/lib/auth'
 import { sendAssessmentInvitationEmail } from '@/lib/email'
 import { nanoid } from 'nanoid'
@@ -185,6 +185,77 @@ export async function startCaseStudy(sessionId: string) {
 
   } catch (error) {
     console.error('Error starting case study:', error)
+    throw error
+  }
+}
+
+/**
+ * Start the TBEI interview phase by updating session status
+ * This generates tokens if not already generated and updates status
+ */
+export async function startTbeiPhase(sessionId: string) {
+  try {
+    const user = await requireAuth()
+
+    // Verify session belongs to user's organization and is in correct status
+    const session = await db
+      .select()
+      .from(assessmentSessions)
+      .where(
+        and(
+          eq(assessmentSessions.id, sessionId),
+          eq(assessmentSessions.organizationId, user.organizationId)
+        )
+      )
+      .limit(1)
+
+    if (!session[0]) {
+      throw new Error('Session not found')
+    }
+
+    // Check if session is in the right status (case_study_completed)
+    if (session[0].status !== 'case_study_completed') {
+      throw new Error(`Cannot start TBEI phase from status: ${session[0].status}. Must complete case study first.`)
+    }
+
+    // Get all participants for this session
+    const participants = await db
+      .select()
+      .from(assessmentParticipants)
+      .where(eq(assessmentParticipants.sessionId, sessionId))
+
+    if (participants.length === 0) {
+      throw new Error('No participants found for this session')
+    }
+
+    // Generate tokens for participants who don't have them
+    const participantsWithoutTokens = participants.filter(p => !p.interviewToken)
+    if (participantsWithoutTokens.length > 0) {
+      const updatePromises = participantsWithoutTokens.map(participant =>
+        db.update(assessmentParticipants)
+          .set({
+            interviewToken: `interview_${nanoid(32)}`
+          })
+          .where(eq(assessmentParticipants.id, participant.id))
+      )
+      await Promise.all(updatePromises)
+    }
+
+    // Update session status to tbei_in_progress
+    await db
+      .update(assessmentSessions)
+      .set({
+        status: 'tbei_in_progress'
+      })
+      .where(eq(assessmentSessions.id, sessionId))
+
+    revalidatePath(`/dashboard/assessment-sessions/${sessionId}`)
+
+    // Redirect to monitoring page
+    redirect(`/dashboard/assessment-sessions/${sessionId}/monitor`)
+
+  } catch (error) {
+    console.error('Error starting TBEI phase:', error)
     throw error
   }
 }

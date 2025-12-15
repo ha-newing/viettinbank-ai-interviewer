@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     const allowedTransitions: Record<string, string[]> = {
       'created': ['case_study_in_progress'],
       'case_study_in_progress': ['case_study_completed'],
-      'case_study_completed': ['tbei_in_progress'],
+      'case_study_completed': ['case_study_in_progress', 'tbei_in_progress'], // Allow restart
       'tbei_in_progress': ['completed'],
       'completed': [] // No transitions from completed
     }

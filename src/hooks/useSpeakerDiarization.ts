@@ -103,13 +103,34 @@ export default function useSpeakerDiarization(options: UseSpeakerDiarizationOpti
     let currentSegment: SpeakerSegment | null = null
 
     tokens.forEach((token) => {
-      // Extract speaker ID from token (Soniox provides this)
-      const speaker = parseInt((token as any).speaker || '0', 10)
-
-      // Skip tokens without valid speaker or empty text
-      if (speaker === 0 || !token.text || token.text.trim() === '' ||
+      // Skip empty or control tokens
+      if (!token.text || token.text.trim() === '' ||
           token.text === '<end>' || token.text === '<start>') {
         return
+      }
+
+      // Extract speaker ID from token - Soniox provides this in different fields
+      // Try multiple field names as the SDK might use different conventions
+      const tokenAny = token as any
+      let speaker: number
+
+      if (typeof tokenAny.speaker === 'number') {
+        speaker = tokenAny.speaker
+      } else if (typeof tokenAny.speaker === 'string') {
+        speaker = parseInt(tokenAny.speaker, 10)
+      } else if (typeof tokenAny.speaker_id === 'number') {
+        speaker = tokenAny.speaker_id
+      } else if (typeof tokenAny.speaker_id === 'string') {
+        speaker = parseInt(tokenAny.speaker_id, 10)
+      } else {
+        // Default to speaker 1 if no speaker info available
+        // (speaker 0 was being skipped before, causing single-speaker display)
+        speaker = 1
+      }
+
+      // Ensure speaker is a valid number (minimum 1)
+      if (isNaN(speaker) || speaker < 0) {
+        speaker = 1
       }
 
       if (!currentSegment || currentSegment.speaker !== speaker) {
@@ -121,13 +142,13 @@ export default function useSpeakerDiarization(options: UseSpeakerDiarizationOpti
           speaker,
           text: token.text,
           startMs: token.start_ms || 0,
-          endMs: (token.start_ms || 0) + ((token as any).duration_ms || (token as any).duration || 100),
+          endMs: (token.start_ms || 0) + ((tokenAny).duration_ms || (tokenAny).duration || 100),
           tokens: [token],
         }
       } else {
         // Continue current segment
         currentSegment.text += token.text
-        currentSegment.endMs = (token.start_ms || 0) + ((token as any).duration_ms || (token as any).duration || 100)
+        currentSegment.endMs = (token.start_ms || 0) + ((tokenAny).duration_ms || (tokenAny).duration || 100)
         currentSegment.tokens.push(token)
       }
     })
