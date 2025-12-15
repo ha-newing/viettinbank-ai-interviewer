@@ -548,10 +548,10 @@ export default async function AssessmentSessionViewPage({ params }: AssessmentSe
                     Mở TBEI interview
                   </Button>
                 </form>
-                <Link href={`/dashboard/assessment-sessions/${session.id}/monitor`}>
+                <Link href={`/dashboard/assessment-sessions/${session.id}/report`}>
                   <Button variant="outline" className="w-full justify-start">
                     <FileText className="h-4 w-4 mr-2" />
-                    Xem kết quả
+                    Xuất báo cáo
                   </Button>
                 </Link>
               </CardContent>
