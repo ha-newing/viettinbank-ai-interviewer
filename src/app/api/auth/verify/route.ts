@@ -7,15 +7,38 @@ import { eq, and } from 'drizzle-orm'
 import { SESSION_COOKIE_NAME, SESSION_DURATION } from '@/lib/auth'
 
 /**
+ * Get the base URL for redirects, accounting for proxy headers
+ */
+function getBaseUrl(request: NextRequest): string {
+  // First try the forwarded headers (for production behind proxy)
+  const forwardedHost = request.headers.get('x-forwarded-host')
+  const forwardedProto = request.headers.get('x-forwarded-proto') || 'https'
+
+  if (forwardedHost) {
+    return `${forwardedProto}://${forwardedHost}`
+  }
+
+  // Fallback to NEXT_PUBLIC_APP_URL env variable
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL
+  }
+
+  // Last resort: use request.url (works for local dev)
+  const url = new URL(request.url)
+  return `${url.protocol}//${url.host}`
+}
+
+/**
  * Handle email verification via GET request (magic link)
  * This route can set cookies because it's a Route Handler
  */
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
   const token = searchParams.get('token')
+  const baseUrl = getBaseUrl(request)
 
   if (!token) {
-    return NextResponse.redirect(new URL('/auth/verify?error=missing_token', request.url))
+    return NextResponse.redirect(new URL('/auth/verify?error=missing_token', baseUrl))
   }
 
   try {
@@ -28,7 +51,7 @@ export async function GET(request: NextRequest) {
 
     const verification = verificationResult[0]
     if (!verification) {
-      return NextResponse.redirect(new URL('/auth/verify?error=invalid_token', request.url))
+      return NextResponse.redirect(new URL('/auth/verify?error=invalid_token', baseUrl))
     }
 
     // Check if expired or already verified
@@ -36,19 +59,19 @@ export async function GET(request: NextRequest) {
     const verifiedAt = verification.verifiedAt ? new Date(verification.verifiedAt) : null
 
     if (expiresAt < new Date() || verifiedAt) {
-      return NextResponse.redirect(new URL('/auth/verify?error=expired_token', request.url))
+      return NextResponse.redirect(new URL('/auth/verify?error=expired_token', baseUrl))
     }
 
     // Handle new organization signup - redirect to create organization page
     if (verification.isNewOrganization) {
       return NextResponse.redirect(
-        new URL(`/auth/create-organization?token=${token}&email=${encodeURIComponent(verification.email)}`, request.url)
+        new URL(`/auth/create-organization?token=${token}&email=${encodeURIComponent(verification.email)}`, baseUrl)
       )
     }
 
     // Existing organization login
     if (!verification.organizationId) {
-      return NextResponse.redirect(new URL('/auth/verify?error=invalid_organization', request.url))
+      return NextResponse.redirect(new URL('/auth/verify?error=invalid_organization', baseUrl))
     }
 
     // Mark verification as completed
@@ -100,9 +123,9 @@ export async function GET(request: NextRequest) {
     })
 
     // Redirect to assessment center
-    return NextResponse.redirect(new URL('/dashboard/assessment-sessions', request.url))
+    return NextResponse.redirect(new URL('/dashboard/assessment-sessions', baseUrl))
   } catch (error) {
     console.error('Error verifying email:', error)
-    return NextResponse.redirect(new URL('/auth/verify?error=server_error', request.url))
+    return NextResponse.redirect(new URL('/auth/verify?error=server_error', baseUrl))
   }
 }
