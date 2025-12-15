@@ -34,7 +34,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { generateInterviewTokens, sendInterviewInvitations, startCaseStudy, startTbeiPhase } from './actions'
+import { generateInterviewTokens, sendInterviewInvitations, startCaseStudy, startTbeiPhase, completeSession } from './actions'
 import DeleteButton from '@/components/assessment-sessions/DeleteButton'
 
 export const dynamic = 'force-dynamic'
@@ -114,6 +114,28 @@ export default async function AssessmentSessionViewPage({ params }: AssessmentSe
     .from(assessmentParticipants)
     .where(eq(assessmentParticipants.sessionId, resolvedParams.id))
     .orderBy(assessmentParticipants.roleCode)
+
+  // Auto-complete session if all participants have finished all assessments
+  if (session.status === 'tbei_in_progress' && participants.length > 0) {
+    const allComplete = participants.every(p =>
+      p.tbeiStatus === 'completed' &&
+      p.hipoStatus === 'completed' &&
+      p.quizStatus === 'completed'
+    )
+    if (allComplete) {
+      await completeSession(resolvedParams.id)
+      // Refresh session data after completion
+      const updatedSession = await db
+        .select()
+        .from(assessmentSessions)
+        .where(eq(assessmentSessions.id, resolvedParams.id))
+        .limit(1)
+      if (updatedSession[0]) {
+        session.status = updatedSession[0].status
+        session.completedAt = updatedSession[0].completedAt
+      }
+    }
+  }
 
   // Get statistics for this session
   const [
@@ -526,10 +548,12 @@ export default async function AssessmentSessionViewPage({ params }: AssessmentSe
                     Mở TBEI interview
                   </Button>
                 </form>
-                <Button variant="outline" className="w-full justify-start">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Xuất báo cáo
-                </Button>
+                <Link href={`/dashboard/reports/${session.id}`}>
+                  <Button variant="outline" className="w-full justify-start">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Xuất báo cáo
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
 

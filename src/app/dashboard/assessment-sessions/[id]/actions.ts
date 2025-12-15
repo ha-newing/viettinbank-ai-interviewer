@@ -190,6 +190,73 @@ export async function startCaseStudy(sessionId: string) {
 }
 
 /**
+ * Mark session as completed when all participants have finished all assessments
+ */
+export async function completeSession(sessionId: string) {
+  try {
+    const user = await requireAuth()
+
+    // Verify session belongs to user's organization
+    const session = await db
+      .select()
+      .from(assessmentSessions)
+      .where(
+        and(
+          eq(assessmentSessions.id, sessionId),
+          eq(assessmentSessions.organizationId, user.organizationId)
+        )
+      )
+      .limit(1)
+
+    if (!session[0]) {
+      throw new Error('Session not found')
+    }
+
+    // Only update if currently in tbei_in_progress
+    if (session[0].status !== 'tbei_in_progress') {
+      return { success: false, message: 'Session is not in TBEI phase' }
+    }
+
+    // Check if all participants have completed all assessments
+    const participants = await db
+      .select()
+      .from(assessmentParticipants)
+      .where(eq(assessmentParticipants.sessionId, sessionId))
+
+    if (participants.length === 0) {
+      return { success: false, message: 'No participants found' }
+    }
+
+    const allComplete = participants.every(p =>
+      p.tbeiStatus === 'completed' &&
+      p.hipoStatus === 'completed' &&
+      p.quizStatus === 'completed'
+    )
+
+    if (!allComplete) {
+      return { success: false, message: 'Not all participants have completed' }
+    }
+
+    // Update session status to completed
+    await db
+      .update(assessmentSessions)
+      .set({
+        status: 'completed',
+        completedAt: new Date()
+      })
+      .where(eq(assessmentSessions.id, sessionId))
+
+    revalidatePath(`/dashboard/assessment-sessions/${sessionId}`)
+
+    return { success: true, message: 'Session marked as completed' }
+
+  } catch (error) {
+    console.error('Error completing session:', error)
+    throw error
+  }
+}
+
+/**
  * Start the TBEI interview phase by updating session status
  * This generates tokens if not already generated and updates status
  */
