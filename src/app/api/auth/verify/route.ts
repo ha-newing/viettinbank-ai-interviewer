@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
 import { nanoid } from 'nanoid'
 import { db } from '@/lib/db'
 import { users, userSessions, emailVerifications } from '@/db/schema'
@@ -112,9 +111,12 @@ export async function GET(request: NextRequest) {
       expiresAt: sessionExpiresAt,
     })
 
-    // Set cookie and redirect
-    const cookieStore = await cookies()
-    cookieStore.set(SESSION_COOKIE_NAME, sessionToken, {
+    // Create redirect response and set cookie on it
+    const redirectUrl = new URL('/dashboard/assessment-sessions', baseUrl)
+    const response = NextResponse.redirect(redirectUrl)
+
+    // Set cookie directly on the response to ensure it's included in the redirect
+    response.cookies.set(SESSION_COOKIE_NAME, sessionToken, {
       expires: sessionExpiresAt,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -122,8 +124,7 @@ export async function GET(request: NextRequest) {
       path: '/',
     })
 
-    // Redirect to assessment center
-    return NextResponse.redirect(new URL('/dashboard/assessment-sessions', baseUrl))
+    return response
   } catch (error) {
     console.error('Error verifying email:', error)
     return NextResponse.redirect(new URL('/auth/verify?error=server_error', baseUrl))
