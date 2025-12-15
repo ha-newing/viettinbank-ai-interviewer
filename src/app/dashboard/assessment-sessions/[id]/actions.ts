@@ -257,6 +257,52 @@ export async function completeSession(sessionId: string) {
 }
 
 /**
+ * Force complete a session - for manual override when auto-complete doesn't trigger
+ * Use this when all participants have completed but session status is stuck
+ */
+export async function forceCompleteSession(sessionId: string) {
+  try {
+    const user = await requireAuth()
+
+    // Verify session belongs to user's organization
+    const session = await db
+      .select()
+      .from(assessmentSessions)
+      .where(
+        and(
+          eq(assessmentSessions.id, sessionId),
+          eq(assessmentSessions.organizationId, user.organizationId)
+        )
+      )
+      .limit(1)
+
+    if (!session[0]) {
+      throw new Error('Session not found')
+    }
+
+    // Only allow force complete from tbei_in_progress status
+    if (session[0].status !== 'tbei_in_progress') {
+      throw new Error('Session must be in TBEI phase to complete')
+    }
+
+    // Update session status to completed
+    await db
+      .update(assessmentSessions)
+      .set({
+        status: 'completed',
+        completedAt: new Date()
+      })
+      .where(eq(assessmentSessions.id, sessionId))
+
+    revalidatePath(`/dashboard/assessment-sessions/${sessionId}`)
+
+  } catch (error) {
+    console.error('Error force completing session:', error)
+    throw error
+  }
+}
+
+/**
  * Start the TBEI interview phase by updating session status
  * This generates tokens if not already generated and updates status
  */

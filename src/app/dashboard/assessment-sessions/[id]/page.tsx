@@ -34,7 +34,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { generateInterviewTokens, sendInterviewInvitations, startCaseStudy, startTbeiPhase, completeSession } from './actions'
+import { generateInterviewTokens, sendInterviewInvitations, startCaseStudy, startTbeiPhase, completeSession, forceCompleteSession } from './actions'
 import DeleteButton from '@/components/assessment-sessions/DeleteButton'
 
 export const dynamic = 'force-dynamic'
@@ -554,6 +554,19 @@ export default async function AssessmentSessionViewPage({ params }: AssessmentSe
                     Xuất báo cáo
                   </Button>
                 </Link>
+                {/* Manual Complete Button - for stuck sessions */}
+                {session.status === 'tbei_in_progress' && (
+                  <form action={forceCompleteSession.bind(null, session.id)}>
+                    <Button
+                      type="submit"
+                      variant="default"
+                      className="w-full justify-start bg-green-600 hover:bg-green-700"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Hoàn thành phiên
+                    </Button>
+                  </form>
+                )}
               </CardContent>
             </Card>
 
