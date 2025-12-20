@@ -177,7 +177,17 @@ export async function GET(
             transcript: caseStudyTranscriptText,
             speakerMapping: caseStudySpeakerMapping
           },
-          tbei: { responses: tbeiResults, average: tbeiAvg, completed: participant.tbeiStatus === 'completed' },
+          tbei: {
+            responses: tbeiResults.map(r => ({
+              id: r.id,
+              questionId: r.questionId,
+              transcript: r.transcript,
+              audioUrl: r.audioUrl ?? undefined,
+              durationSeconds: r.durationSeconds ?? undefined
+            })),
+            average: tbeiAvg,
+            completed: participant.tbeiStatus === 'completed'
+          },
           hipo: { data: hipoResults[0] || null, completed: participant.hipoStatus === 'completed' },
           quiz: { data: quizResults[0] || null, percentage: quizPercentage, completed: participant.quizStatus === 'completed' },
           overallScore,
