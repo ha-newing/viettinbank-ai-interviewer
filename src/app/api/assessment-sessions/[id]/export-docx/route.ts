@@ -30,8 +30,6 @@ import {
   PageOrientation
 } from 'docx'
 
-export const runtime = 'nodejs'
-
 /**
  * Generate DOCX report for an assessment session
  */
