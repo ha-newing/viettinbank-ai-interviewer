@@ -191,7 +191,7 @@ export default function useSpeakerDiarization(options: UseSpeakerDiarizationOpti
 
       if (!clientRef.current) {
         clientRef.current = new SonioxClient({
-          apiKey: () => sonioxConfigRef.current?.apiKey || '',
+          apiKey: async () => sonioxConfigRef.current?.apiKey || '',
           webSocketUri: sonioxConfigRef.current?.endpoint
         })
       }
