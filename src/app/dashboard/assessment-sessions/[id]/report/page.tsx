@@ -8,11 +8,13 @@ import {
   assessmentSessions,
   assessmentParticipants,
   caseStudyEvaluations,
+  caseStudyTranscripts,
+  caseStudyTranscriptVersions,
   tbeiResponses,
   hipoAssessments,
   quizResponses
 } from '@/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, desc } from 'drizzle-orm'
 import { requireAuth } from '@/lib/auth'
 import { notFound } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -82,6 +84,38 @@ export default async function AssessmentReportPage({ params }: ReportPageProps) 
     .from(assessmentParticipants)
     .where(eq(assessmentParticipants.sessionId, sessionId))
     .orderBy(assessmentParticipants.roleCode)
+
+  // Latest case study transcript (consolidated)
+  const latestTranscriptVersion = await db
+    .select()
+    .from(caseStudyTranscriptVersions)
+    .where(eq(caseStudyTranscriptVersions.sessionId, sessionId))
+    .orderBy(desc(caseStudyTranscriptVersions.version))
+    .limit(1)
+
+  const latestLegacyTranscript = await db
+    .select()
+    .from(caseStudyTranscripts)
+    .where(eq(caseStudyTranscripts.sessionId, sessionId))
+    .orderBy(desc(caseStudyTranscripts.sequenceNumber))
+    .limit(1)
+
+  const caseStudyTranscriptText =
+    latestTranscriptVersion[0]?.fullTranscript ||
+    latestLegacyTranscript[0]?.consolidatedTranscript ||
+    ''
+
+  const caseStudySpeakerMapping = (() => {
+    const mapping = latestTranscriptVersion[0]?.speakerMapping || latestLegacyTranscript[0]?.speakerMapping
+    if (!mapping) return null
+    try {
+      return JSON.parse(mapping) as Record<string, string>
+    } catch {
+      return null
+    }
+  })()
+
+  const hasCaseStudyTranscript = !!caseStudyTranscriptText
 
   // Fetch all results for each participant
   const participantResults = await Promise.all(
@@ -158,7 +192,10 @@ export default async function AssessmentReportPage({ params }: ReportPageProps) 
         caseStudy: {
           evaluations: caseStudyResults,
           average: caseStudyAvg,
-          completed: validCaseStudyScores.length > 0
+          completed: validCaseStudyScores.length > 0 || hasCaseStudyTranscript,
+          hasTranscript: hasCaseStudyTranscript,
+          transcript: caseStudyTranscriptText,
+          speakerMapping: caseStudySpeakerMapping
         },
         tbei: {
           responses: tbeiResults,
@@ -250,6 +287,36 @@ export default async function AssessmentReportPage({ params }: ReportPageProps) 
         </CardContent>
       </Card>
 
+      {/* Case Study Transcript */}
+      {hasCaseStudyTranscript && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <MessageSquare className="h-5 w-5 mr-2 text-blue-600" />
+              Transcript Case Study (mới nhất)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="text-sm text-gray-600">
+              Đã ghi âm thảo luận nhóm. Dưới đây là transcript đầy đủ để xem lại mà không cần nghe lại bản ghi.
+            </div>
+            <div className="border rounded p-3 bg-gray-50 max-h-64 overflow-y-auto whitespace-pre-wrap text-sm">
+              {caseStudyTranscriptText}
+            </div>
+            {caseStudySpeakerMapping && (
+              <div className="text-xs text-gray-500">
+                <span className="font-medium text-gray-700">Gán người nói:</span>{' '}
+                {Object.entries(caseStudySpeakerMapping).map(([speaker, name]) => (
+                  <span key={speaker} className="inline-block mr-2 mt-1 px-2 py-1 bg-gray-100 rounded">
+                    {speaker}: {name}
+                  </span>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Participant Results Table */}
       <Card>
         <CardHeader>
@@ -289,10 +356,14 @@ export default async function AssessmentReportPage({ params }: ReportPageProps) 
                       </div>
                     </td>
                     <td className="text-center p-3">
-                      {result.caseStudy.completed ? (
-                        <span className={getScoreColor(result.caseStudy.average)}>
-                          {result.caseStudy.average.toFixed(1)}/5
-                        </span>
+                      {result.caseStudy.hasTranscript ? (
+                        result.caseStudy.average > 0 ? (
+                          <span className={getScoreColor(result.caseStudy.average)}>
+                            {result.caseStudy.average.toFixed(1)}/5
+                          </span>
+                        ) : (
+                          <Badge variant="secondary">Đã ghi âm</Badge>
+                        )
                       ) : (
                         <span className="text-gray-400">-</span>
                       )}
@@ -373,18 +444,30 @@ export default async function AssessmentReportPage({ params }: ReportPageProps) 
                     <MessageSquare className="h-4 w-4 mr-2 text-blue-600" />
                     <span className="font-medium">Case Study</span>
                   </div>
-                  {result.caseStudy.completed ? (
-                    <Badge variant="default">{result.caseStudy.average.toFixed(1)}/5</Badge>
+                  {result.caseStudy.hasTranscript ? (
+                    result.caseStudy.average > 0 ? (
+                      <Badge variant="default">{result.caseStudy.average.toFixed(1)}/5</Badge>
+                    ) : (
+                      <Badge variant="secondary">Đã ghi âm</Badge>
+                    )
                   ) : (
                     <Badge variant="secondary">Chưa có</Badge>
                   )}
                 </div>
-                {result.caseStudy.completed && (
+                {result.caseStudy.average > 0 && (
                   <Progress value={(result.caseStudy.average / 5) * 100} className="h-2" />
                 )}
                 {result.caseStudy.evaluations.length > 0 && (
                   <div className="mt-3 text-xs text-gray-600">
                     {result.caseStudy.evaluations.length} đánh giá năng lực
+                  </div>
+                )}
+                {result.caseStudy.hasTranscript && (
+                  <div className="mt-3 text-xs text-gray-700 space-y-1">
+                    <div className="font-medium text-gray-800">Tóm tắt transcript</div>
+                    <p className="whitespace-pre-wrap line-clamp-3">
+                      {result.caseStudy.transcript}
+                    </p>
                   </div>
                 )}
               </div>
@@ -478,6 +561,39 @@ export default async function AssessmentReportPage({ params }: ReportPageProps) 
                 )}
               </div>
             </div>
+
+            {result.tbei.responses.length > 0 && (
+              <div className="border rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center">
+                    <Brain className="h-4 w-4 mr-2 text-purple-600" />
+                    <span className="font-medium">Câu trả lời TBEI</span>
+                  </div>
+                  <span className="text-xs text-gray-500">{result.tbei.responses.length} câu hỏi</span>
+                </div>
+                <div className="space-y-3">
+                  {result.tbei.responses.map((response, index) => (
+                    <div key={response.id ?? index} className="text-sm border-t border-gray-100 pt-2 first:border-t-0 first:pt-0">
+                      <div className="flex items-center justify-between text-xs text-gray-500">
+                        <span>Câu hỏi {response.questionId}</span>
+                        {response.durationSeconds && <span>{response.durationSeconds}s</span>}
+                      </div>
+                      <p className="mt-1 whitespace-pre-wrap text-gray-800">{response.transcript}</p>
+                      {response.audioUrl && (
+                        <a
+                          href={response.audioUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs text-blue-600 hover:underline"
+                        >
+                          Nghe lại bản ghi
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       ))}

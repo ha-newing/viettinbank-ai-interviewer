@@ -17,7 +17,8 @@ import { ParticipantProgressMonitorWrapper } from '@/components/assessment-sessi
 import { getParticipantProgressData, getMonitoringStats } from '../monitoring-actions'
 import { db } from '@/lib/db'
 import { assessmentSessions } from '@/db/schema'
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
+import { requireAuth } from '@/lib/auth'
 
 interface MonitoringStatsDisplayProps {
   sessionId: string
@@ -108,12 +109,18 @@ interface PageProps {
 
 export default async function MonitoringPage({ params }: PageProps) {
   const { id } = await params
+  const user = await requireAuth()
 
   // Get session information
   const session = await db
     .select()
     .from(assessmentSessions)
-    .where(eq(assessmentSessions.id, id))
+    .where(
+      and(
+        eq(assessmentSessions.id, id),
+        eq(assessmentSessions.organizationId, user.organizationId)
+      )
+    )
     .limit(1)
 
   if (!session[0]) {

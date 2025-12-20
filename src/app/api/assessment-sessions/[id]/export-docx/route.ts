@@ -6,11 +6,13 @@ import {
   assessmentSessions,
   assessmentParticipants,
   caseStudyEvaluations,
+  caseStudyTranscriptVersions,
+  caseStudyTranscripts,
   tbeiResponses,
   hipoAssessments,
   quizResponses
 } from '@/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, desc } from 'drizzle-orm'
 import { requireAuth } from '@/lib/auth'
 import {
   Document,
@@ -27,6 +29,8 @@ import {
   ShadingType,
   PageOrientation
 } from 'docx'
+
+export const runtime = 'nodejs'
 
 /**
  * Generate DOCX report for an assessment session
@@ -64,6 +68,38 @@ export async function GET(
       .from(assessmentParticipants)
       .where(eq(assessmentParticipants.sessionId, sessionId))
       .orderBy(assessmentParticipants.roleCode)
+
+    // Latest case study transcript (consolidated)
+    const latestTranscriptVersion = await db
+      .select()
+      .from(caseStudyTranscriptVersions)
+      .where(eq(caseStudyTranscriptVersions.sessionId, sessionId))
+      .orderBy(desc(caseStudyTranscriptVersions.version))
+      .limit(1)
+
+    const latestLegacyTranscript = await db
+      .select()
+      .from(caseStudyTranscripts)
+      .where(eq(caseStudyTranscripts.sessionId, sessionId))
+      .orderBy(desc(caseStudyTranscripts.sequenceNumber))
+      .limit(1)
+
+    const caseStudyTranscriptText =
+      latestTranscriptVersion[0]?.fullTranscript ||
+      latestLegacyTranscript[0]?.consolidatedTranscript ||
+      ''
+
+    const caseStudySpeakerMapping = (() => {
+      const mapping = latestTranscriptVersion[0]?.speakerMapping || latestLegacyTranscript[0]?.speakerMapping
+      if (!mapping) return null
+      try {
+        return JSON.parse(mapping) as Record<string, string>
+      } catch {
+        return null
+      }
+    })()
+
+    const hasCaseStudyTranscript = !!caseStudyTranscriptText
 
     // Fetch all results for each participant
     const participantResults = await Promise.all(
@@ -135,7 +171,14 @@ export async function GET(
 
         return {
           participant,
-          caseStudy: { evaluations: caseStudyResults, average: caseStudyAvg, completed: validCaseStudyScores.length > 0 },
+          caseStudy: {
+            evaluations: caseStudyResults,
+            average: caseStudyAvg,
+            completed: validCaseStudyScores.length > 0 || hasCaseStudyTranscript,
+            hasTranscript: hasCaseStudyTranscript,
+            transcript: caseStudyTranscriptText,
+            speakerMapping: caseStudySpeakerMapping
+          },
           tbei: { responses: tbeiResults, average: tbeiAvg, completed: participant.tbeiStatus === 'completed' },
           hipo: { data: hipoResults[0] || null, completed: participant.hipoStatus === 'completed' },
           quiz: { data: quizResults[0] || null, percentage: quizPercentage, completed: participant.quizStatus === 'completed' },
@@ -235,6 +278,54 @@ export async function GET(
           // Results table
           createResultsTable(participantResults),
 
+          // Case Study transcript
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: 'TRANSCRIPT CASE STUDY',
+                bold: true,
+                size: 26
+              })
+            ],
+            heading: HeadingLevel.HEADING_2,
+            spacing: { before: 400, after: 200 }
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: hasCaseStudyTranscript
+                  ? 'Bản ghi mới nhất của thảo luận nhóm (đã bao gồm phân tách người nói).'
+                  : 'Chưa có transcript case study.',
+                size: 20,
+                color: '444444'
+              })
+            ],
+            spacing: { after: 200 }
+          }),
+          ...(hasCaseStudyTranscript ? [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: caseStudyTranscriptText,
+                  size: 20
+                })
+              ]
+            }),
+            ...(caseStudySpeakerMapping ? [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: 'Gán người nói: ' + Object.entries(caseStudySpeakerMapping)
+                      .map(([speaker, name]) => `${speaker}: ${name}`)
+                      .join('; '),
+                    size: 18,
+                    color: '666666'
+                  })
+                ]
+              })
+            ] : [])
+          ] : []),
+
           // Detailed Results Header
           new Paragraph({
             children: [
@@ -257,17 +348,14 @@ export async function GET(
     // Generate the document buffer
     const buffer = await Packer.toBuffer(doc)
 
-    // Convert Buffer to Uint8Array for NextResponse compatibility
-    const uint8Array = new Uint8Array(buffer)
-
     // Return the document as a download
     const fileName = `${session[0].name.replace(/[^a-zA-Z0-9\u00C0-\u1EF9]/g, '_')}_Report_${new Date().toISOString().split('T')[0]}.docx`
 
-    return new NextResponse(uint8Array, {
+    return new NextResponse(buffer, {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         'Content-Disposition': `attachment; filename="${encodeURIComponent(fileName)}"`,
-        'Content-Length': uint8Array.length.toString()
+        'Content-Length': buffer.byteLength.toString()
       }
     })
 
@@ -312,7 +400,7 @@ function createSummaryTable(totalParticipants: number, completed: number, avgSco
 // Helper to create results table
 function createResultsTable(participantResults: Array<{
   participant: { roleCode: string; name: string; roleName: string };
-  caseStudy: { average: number; completed: boolean };
+  caseStudy: { average: number; completed: boolean; hasTranscript: boolean };
   tbei: { average: number; completed: boolean };
   hipo: { data: { totalScore: number | null } | null; completed: boolean };
   quiz: { percentage: number; completed: boolean };
@@ -339,7 +427,11 @@ function createResultsTable(participantResults: Array<{
         new TableRow({
           children: [
             createTableCell(`${result.participant.roleCode} - ${result.participant.name}`),
-            createTableCell(result.caseStudy.completed ? `${result.caseStudy.average.toFixed(1)}/5` : '-'),
+            createTableCell(
+              result.caseStudy.hasTranscript
+                ? (result.caseStudy.average > 0 ? `${result.caseStudy.average.toFixed(1)}/5` : 'Đã ghi âm')
+                : '-'
+            ),
             createTableCell(result.tbei.completed ? `${result.tbei.average.toFixed(1)}/5` : '-'),
             createTableCell(result.hipo.completed && result.hipo.data?.totalScore ? `${result.hipo.data.totalScore}/100` : '-'),
             createTableCell(result.quiz.completed ? `${Math.round(result.quiz.percentage)}%` : '-'),
@@ -384,8 +476,25 @@ function createTableCell(text: string, isHeader: boolean = false): TableCell {
 // Helper to create detailed participant section
 function createParticipantDetailSection(result: {
   participant: { roleCode: string; name: string; roleName: string };
-  caseStudy: { average: number; completed: boolean; evaluations: Array<{ competencyId: string; score: number | null }> };
-  tbei: { average: number; completed: boolean; responses: Array<unknown> };
+  caseStudy: {
+    average: number;
+    completed: boolean;
+    hasTranscript: boolean;
+    transcript?: string | null;
+    speakerMapping?: Record<string, string> | null;
+    evaluations: Array<{ competencyId: string; score: number | null }>;
+  };
+  tbei: {
+    average: number;
+    completed: boolean;
+    responses: Array<{
+      id?: string;
+      questionId?: string;
+      transcript?: string;
+      audioUrl?: string;
+      durationSeconds?: number;
+    }>;
+  };
   hipo: { data: { totalScore: number | null; abilityScore: number | null; aspirationScore: number | null; engagementScore: number | null; integratedScore: number | null } | null; completed: boolean };
   quiz: { percentage: number; completed: boolean; data: { score: number | null; totalQuestions: number | null; timeSpentSeconds: number | null } | null };
   overallScore: number;
@@ -419,8 +528,10 @@ function createParticipantDetailSection(result: {
       children: [
         new TextRun({ text: 'Case Study: ', bold: true, size: 20 }),
         new TextRun({
-          text: result.caseStudy.completed
-            ? `${result.caseStudy.average.toFixed(1)}/5 (${result.caseStudy.evaluations.length} đánh giá)`
+          text: result.caseStudy.hasTranscript
+            ? (result.caseStudy.average > 0
+              ? `${result.caseStudy.average.toFixed(1)}/5 (${result.caseStudy.evaluations.length} đánh giá)`
+              : 'Đã ghi âm (chưa chấm điểm)')
             : 'Chưa có dữ liệu',
           size: 20
         })
@@ -467,6 +578,90 @@ function createParticipantDetailSection(result: {
         ]
       })
     )
+  }
+
+  // Case study transcript snippet
+  if (result.caseStudy.hasTranscript && result.caseStudy.transcript) {
+    const snippet = result.caseStudy.transcript.length > 500
+      ? `${result.caseStudy.transcript.slice(0, 500)}...`
+      : result.caseStudy.transcript
+
+    paragraphs.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: `   • Trích đoạn Case Study: ${snippet}`,
+            size: 18,
+            color: '666666'
+          })
+        ]
+      })
+    )
+
+    if (result.caseStudy.speakerMapping) {
+      const mappingText = Object.entries(result.caseStudy.speakerMapping)
+        .map(([speaker, name]) => `${speaker}: ${name}`)
+        .join('; ')
+      paragraphs.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `   • Gán người nói: ${mappingText}`,
+              size: 18,
+              color: '666666'
+            })
+          ]
+        })
+      )
+    }
+  }
+
+  // TBEI responses detail
+  if (result.tbei.responses.length > 0) {
+    paragraphs.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: '   • Trả lời TBEI:',
+            size: 18,
+            color: '666666'
+          })
+        ]
+      })
+    )
+
+    result.tbei.responses.forEach((response, idx) => {
+      const snippet = response.transcript && response.transcript.length > 400
+        ? `${response.transcript.slice(0, 400)}...`
+        : response.transcript || ''
+
+      paragraphs.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `      ${idx + 1}. ${response.questionId || 'Câu hỏi'}: ${snippet}`,
+              size: 18
+            })
+          ],
+          spacing: { after: 50 }
+        })
+      )
+
+      if (response.audioUrl) {
+        paragraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `         Nghe lại: ${response.audioUrl}`,
+                size: 16,
+                color: '4444AA'
+              })
+            ],
+            spacing: { after: 100 }
+          })
+        )
+      }
+    })
   }
 
   // Quiz

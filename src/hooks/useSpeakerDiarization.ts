@@ -6,7 +6,7 @@ import {
   type ErrorStatus,
   type RecorderState,
   type Token,
-  isActiveState,
+  isActiveState
 } from '@soniox/speech-to-text-web'
 
 // Update to use SDK Token type but keep backward compatibility
@@ -36,6 +36,12 @@ export interface UseSpeakerDiarizationReturn {
   detectedSpeakers: string[]
 }
 
+interface SonioxAuthConfig {
+  apiKey: string
+  endpoint?: string
+  config: Record<string, any>
+}
+
 export default function useSpeakerDiarization(options: UseSpeakerDiarizationOptions): UseSpeakerDiarizationReturn {
   const {
     sessionId,
@@ -54,48 +60,44 @@ export default function useSpeakerDiarization(options: UseSpeakerDiarizationOpti
   // Refs for SDK and data management
   const clientRef = useRef<SonioxClient | null>(null)
   const allTokensRef = useRef<Token[]>([])
+  const sonioxConfigRef = useRef<SonioxAuthConfig | null>(null)
   const speakerMappingRef = useRef<Map<number, string>>(new Map())
 
-  // Get API key function using existing endpoint
-  const getApiKey = useCallback(async (sessionId: string): Promise<string> => {
-    try {
-      const authResponse = await fetch('/api/case-study/soniox-auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId })
-      })
+  // Get Soniox config (temporary key + recommended options) from backend
+  const getSonioxConfig = useCallback(async (sessionId: string): Promise<SonioxAuthConfig> => {
+    const authResponse = await fetch('/api/case-study/soniox-auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId })
+    })
 
-      if (!authResponse.ok) {
-        throw new Error('Failed to get Soniox credentials')
-      }
+    if (!authResponse.ok) {
+      throw new Error('Failed to get Soniox credentials')
+    }
 
-      const authData = await authResponse.json()
-      if (!authData.success) {
-        throw new Error(authData.error || 'Authentication failed')
-      }
+    const authData = await authResponse.json()
+    if (!authData.success) {
+      throw new Error(authData.error || 'Authentication failed')
+    }
 
-      return authData.data.soniox.api_key
-    } catch (error) {
-      console.error('Error getting API key:', error)
-      throw error
+    return {
+      apiKey: authData.data.soniox.api_key,
+      endpoint: authData.data.soniox.endpoint,
+      config: authData.data.soniox.config || {}
     }
   }, [])
 
-  // Initialize Soniox client
+  // Reset client on session change
   useEffect(() => {
-    if (!clientRef.current) {
-      clientRef.current = new SonioxClient({
-        apiKey: () => getApiKey(sessionId),
-      })
-    }
-
     return () => {
       if (clientRef.current) {
         clientRef.current.cancel()
         clientRef.current = null
       }
+      sonioxConfigRef.current = null
+      allTokensRef.current = []
     }
-  }, [sessionId, getApiKey])
+  }, [sessionId])
 
   // Process tokens into speaker segments
   const processTokensIntoSegments = useCallback((tokens: Token[]): SpeakerSegment[] => {
@@ -179,22 +181,34 @@ export default function useSpeakerDiarization(options: UseSpeakerDiarizationOpti
 
   // Start transcription with speaker diarization
   const startTranscription = useCallback(async (audioStream: MediaStream) => {
-    if (!clientRef.current) {
-      const error = new Error('Soniox client not initialized')
-      setError(error)
-      onError?.(error)
-      return
-    }
-
     try {
       setError(null)
 
+      // Ensure Soniox config and client are initialized
+      if (!sonioxConfigRef.current) {
+        sonioxConfigRef.current = await getSonioxConfig(sessionId)
+      }
+
+      if (!clientRef.current) {
+        clientRef.current = new SonioxClient({
+          apiKey: () => sonioxConfigRef.current?.apiKey || '',
+          webSocketUri: sonioxConfigRef.current?.endpoint
+        })
+      }
+
+      const sonioxConfig = sonioxConfigRef.current?.config || {}
+
       await clientRef.current.start({
-        model: 'stt-rt-preview-v2',
-        languageHints: ['vi', 'en'], // Vietnamese and English
-        enableLanguageIdentification: true,
-        enableSpeakerDiarization: true, // Enable speaker diarization
-        enableEndpointDetection: true,
+        model: sonioxConfig.model || 'stt-rt-v3',
+        languageHints: sonioxConfig.language_hints || ['vi', 'en'], // Vietnamese and English
+        context: sonioxConfig.context,
+        enableLanguageIdentification: sonioxConfig.enable_language_identification ?? true,
+        enableSpeakerDiarization: sonioxConfig.enable_speaker_diarization ?? true, // Enable speaker diarization
+        enableEndpointDetection: sonioxConfig.enable_endpoint_detection ?? true,
+        audioFormat: sonioxConfig.audio_format || 'pcm_s16le',
+        sampleRate: sonioxConfig.sample_rate || 16000,
+        numChannels: sonioxConfig.num_channels || 1,
+        clientReferenceId: `case-study-${sessionId}`,
         stream: audioStream, // Let SDK handle audio processing
 
         onStarted: () => {
