@@ -359,7 +359,9 @@ export async function GET(
     // Return the document as a download
     const fileName = `${session[0].name.replace(/[^a-zA-Z0-9\u00C0-\u1EF9]/g, '_')}_Report_${new Date().toISOString().split('T')[0]}.docx`
 
-    return new NextResponse(buffer, {
+    const uint8Array = new Uint8Array(buffer)
+
+    return new NextResponse(uint8Array, {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         'Content-Disposition': `attachment; filename="${encodeURIComponent(fileName)}"`,
